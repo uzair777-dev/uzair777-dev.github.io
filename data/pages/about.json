@@ -1,0 +1,53 @@
+{
+  "type": "about",
+  "title": "About Me",
+  "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Black_-_replace_this_image_male.svg/960px-Black_-_replace_this_image_male.svg.png",
+  "content": [
+    "Hello! I'm a passionate Linux developer with a heart to learn stuff. I love turning complex problems into simple, beautiful, and intuitive solutions. I'm a quick learner and I'm always looking for new challenges and opportunities to grow.",
+    "My journey in software development started during my computer science studies, where I discovered my passion for creating digital experiences that make a difference. Since then, I've worked with various technologies and frameworks, always staying up-to-date with the latest industry trends.",
+    "When I'm not coding, you can find me contributing to open-source projects, writing technical blogs, or exploring new technologies. I believe in continuous learning and sharing knowledge with the developer community."
+  ],
+  "skills": [
+    {
+      "name": "Python",
+      "level": "Advanced",
+      "icon": "🐍"
+    },
+    {
+      "name": "SQL",
+      "level": "Intermediate",
+      "icon": "🔍"
+    },
+    {
+      "name": "Bash",
+      "level": "Advanced",
+      "icon": "🐚"
+    },
+    {
+      "name": "Linux",
+      "level": "Advanced",
+      "icon": "🐧"
+    },
+    {
+      "name": "AWS",
+      "level": "Intermediate",
+      "icon": "☁️"
+    },
+    {
+      "name": "Docker",
+      "level": "Intermediate",
+      "icon": "🐳"
+    },
+    {
+      "name": "Windows",
+      "level": "Advanced",
+      "icon": "🪟"
+    },
+    {
+      "name": "Networking",
+      "level": "Intermediate",
+      "icon": "🌐"
+    }
+  ]
+}
+

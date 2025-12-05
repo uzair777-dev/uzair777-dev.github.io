@@ -1,0 +1,32 @@
+{
+  "type": "home",
+  "title": "Home",
+  "hero": {
+    "name": "Uzair Shaikh",
+    "title": "Cybersecurity Engineer",
+    "description": "Passionate cybersecurity engineer creating innovative solutions with modern technologies. Specialized in Linux, Cloud technologies and architecture, and Penetration Testing.",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Black_-_replace_this_image_male.svg/960px-Black_-_replace_this_image_male.svg.png",
+    "cta": {
+      "text": "Learn More About Me",
+      "link": "about"
+    }
+  },
+  "featured": [
+    {
+      "title": "Linux Development",
+      "description": "Building Open Source and sustainable Software for Linux",
+      "icon": "🐧"
+    },
+    {
+      "title": "Cloud Management",
+      "description": "Managing and maintaining cloud services, to keep stuff running smoothly",
+      "icon": "☁️"
+    },
+    {
+      "title": "Penetration Testing",
+      "description": "Testing the security of systems and networks to find vulnerabilities and weaknesses",
+      "icon": "🎨"
+    }
+  ]
+}
+

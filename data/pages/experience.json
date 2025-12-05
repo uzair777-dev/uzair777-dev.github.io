@@ -1,0 +1,48 @@
+{
+  "type": "experience",
+  "title": "Experience",
+  "work": [
+    {
+      "title": "Senior Full Stack Developer",
+      "company": "Tech Innovations Inc.",
+      "duration": "January 2022 - Present",
+      "location": "San Francisco, CA",
+      "description": [
+        "Led development of multiple web applications using React, Node.js, and AWS",
+        "Collaborated with cross-functional teams to deliver high-quality software solutions",
+        "Mentored junior developers and conducted code reviews",
+        "Implemented CI/CD pipelines and improved deployment processes"
+      ],
+      "technologies": ["React", "Node.js", "AWS", "Docker", "PostgreSQL", "TypeScript"]
+    }
+  ],
+  "academic": [
+    {
+      "title": "Bachelor of Science in Computer Science",
+      "institution": "University of Technology",
+      "duration": "2014 - 2018",
+      "location": "Boston, MA",
+      "description": [
+        "Graduated with honors (GPA: 3.8/4.0)",
+        "Relevant coursework: Data Structures, Algorithms, Database Systems, Software Engineering",
+        "Senior project: Developed a real-time collaboration platform using WebSockets"
+      ],
+      "technologies": ["Java", "Python", "SQL", "C++"]
+    },
+    {
+      "title": "Web Development Bootcamp",
+      "institution": "Code Academy",
+      "duration": "Summer 2017",
+      "location": "Online",
+      "description": [
+        "Intensive 12-week program covering full-stack web development",
+        "Built multiple projects including a social media platform and e-commerce site",
+        "Learned modern frameworks and best practices"
+      ],
+      "technologies": ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB"]
+    }
+  ],
+  "lookingForWork": true,
+  "lookingForWorkMessage": "I am currently looking for new opportunities in cybersecurity, Linux development, and cloud management. Feel free to reach out!"
+}
+

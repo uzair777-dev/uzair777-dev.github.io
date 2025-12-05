@@ -1,0 +1,52 @@
+{
+  "site": {
+    "name": "Developer Portfolio",
+    "logo": "Portfolio",
+    "description": "My Portfolio Website"
+  },
+  "navigation": {
+    "menu": [
+      {
+        "label": "Home",
+        "page": "home"
+      },
+      {
+        "label": "About",
+        "page": "about"
+      },
+      {
+        "label": "Experience",
+        "page": "experience"
+      },
+      {
+        "label": "Contact",
+        "page": "contact"
+      }
+    ]
+  },
+  "footer": {
+    "copyright": "© 2026 Uzair's Portfolio. All rights reserved.",
+    "links": [
+      {
+        "name": "GitHub",
+        "url": "https://github.com/uzair777-dev",
+        "icon": "🔗"
+      },
+      {
+        "name": "Email",
+        "url": "mailto:uzairshaikhking777@gmail.com",
+        "icon": "💼"
+      },
+      {
+        "name": "Twitter",
+        "url": "https://twitter.com",
+        "icon": "🐦"
+      }
+    ]
+  },
+  "theme": {
+    "primaryColor": "#6366f1",
+    "secondaryColor": "#8b5cf6"
+  }
+}
+
