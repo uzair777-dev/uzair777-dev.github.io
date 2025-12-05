@@ -3,6 +3,18 @@
   "title": "Experience",
   "work": [
     {
+      "title": "Looking for Work",
+      "company": "Available for new opportunities",
+      "duration": "Currently",
+      "location": "Remote / On-site / Hybrid",
+      "description": [
+        "Actively seeking roles in cybersecurity, Linux development, and cloud management",
+        "Open to collaborating on security assessments, infrastructure hardening, and automation projects",
+        "Ready to contribute immediately and adapt to team workflows"
+      ],
+      "technologies": ["Linux", "Bash", "Python", "Cloud", "Security"]
+    },
+    {
       "title": "Senior Full Stack Developer",
       "company": "Tech Innovations Inc.",
       "duration": "January 2022 - Present",
@@ -41,8 +53,6 @@
       ],
       "technologies": ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB"]
     }
-  ],
-  "lookingForWork": true,
-  "lookingForWorkMessage": "I am currently looking for new opportunities in cybersecurity, Linux development, and cloud management. Feel free to reach out!"
+  ]
 }
 
