@@ -148,6 +148,9 @@ function renderPage(pageData) {
     
     // Setup CTA buttons
     setupCTAButtons();
+    
+    // Rebind hover targets for the cursor blob after content changes
+    setupHoverBlobTargets();
 }
 
 // Render Home Page
@@ -464,14 +467,19 @@ function setupCursorBlob() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
         blob.classList.add('is-hidden');
+        blob.classList.add('prefers-reduced-motion');
         return;
     }
 
+    const baseSize = 180;
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
     let currentX = targetX;
     let currentY = targetY;
+    let targetSize = baseSize;
+    let currentSize = targetSize;
     const speed = 0.12;
+    const sizeSpeed = 0.2;
 
     const setActive = (state) => {
         if (state) {
@@ -484,9 +492,15 @@ function setupCursorBlob() {
     };
 
     const animate = () => {
+        const hoverSize = blob.dataset.hoverSize ? parseFloat(blob.dataset.hoverSize) : baseSize;
+        targetSize = Number.isFinite(hoverSize) ? hoverSize : baseSize;
         currentX += (targetX - currentX) * speed;
         currentY += (targetY - currentY) * speed;
-        blob.style.transform = `translate3d(${currentX - 90}px, ${currentY - 90}px, 0)`;
+        currentSize += (targetSize - currentSize) * sizeSpeed;
+        const half = currentSize / 2;
+        blob.style.width = `${currentSize}px`;
+        blob.style.height = `${currentSize}px`;
+        blob.style.transform = `translate3d(${currentX - half}px, ${currentY - half}px, 0)`;
         requestAnimationFrame(animate);
     };
 
@@ -494,6 +508,17 @@ function setupCursorBlob() {
         targetX = e.clientX;
         targetY = e.clientY;
         setActive(true);
+
+        const nav = document.getElementById('navbar');
+        if (nav) {
+            const rect = nav.getBoundingClientRect();
+            const overHeader = e.clientY <= rect.bottom;
+            if (overHeader) {
+                blob.classList.add('is-header');
+            } else {
+                blob.classList.remove('is-header');
+            }
+        }
     };
 
     const handleLeave = () => setActive(false);
@@ -505,5 +530,39 @@ function setupCursorBlob() {
     window.addEventListener('touchstart', () => setActive(false), { once: true });
 
     animate();
+}
+
+// Attach hover handling to targets to "wrap" the blob around elements
+function setupHoverBlobTargets() {
+    const blob = document.getElementById('cursor-blob');
+    if (!blob || blob.classList.contains('prefers-reduced-motion')) return;
+
+    const selectors = [
+        '.btn',
+        'button',
+        'a',
+        '.experience-card',
+        '.skill-item',
+        '.nav-logo',
+        '.nav-menu a'
+    ];
+
+    const targets = document.querySelectorAll(selectors.join(','));
+
+    const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+    targets.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            const rect = el.getBoundingClientRect();
+            const diagonal = Math.hypot(rect.width, rect.height);
+            const size = clamp(diagonal * 0.8, 120, 260);
+            blob.dataset.hoverSize = size;
+            blob.style.transition = 'opacity 0.25s ease, transform 0.25s ease, width 0.25s ease, height 0.25s ease';
+        });
+
+        el.addEventListener('mouseleave', () => {
+            delete blob.dataset.hoverSize;
+        });
+    });
 }
 

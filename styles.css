@@ -8,13 +8,15 @@
 :root {
     --primary-color: #6366f1;
     --secondary-color: #8b5cf6;
-    --text-color: #1f2937;
-    --text-light: #6b7280;
-    --bg-color: #ffffff;
-    --bg-light: #f9fafb;
-    --border-color: #e5e7eb;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --text-color: #e5e7eb;
+    --text-light: #9ca3af;
+    --bg-color: #0b0b0f;
+    --bg-light: #111827;
+    --border-color: #1f2937;
+    --shadow: 0 12px 32px rgba(17, 24, 39, 0.45);
+    --shadow-lg: 0 18px 45px rgba(17, 24, 39, 0.55);
+    --glow: 0 0 20px rgba(99, 102, 241, 0.25);
+    --glow-strong: 0 0 32px rgba(99, 102, 241, 0.35);
 }
 
 body {
@@ -33,11 +35,11 @@ body {
     left: 0;
     border-radius: 50%;
     pointer-events: none;
-    background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.25));
-    filter: blur(35px);
+    background: radial-gradient(circle at 30% 30%, #6366f1, rgba(99, 102, 241, 0.801));
+    filter: blur(10px);
     mix-blend-mode: multiply;
     opacity: 0;
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, width 0.25s ease, height 0.25s ease;
     z-index: 0;
 }
 
@@ -49,11 +51,16 @@ body {
     opacity: 0;
 }
 
+#cursor-blob.is-header {
+    filter: blur(38px);
+    opacity: 0.65;
+}
+
 /* Navigation */
 .navbar {
-    background: rgba(255, 255, 255, 0.65);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+    background: rgba(24, 24, 30, 0.75);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--glow);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     position: sticky;
@@ -74,7 +81,7 @@ body {
 .nav-logo {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--text-color);
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -90,7 +97,7 @@ body {
 }
 
 .nav-menu li a {
-    color: var(--text-color);
+    color: var(--text-light);
     text-decoration: none;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -172,7 +179,7 @@ body {
     object-fit: cover;
     margin: 2rem auto;
     display: block;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--glow-strong);
 }
 
 /* Section Styles */
@@ -206,7 +213,7 @@ body {
     border-radius: 10px;
     margin: 2rem auto;
     display: block;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--glow-strong);
 }
 
 /* Experience Section */
@@ -255,10 +262,10 @@ body {
 }
 
 .experience-card {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(17, 24, 39, 0.85);
     padding: 1.5rem 1.75rem;
     border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(31, 38, 135, 0.12);
+    box-shadow: var(--glow);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -266,7 +273,7 @@ body {
 
 .experience-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(31, 38, 135, 0.16);
+    box-shadow: var(--glow-strong);
 }
 
 .experience-card h3 {
@@ -312,11 +319,11 @@ body {
 }
 
 .skill-item {
-    background: var(--bg-light);
+    background: rgba(17, 24, 39, 0.85);
     padding: 1.5rem;
     border-radius: 10px;
     text-align: center;
-    box-shadow: var(--shadow);
+    box-shadow: var(--glow);
     transition: transform 0.3s ease;
 }
 
@@ -333,10 +340,10 @@ body {
 .contact-form {
     max-width: 600px;
     margin: 0 auto;
-    background: var(--bg-light);
+    background: rgba(17, 24, 39, 0.85);
     padding: 2rem;
     border-radius: 10px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--glow);
 }
 
 .form-group {
@@ -382,11 +389,12 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--glow);
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--glow-strong);
 }
 
 .btn-glass {
@@ -426,7 +434,7 @@ body {
 
 /* Footer */
 .footer {
-    background-color: var(--bg-light);
+    background-color: #0d0d12;
     padding: 2rem;
     text-align: center;
     color: var(--text-light);
@@ -451,12 +459,12 @@ body {
         left: -100%;
         top: 70px;
         flex-direction: column;
-        background: rgba(255, 255, 255, 0.85);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(24, 24, 30, 0.9);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         width: 100%;
         text-align: center;
         transition: 0.3s;
-        box-shadow: 0 12px 32px rgba(31, 38, 135, 0.15);
+        box-shadow: var(--glow);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         padding: 2rem 0;
