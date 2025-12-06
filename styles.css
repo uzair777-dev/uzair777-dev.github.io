@@ -8,15 +8,15 @@
 :root {
     --primary-color: #6366f1;
     --secondary-color: #8b5cf6;
-    --text-color: #e5e7eb;
-    --text-light: #9ca3af;
-    --bg-color: #0b0b0f;
-    --bg-light: #111827;
-    --border-color: #1f2937;
-    --shadow: 0 12px 32px rgba(17, 24, 39, 0.45);
-    --shadow-lg: 0 18px 45px rgba(17, 24, 39, 0.55);
-    --glow: 0 0 20px rgba(99, 102, 241, 0.25);
-    --glow-strong: 0 0 32px rgba(99, 102, 241, 0.35);
+    --text-color: #1f2937;
+    --text-light: #4b5563;
+    --bg-color: #f9fafb;
+    --bg-light: #ffffff;
+    --border-color: #e5e7eb;
+    --shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.15);
+    --glow: 0 0 20px rgba(99, 102, 241, 0.15);
+    --glow-strong: 0 0 32px rgba(99, 102, 241, 0.2);
 }
 
 body {
@@ -26,41 +26,48 @@ body {
     line-height: 1.6;
 }
 
-/* Cursor blob */
-#cursor-blob {
-    position: fixed;
-    width: 180px;
-    height: 180px;
-    top: 0;
-    left: 0;
-    border-radius: 50%;
-    pointer-events: none;
-    background: radial-gradient(circle at 30% 30%, #6366f1, rgba(99, 102, 241, 0.801));
-    filter: blur(10px);
-    mix-blend-mode: multiply;
-    opacity: 0;
-    transition: opacity 0.25s ease, transform 0.25s ease, width 0.25s ease, height 0.25s ease;
-    z-index: 0;
+/* Light mode adjustments */
+.navbar {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
 
-#cursor-blob.is-active {
-    opacity: 0.8;
+.nav-menu li a {
+    color: var(--text-light) !important;
 }
 
-#cursor-blob.is-hidden {
-    opacity: 0;
+.skill-item, 
+.experience-card, 
+.contact-form {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
-#cursor-blob.is-header {
-    filter: blur(38px);
-    opacity: 0.65;
+.skill-item:hover, 
+.experience-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.experience-card .company,
+.experience-card .duration {
+    color: var(--text-light) !important;
+}
+
+.footer {
+    background-color: #f3f4f6 !important;
+    color: var(--text-light) !important;
+}
+
+/* Improve contrast for light mode */
+h1, h2, h3, h4, h5, h6 {
+    color: #111827 !important;
 }
 
 /* Navigation */
 .navbar {
-    background: rgba(24, 24, 30, 0.75);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: var(--glow);
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     position: sticky;
@@ -262,18 +269,16 @@ body {
 }
 
 .experience-card {
-    background: rgba(17, 24, 39, 0.85);
+    background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem 1.75rem;
     border-radius: 12px;
-    box-shadow: var(--glow);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .experience-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--glow-strong);
+    box-shadow: var(--shadow-lg);
 }
 
 .experience-card h3 {
@@ -319,16 +324,17 @@ body {
 }
 
 .skill-item {
-    background: rgba(17, 24, 39, 0.85);
+    background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem;
     border-radius: 10px;
     text-align: center;
-    box-shadow: var(--glow);
-    transition: transform 0.3s ease;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .skill-item:hover {
     transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
 }
 
 .skill-item h4 {
@@ -434,7 +440,7 @@ body {
 
 /* Footer */
 .footer {
-    background-color: #0d0d12;
+    background-color: #f3f4f6;
     padding: 2rem;
     text-align: center;
     color: var(--text-light);
@@ -509,4 +515,3 @@ body {
         left: -1.25rem;
     }
 }
-
