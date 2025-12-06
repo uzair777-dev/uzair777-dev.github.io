@@ -20,10 +20,10 @@
       "duration": "January 2025 - Present",
       "location": "Mumbai, Maharashtra, India",
       "description": [
-        "Led development of multiple web applications using React, Node.js, and AWS",
-        "Collaborated with cross-functional teams to deliver high-quality software solutions",
-        "Mentored junior developers and conducted code reviews",
-        "Implemented CI/CD pipelines and improved deployment processes"
+        "Served as a backup Engineer,providing secondary support for technical operations amd issue resolution",
+        "Assisted in Systen maintainance, troubleshooting and operational support as required",
+        "Stepped in to handle technical tasks and incident management when primary engineers weren't avaliable",
+        "Worked at technical spaces of organisation like Motilal Oswal Financial Service Limited"
       ],
       "technologies": ["React", "Node.js", "AWS", "Docker", "PostgreSQL", "TypeScript"]
     }

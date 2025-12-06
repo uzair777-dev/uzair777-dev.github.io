@@ -32,7 +32,7 @@
     --shadow-lg: 0px 0px 28px -1px rgb(89 96 205);
     --glow: 0 0 20px rgba(129, 140, 248, 0.15);
     --glow-strong: 0 0 32px rgba(129, 141, 248, 0.322);
-    --preloader-bg: rgb(117, 115, 115);
+    --preloader-bg: rgb(100, 128, 206);
 }
 
 /* Theme toggle styles */
@@ -111,7 +111,7 @@ body {
 
 /* Improve contrast for light mode */
 h1, h2, h3, h4, h5, h6 {
-    color: #111827 !important;
+    color: var(--text-color) !important;
 }
 
 /* Navigation */
@@ -390,7 +390,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .skill-item h4 {
     margin-bottom: 0.5rem;
-    color: var(--primary-color);
+    color: var(--text-color);
 }
 
 /* Contact Section */
