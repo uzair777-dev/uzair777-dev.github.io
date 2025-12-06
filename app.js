@@ -16,6 +16,10 @@ async function init() {
         
         // Set up mobile menu toggle
         setupMobileMenu();
+        
+        // Set up theme toggle
+        setupThemeToggle();
+        setTheme(getPreferredTheme());
     } catch (error) {
         console.error('Error initializing app:', error);
         document.getElementById('main-content').innerHTML = 
@@ -446,6 +450,53 @@ async function setupFooter() {
     } catch (error) {
         console.error('Error setting up footer:', error);
     }
+}
+
+// Theme functions
+function getPreferredTheme() {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+        return storedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function setTheme(theme) {
+    if (theme === 'auto') {
+        const autoTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', autoTheme);
+    } else {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+    localStorage.setItem('theme', theme);
+    updateActiveThemeButton(theme);
+}
+
+function updateActiveThemeButton(theme) {
+    const buttons = document.querySelectorAll('.theme-option');
+    buttons.forEach(button => {
+        button.classList.remove('active');
+        if (button.dataset.theme === theme) {
+            button.classList.add('active');
+        }
+    });
+}
+
+function setupThemeToggle() {
+    const themeButtons = document.querySelectorAll('.theme-option');
+    themeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const theme = e.currentTarget.dataset.theme;
+            setTheme(theme);
+        });
+    });
+    
+    // Watch for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (localStorage.getItem('theme') === 'auto') {
+            setTheme('auto');
+        }
+    });
 }
 
 // Initialize when DOM is loaded
