@@ -30,28 +30,38 @@
   ],
   "academic": [
     {
-      "title": "Bachelor of Science in Computer Science",
-      "institution": "University of Technology",
-      "duration": "2014 - 2018",
-      "location": "Boston, MA",
+      "title": "Under graduate Degree in Computer Science and Engineering",
+      "institution": "Mumbai University",
+      "duration": "2024 - Present",
+      "location": "Mumbai",
       "description": [
-        "Graduated with honors (GPA: 3.8/4.0)",
-        "Relevant coursework: Data Structures, Algorithms, Database Systems, Software Engineering",
-        "Senior project: Developed a real-time collaboration platform using WebSockets"
+        "Yet to be Graduated",
+        "Major In Cybersecurity, IOT, Block Chain",
+        "Senior project: Yet to Develop"
       ],
-      "technologies": ["Java", "Python", "SQL", "C++"]
+      "technologies": ["Python", "Bash", "Linux", "Git", "Networking"]
     },
     {
-      "title": "Web Development Bootcamp",
-      "institution": "Code Academy",
-      "duration": "Summer 2017",
-      "location": "Online",
+      "title": "Diploma in Computer Engineering",
+      "institution": "Vidyalankar Polytechnic",
+      "duration": "2021 - 2024",
+      "location": "Vadala, Mumbai",
       "description": [
-        "Intensive 12-week program covering full-stack web development",
-        "Built multiple projects including a social media platform and e-commerce site",
-        "Learned modern frameworks and best practices"
+        "Graduated with honors (73%)",
+        "Relevant coursework: Data Structures, Algorithms, Database Systems, Software Engineering",
+        "Senior project: Developed a Website that display information using python within the browser (M2ADB)"
       ],
-      "technologies": ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB"]
+      "technologies": ["Java", "Python", "Bash", "C++"]
+    },
+    {
+      "title": "Standard 10th",
+      "institution": "Saeeda M. S. Naik Highschool",
+      "duration": "2020 -2021 Batch",
+      "location": "Ratnagiri, Maharashtra, India",
+      "description": [
+        "Passed With Total Percentage of 85%"
+      ],
+      "technologies": ["Maths","Languages (English, Marathi, Hindi)","Biology","Physics", "Chemistry","History", "Geography"]
     }
   ]
 }

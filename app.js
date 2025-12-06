@@ -449,7 +449,7 @@ async function setupFooter() {
                 });
                 footerHTML += '</div>';
             }
-            footer.innerHTML = footerHTML;
+            footer.innerHTML = footerHTML += "<br>PS: This whole website is genrated on the spot using various clever techniques. 😜 <br> Visit the Github repo for more info.";
         }
     } catch (error) {
         console.error('Error setting up footer:', error);
