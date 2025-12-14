@@ -56,3 +56,4 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 - [ ] Optimise it
 - [ ] Optimise it again
 - [x] Document everything properly 
+- [ ] Add a Cloudflare proxy
