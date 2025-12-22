@@ -518,6 +518,7 @@ function setupResourceButtons() {
             currentPopup.style.justifyContent = 'center';
             currentPopup.style.alignItems = 'center';
             currentPopup.style.flexDirection = 'column';
+            currentPopup.style.backgroundColor= "var(--bg-light)"
 
             // Create popup content container
             const popupContent = document.createElement('div');
