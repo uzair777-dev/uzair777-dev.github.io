@@ -51,7 +51,7 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 - [ ] Add resume 
 - [ ] Make it so that I can download resume
 - [ ] Link my socials
-- [ ] Add Notes for the subjects 
+- [x] Add Notes for the subjects 
 - [ ] Make stuff Look good
 - [ ] Optimise it
 - [ ] Optimise it again
