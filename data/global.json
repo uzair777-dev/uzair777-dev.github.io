@@ -51,7 +51,9 @@
         "url": "https://instagram.com/justaguywithaveryuniquename",
         "icon": "res/svg/instagram.svg"
       }
-    ]
+    ],
+    "footerNote": "<br>PS: This whole website is genrated on the spot using various clever techniques. 😜 <br> Visit the <a href='https://github.com/uzair777-dev/uzair777-dev.github.io'>GitHub repo</a>  for more info."
+
   },
   "theme": {
     "primaryColor": "#6366f1",

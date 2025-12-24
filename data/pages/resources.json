@@ -1,6 +1,7 @@
 {
   "type": "resources",
   "title": "Resources",
+  "note1": "It will take some time to load data after clicking on any buttons. Please be patient.<br>If any of the folders are empty, they will be updated.If not updated for a while, reach out to me via my contacts.",
   "folders": [
     {
       "sem": 4,
@@ -27,5 +28,6 @@
       "text": "Semester VII",
       "link": "https://drive.google.com/drive/folders/1ozAj-qsko1j5riuU4PnJFUIhoUjiQOFA?usp=sharing"
     }
-  ]
+  ],
+  "note2": "This are notes are just general educational purposes only, You are not authorised to redistribute them in any form or structure. "
 }

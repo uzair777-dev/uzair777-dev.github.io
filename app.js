@@ -411,6 +411,10 @@ function renderResourcesPage(data) {
     let html = '<div class="container">';
     html += '<section class="section">';
     html += `<h1 class="section-title">${data.title || 'Resources'}</h1>`;
+    const note1 = data.note1;
+    html += '<p style="font-size: 0.9rem; color: var(--text-light);"><center>'
+    html += note1;
+    html+='</center></p>';
     html += '<div class="section-content">';
 
     if (data.description) {
@@ -438,6 +442,10 @@ function renderResourcesPage(data) {
     }
 
     html += '</div>';
+    const note2 = data.note2;
+    html += '<p style="font-size: 0.9rem; color: var(--text-light);"><center>'
+    html += note2;
+    html+='</center></p>';
     html += '</section>';
     html += '</div>';
     return html;
@@ -667,7 +675,8 @@ async function setupFooter() {
                 }
                 footerHTML += '</div>';
             }
-            footer.innerHTML = footerHTML += "<br>PS: This whole website is genrated on the spot using various clever techniques. 😜 <br> Visit the Github repo for more info.";
+            footerHTML += globalConfig.footer.footerNote;
+            footer.innerHTML = footerHTML ;
         }
     } catch (error) {
         console.error('Error setting up footer:', error);
