@@ -24,7 +24,7 @@ These are the following roles for the files
 
 2. `./app.js` : This is the brains of the website (I'll explain it later).
 
-3. `./styles.css` : This is the styling. The make it ✨ Look Good ✨ sauce 
+3. `./styles.css` : This is the styling. The ✨ Make it Look Good ✨ sauce 
 
 4. `./data/global.json` : This contains the global setting that is default for the whole website. 
 
