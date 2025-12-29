@@ -48,7 +48,7 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 - [x] Do styling
 - [x] Make styling better 
 - [ ] Unf\*ck styling 
-- [ ] Add resume 
+- [x] Add resume 
 - [ ] Make it so that I can download resume
 - [ ] Link my socials
 - [x] Add Notes for the subjects 
