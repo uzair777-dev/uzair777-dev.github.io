@@ -63,3 +63,16 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 
 
 [Backup link](https://uzair777-dev.github.io)
+
+## Fonts used: 
+
+- 4-Sided
+- Black clouds white sky
+- Nazox-nAr0Y
+- VahyoneLight-ZpXYl
+- Vaticanus
+- XCRobot
+- zalgo
+
+
+Credit to their own author

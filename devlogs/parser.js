@@ -1,0 +1,1 @@
+//This is parser.js for my custom xml format

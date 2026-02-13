@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is a comment. The renderer will not see this.-->
+<feed xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <channel>
+    <title>My dev logs</title>
+    <link>https://example.com</link>
+    <description>Latest updates from Example Blog</description>
+<item>
+      <description><![CDATA[This is a sample description, that will be visible in the devlog list.This only has single line.]]></description>
+      <content>
+        This is the content that will be visible when the user clicks on any card in the devlog list.
+        This can have multiple lines.
+        This can also have html tags for flexibilty
+        For exxample 
+        <i>This is sentence is in italics</i>
+        <b>This sentence is in bold</b>
+        or i could just do <i><b>this word</b></i> in bold and italics 
+        Also it supports my own custom schenaigans like for example censoring.
+        like this :
+        <censor>This sentence is censored</censor>
+        You can unhide this 
+        Or you could censor a particular word for example this<PCensor>word</PCensor>. 
+        Or Giched texts like this: <glitch intensity="2">abracadabra</glitch>
+        and this is heavy glitched <glitch intensity="10"></glitch>
+        Here only w is visible, everything else is just asterisk. This applies to each word so its not the whole sentence
+      </content>
+      <pubDate>
+        <date>1770976574</date>
+        <timezone>GMT</timezone>
+      </pubDate>
+    </item>
+  </channel>
+</feed>   
