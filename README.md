@@ -75,4 +75,4 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 - zalgo
 
 
-Credit to their own author
+Credits to their own author
