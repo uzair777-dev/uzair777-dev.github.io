@@ -4,6 +4,8 @@
 //   • Dynamically loads navigation from global.json
 //   • Theme toggle & mobile menu
 //   • Renders cards from parsed XML data
+//   • Full-screen overlay for reading posts
+//   • Hash-based deep-linking (/devlogs/#id)
 // ═══════════════════════════════════════════════
 import { loadXML } from './parser.js';
 
@@ -25,6 +27,9 @@ async function init() {
         setTheme(getPreferredTheme());
         setupMobileMenu();
         await setupNavigation();
+
+        // Create the overlay element
+        createOverlay();
 
         // Load custom fonts for glitch effect
         await loadGlitchFonts();
@@ -49,13 +54,17 @@ async function init() {
 
         // Footer (same data source as main site)
         await setupFooter();
+
+        // Check for hash deep-link (#id)
+        handleHashNavigation();
+        window.addEventListener('hashchange', handleHashNavigation);
     } catch (error) {
         showError(`Unexpected error: ${error.message}`);
     }
 }
 
 // ═══════════════════════════════════════════════
-//  Content Processing  (censor / pcensor / glitch)
+//  Content Processing  (HTML normalise + censor / pcensor / glitch)
 //
 //  Custom tags (defined in logs.xml):
 //   <censor>text</censor>
@@ -69,20 +78,29 @@ async function init() {
 //         replaces the letter with a random letter.
 //         If no text given, generates 3-7 random chars.
 //         Intensity (2-10) controls animation speed.
+//
+//  Supported HTML tags: <br>, <img>, <a>, <p>, <i>, <b>,
+//  <u>, <s>, <sub>, <sup>, <hr>, <ul>, <ol>, <li>, <code>, <pre>
 // ═══════════════════════════════════════════════
 
 function processContent(content) {
-    // Full censor — replace every character with █
+    // ── 1. Normalise HTML tags that XML serialisation may mangle ──
+    // XML self-closes void elements: <br/> <hr/> <img .../>
+    content = content.replace(/<br\s*\/>/gi, '<br>');
+    content = content.replace(/<hr\s*\/>/gi, '<hr>');
+    // Fix img self-closing (XML: <img src="..." />) to HTML
+    content = content.replace(/<img\s+([^>]*?)\/>/gi, '<img $1>');
+
+    // ── 2. Custom tag: full censor — replace every character with █ ──
     content = content.replace(/<censor>(.*?)<\/censor>/gi, (_m, p1) =>
         `<span class="censor-text">${'█'.repeat(p1.length)}</span>`
     );
 
-    // Partial censor — first char + second-to-last char visible, rest is *
+    // ── 3. Custom tag: partial censor — first + second-to-last char visible ──
     content = content.replace(/<PCensor>(.*?)<\/PCensor>/gi, (_m, p1) => {
         return p1.split(' ').map(word => {
             if (word.length <= 2) return word;
             if (word.length === 3) return word[0] + '*' + word[2];
-            // Show first char and second-to-last char
             const secondToLast = word.length - 2;
             return word.split('').map((ch, i) => {
                 if (i === 0 || i === secondToLast) return ch;
@@ -91,10 +109,8 @@ function processContent(content) {
         }).join(' ');
     });
 
-    // Glitch — handles BOTH forms:
-    //   <glitch intensity="N">text</glitch>       (normal)
-    //   <glitch intensity="N"/>                    (self-closing, XML serialisation of empty tags)
-    //   <glitch intensity="N"></glitch>             (empty)
+    // ── 4. Custom tag: glitch ──
+    // Handles both <glitch intensity="N">text</glitch> and <glitch intensity="N"/>
     content = content.replace(/<glitch\s+intensity="(\d+)">(.*?)<\/glitch>/gi, (_m, int, txt) => {
         return renderGlitchText(txt, Math.min(Math.max(parseInt(int), 2), 10));
     });
@@ -102,7 +118,7 @@ function processContent(content) {
         return renderGlitchText('', Math.min(Math.max(parseInt(int), 2), 10));
     });
 
-    // Normalise through a temp element (safe HTML)
+    // ── 5. Normalise through a temp element (safe HTML pass-through) ──
     const tmp = document.createElement('div');
     tmp.innerHTML = content;
     return tmp.innerHTML;
@@ -122,7 +138,7 @@ function renderGlitchText(text, intensity) {
 
     // If no text given, generate random 3-7 characters
     if (!text || text.trim().length === 0) {
-        const len = Math.floor(Math.random() * 5) + 3; // 3 to 7
+        const len = Math.floor(Math.random() * 5) + 3;
         text = Array.from({ length: len }, () =>
             pool[Math.floor(Math.random() * pool.length)]
         ).join('');
@@ -133,17 +149,12 @@ function renderGlitchText(text, intensity) {
 
     const spans = text.split('').map(ch => {
         if (ch === ' ') return ' ';
-
-        // Every letter is replaced with a random letter
         const display = pool[Math.floor(Math.random() * pool.length)];
-
-        // Every letter gets a random font
         let fontCSS = '';
         if (glitchFonts.length > 0) {
             const font = glitchFonts[Math.floor(Math.random() * glitchFonts.length)];
             fontCSS = `font-family:'${font}',monospace;`;
         }
-
         return `<span class="glitch-char" style="${fontCSS}--glitch-speed:${speed}s;">${display}</span>`;
     }).join('');
 
@@ -164,31 +175,101 @@ async function loadGlitchFonts() {
         '/data/fonts/font-6.otf'
     ];
 
-    // Open (or create) a dedicated cache for glitch fonts
     let cache = null;
-    try { cache = await caches.open(FONT_CACHE_NAME); } catch (_) { /* Cache API not available */ }
+    try { cache = await caches.open(FONT_CACHE_NAME); } catch (_) {}
 
     for (let i = 0; i < files.length; i++) {
         try {
             const name = `glitch-font-${i}`;
-            let fontUrl = files[i];
-
-            // Try loading from cache first, then network
             if (cache) {
-                const cached = await cache.match(fontUrl);
-                if (!cached) {
-                    // Fetch and store in cache for future visits
-                    await cache.add(fontUrl);
-                }
+                const cached = await cache.match(files[i]);
+                if (!cached) await cache.add(files[i]);
             }
-
-            const face = new FontFace(name, `url(${fontUrl})`);
+            const face = new FontFace(name, `url(${files[i]})`);
             await face.load();
             document.fonts.add(face);
             glitchFonts.push(name);
         } catch (e) {
             console.warn(`Glitch font ${files[i]} skipped:`, e);
         }
+    }
+}
+
+// ═══════════════════════════════════════════════
+//  Full-Screen Overlay
+// ═══════════════════════════════════════════════
+
+function createOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'devlog-overlay';
+    overlay.className = 'devlog-overlay';
+    overlay.innerHTML = `
+        <div class="overlay-backdrop"></div>
+        <div class="overlay-panel">
+            <button class="overlay-close" id="overlay-close" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="overlay-header" id="overlay-header"></div>
+            <div class="overlay-body" id="overlay-body"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Close handlers
+    overlay.querySelector('#overlay-close').addEventListener('click', closeOverlay);
+    overlay.querySelector('.overlay-backdrop').addEventListener('click', closeOverlay);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) closeOverlay();
+    });
+}
+
+function openOverlay(logId) {
+    const log = devLogs.find(l => l.id === String(logId));
+    if (!log) return;
+
+    const overlay = document.getElementById('devlog-overlay');
+    const header  = document.getElementById('overlay-header');
+    const body    = document.getElementById('overlay-body');
+
+    header.innerHTML = `
+        <h2 class="overlay-title">${log.heading || log.title}</h2>
+        <div class="overlay-meta">
+            <span class="overlay-date">${formatDate(log.pubDate.date)}${log.pubDate.timezone ? ` (${log.pubDate.timezone})` : ''}</span>
+            ${log.type ? `<span class="overlay-type">${log.type}</span>` : ''}
+        </div>
+        ${log.description ? `<p class="overlay-description">${log.description}</p>` : ''}
+    `;
+    body.innerHTML = log.content;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Update URL hash
+    history.pushState(null, '', `#${log.id}`);
+}
+
+function closeOverlay() {
+    const overlay = document.getElementById('devlog-overlay');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+
+    // Clear hash
+    history.pushState(null, '', window.location.pathname);
+}
+
+// ═══════════════════════════════════════════════
+//  Hash Deep-Linking  (/devlogs/#id)
+// ═══════════════════════════════════════════════
+
+function handleHashNavigation() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && devLogs.length > 0) {
+        openOverlay(hash);
     }
 }
 
@@ -347,21 +428,10 @@ function createCard(log) {
             ${log.type ? `<span class="devlog-type">${log.type}</span>` : ''}
         </div>
         <p class="devlog-description">${log.description}</p>
-        <div class="devlog-content" id="content-${log.id}">${log.content}</div>
-        <button class="devlog-toggle" data-id="${log.id}">Read More <span class="toggle-arrow">▼</span></button>`;
+        <button class="devlog-toggle" data-id="${log.id}">Read More <span class="toggle-arrow">→</span></button>`;
 
-    card.querySelector('.devlog-toggle').addEventListener('click', () => toggleContent(log.id));
+    card.querySelector('.devlog-toggle').addEventListener('click', () => openOverlay(log.id));
     return card;
-}
-
-function toggleContent(id) {
-    const content = document.getElementById(`content-${id}`);
-    const btn     = document.querySelector(`[data-id="${id}"]`);
-    const open    = content.classList.toggle('expanded');
-    btn.classList.toggle('expanded', open);
-    btn.innerHTML = open
-        ? 'Read Less <span class="toggle-arrow">▼</span>'
-        : 'Read More <span class="toggle-arrow">▼</span>';
 }
 
 // ═══════════════════════════════════════════════

@@ -133,21 +133,11 @@
   }
 }
 
-.devlog-card:nth-child(1) {
-  animation-delay: 0.05s;
-}
-.devlog-card:nth-child(2) {
-  animation-delay: 0.1s;
-}
-.devlog-card:nth-child(3) {
-  animation-delay: 0.15s;
-}
-.devlog-card:nth-child(4) {
-  animation-delay: 0.2s;
-}
-.devlog-card:nth-child(5) {
-  animation-delay: 0.25s;
-}
+.devlog-card:nth-child(1) { animation-delay: 0.05s; }
+.devlog-card:nth-child(2) { animation-delay: 0.1s; }
+.devlog-card:nth-child(3) { animation-delay: 0.15s; }
+.devlog-card:nth-child(4) { animation-delay: 0.2s; }
+.devlog-card:nth-child(5) { animation-delay: 0.25s; }
 
 /* Card Header */
 .devlog-header {
@@ -210,38 +200,12 @@
   font-size: 0.95rem;
 }
 
-/* Expandable Content */
-.devlog-content {
-  background: var(--bg-color);
-  border-radius: 10px;
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition:
-    max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s ease,
-    padding 0.3s ease,
-    margin 0.3s ease;
-  padding: 0 1.25rem;
-  margin: 0;
-  line-height: 1.8;
-  color: var(--text-color);
-  font-size: 0.95rem;
-}
-
-.devlog-content.expanded {
-  max-height: 2000px;
-  opacity: 1;
-  padding: 1.25rem;
-  margin-top: 0.75rem;
-}
-
-/* Toggle Button */
+/* Toggle / Read More Button */
 .devlog-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   padding: 0.6rem 1.5rem;
   background: linear-gradient(
     135deg,
@@ -271,11 +235,203 @@
 
 .devlog-toggle .toggle-arrow {
   transition: transform 0.3s ease;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
 }
 
-.devlog-toggle.expanded .toggle-arrow {
-  transform: rotate(180deg);
+/* ═══════════════════════════════════════════════
+   Full-Screen Overlay
+   ═══════════════════════════════════════════════ */
+
+.devlog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.devlog-overlay.open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Backdrop */
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Panel */
+.overlay-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  background: var(--bg-color);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(30px);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.devlog-overlay.open .overlay-panel {
+  transform: translateY(0);
+}
+
+/* Close Button */
+.overlay-close {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 10001;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.overlay-close:hover {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-color: transparent;
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* Overlay Header */
+.overlay-header {
+  padding: 4rem 3rem 2rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.overlay-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-color);
+  line-height: 1.2;
+  margin: 0 0 1rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.overlay-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.overlay-date {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.overlay-date::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-color);
+}
+
+.overlay-type {
+  padding: 0.3rem 0.9rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  color: var(--primary-color);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.overlay-description {
+  color: var(--text-light);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Overlay Body (content) */
+.overlay-body {
+  padding: 2.5rem 3rem 4rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  line-height: 1.9;
+  font-size: 1.05rem;
+  color: var(--text-color);
+  flex: 1;
+}
+
+.overlay-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+
+.overlay-body a {
+  color: var(--primary-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s;
+}
+
+.overlay-body a:hover {
+  opacity: 0.8;
+}
+
+.overlay-body code {
+  background: rgba(99, 102, 241, 0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.overlay-body pre {
+  background: var(--bg-light);
+  padding: 1.25rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  margin: 1rem 0;
+}
+
+.overlay-body pre code {
+  background: none;
+  padding: 0;
 }
 
 /* Pagination */
@@ -460,6 +616,24 @@
     padding: 0.4rem 1rem;
     font-size: 0.8rem;
   }
+
+  /* Overlay responsive */
+  .overlay-header {
+    padding: 3.5rem 1.5rem 1.5rem;
+  }
+  .overlay-title {
+    font-size: 1.75rem;
+  }
+  .overlay-body {
+    padding: 1.5rem 1.5rem 3rem;
+    font-size: 1rem;
+  }
+  .overlay-close {
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 40px;
+    height: 40px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -467,6 +641,16 @@
     font-size: 2rem;
   }
   .devlog-hero .subtitle {
+    font-size: 0.95rem;
+  }
+  .overlay-title {
+    font-size: 1.4rem;
+  }
+  .overlay-header {
+    padding: 3rem 1rem 1rem;
+  }
+  .overlay-body {
+    padding: 1rem 1rem 2rem;
     font-size: 0.95rem;
   }
 }
