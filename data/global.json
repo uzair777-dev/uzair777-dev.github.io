@@ -52,7 +52,7 @@
         "icon": "res/svg/instagram.svg"
       }
     ],
-    "footerNote": "<br>PS: This whole website is genrated on the spot using various clever techniques. 😜 <br> Visit the <a href='https://github.com/uzair777-dev/uzair777-dev.github.io'>GitHub repo</a>  for more info. This is still under heavy development, it might not be the best experience, but expect it to improve."
+    "footerNote": "<br>PS: This whole website is generated on the spot using various clever techniques. 😜 <br> Visit the <a href='https://github.com/uzair777-dev/uzair777-dev.github.io'>GitHub repo</a>  for more info. This is still under heavy development, it might not be the best experience, but expect it to improve."
 
   },
   "theme": {
