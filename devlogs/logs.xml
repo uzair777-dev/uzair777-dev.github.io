@@ -22,7 +22,7 @@
         <censor>This sentence is censored</censor> PS: it says 
         It is repalced by full block, U+2588 (█). 
         Or you could censor a particular word for example this <PCensor>word</PCensor>. 
-        Here only first and second last word and last word is visible, everything else is just asterisk aka (*).Why you ask? My <PCensor>Fxxxxng</PCensor> will. 
+        Here only first and second last word is visible, everything else is just asterisk aka (*).Why you ask? My <PCensor>Fxxxxng</PCensor> will. 
         This applies to to whole sentences, applying to every word od the sentence.
         Or Giched texts like this: <glitch intensity="2">abracadabra</glitch>
         and this is heavy glitched <glitch intensity="10"></glitch>
