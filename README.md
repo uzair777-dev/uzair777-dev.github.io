@@ -42,6 +42,63 @@ Basically when the page loads it runs the `app.js` and it dynamically places con
 
 Truthfully, I am too lazy to update stuff everytime it is done, so i made it this way so it won't be a pain in the a*@h°le everytime
 
+---------------------
+
+## devLOGS (Blog)
+
+The blog section lives in `./devlogs/` and follows the same "nothing is hard-coded" philosophy as the rest of the site, except it uses **XML** instead of JSON.
+
+### Files
+
+| File | Role |
+|---|---|
+| `devlogs/index.html` | Page skeleton — loads styles and boots the module |
+| `devlogs/index.js` | Page renderer (like `app.js` for the main site) — theme toggle, nav, cards, pagination, content processing |
+| `devlogs/parser.js` | XML parser — runs in a Web Worker when possible, falls back to main thread |
+| `devlogs/styles.css` | Dedicated stylesheet for the blog page |
+| `devlogs/logs.xml` | **The data source** — all blog posts live here |
+
+### XML Format
+
+The feed uses a custom XML syntax (inspired by RSS but different):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <channel>
+    <item>
+      <title>Post title</title>
+      <id>1</id>                          <!-- unique identifier -->
+      <type></type>                       <!-- optional category for filtering -->
+      <heading>Card heading</heading>     <!-- displayed on the card -->
+      <description><![CDATA[Short preview text.]]></description>
+      <content>
+        Full content shown on expand. Supports HTML tags.
+      </content>
+      <pubDate>
+        <date>1770976574</date>           <!-- Unix timestamp -->
+        <timezone>GMT</timezone>
+      </pubDate>
+    </item>
+  </channel>
+</feed>
+```
+
+### Custom Tags (inside `<content>`)
+
+| Tag | What it does |
+|---|---|
+| `<censor>text</censor>` | Replaces every character with `█` (U+2588) |
+| `<PCensor>text</PCensor>` | Partial censor — shows ~30% of each word, rest is `*` |
+| `<glitch intensity="N">text</glitch>` | Replaces every letter with a random letter using a random font from `data/fonts/`. Intensity (2-10) controls animation speed. If no text given, generates 3-7 random characters |
+
+### How to add a new post
+
+1. Open `devlogs/logs.xml`
+2. Add a new `<item>` inside `<channel>`
+3. Fill in `title`, `id` (unique), `heading`, `description`, `content`, and `pubDate`
+4. Done — the page renders it automatically
+
 ## TODO
 
 - [x] Make a repository
@@ -58,7 +115,7 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 - [ ] Optimise it again
 - [x] Document everything properly
 - [x] Add a Cloudflare proxy
-- [ ] Add a blog
+- [x] Add a blog
 
 [Backup link](https://uzair777-dev.github.io)
 

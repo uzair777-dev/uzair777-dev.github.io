@@ -4,132 +4,21 @@
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="xt_IxcJXyOkbD0JOOCmyHotoX1Pu9qqHWe4go42Tp0o" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer Portfolio</title>
+    <meta name="description" content="devLOGS — Developer thoughts, builds, and everything in between.">
+    <title>devLOGS</title>
     <link rel="stylesheet" href="/styles.css">
-    <link rel="icon" href="/res/img/bot.png" type="image/x-icon">
-    <style>
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 2rem 0;
-            gap: 1rem;
-        }
-        .pagination button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .pagination span {
-            color: var(--text-light);
-        }
-        
-        .devlog-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .devlog-list {
-            display: grid;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        .devlog-card {
-            background: var(--bg-light);
-            border-radius: 8px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .devlog-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .devlog-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .devlog-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-        .devlog-date {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-        .devlog-description {
-            color: var(--text-light);
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-        .devlog-content {
-            background: var(--bg-primary);
-            padding: 1rem;
-            border-radius: 4px;
-            margin-top: 1rem;
-            display: none;
-        }
-        .devlog-content.expanded {
-            display: block;
-        }
-        .devlog-content p {
-            margin: 0.5rem 0;
-            line-height: 1.6;
-        }
-        .censor {
-            background-color: #000;
-            color: #000;
-            padding: 0 2px;
-        }
-        .glitch {
-            position: relative;
-            animation: glitch 0.3s infinite;
-        }
-        @keyframes glitch {
-            0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #0000ff; }
-            50% { text-shadow: -2px 0 #ff0000, 2px 0 #0000ff; }
-        }
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-        }
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 2rem 0;
-        }
-        @media (max-width: 768px) {
-            .devlog-container {
-                padding: 1rem;
-            }
-            .devlog-card {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/devlogs/styles.css">
+    <link rel="icon" href="/res/svg/bot.svg" type="image/x-icon">
 </head>
 <body>
+    <!-- Navigation (populated dynamically from global.json) -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="#" class="nav-logo" id="nav-logo">devLOGS</a>
+            <a href="/devlogs/" class="nav-logo" id="nav-logo">devLOGS</a>
             <ul class="nav-menu" id="nav-menu">
-                <!-- Navigation items will be dynamically loaded -->
+                <!-- Loaded by index.js -->
             </ul>
-            
+
             <!-- Theme Toggle -->
             <div class="theme-toggle" id="theme-toggle">
                 <button class="theme-option" data-theme="light" aria-label="Light mode">
@@ -159,14 +48,32 @@
         </div>
     </nav>
 
+    <!-- Hero -->
+    <header class="devlog-hero">
+        <h1>devLOGS</h1>
+        <p class="subtitle">If there's a will, you'll hear my pleads</p>
+        <p class="subtitle">Someone with common sense: <sup> The saying isn't like that though? </sup></p>
+        <p class="subtitle"> Shut up Meg </p>
+    </header>
+
+    <!-- Filters (shown only when multiple types exist) -->
+    <div id="filter-container" class="devlog-container" style="display:none;"></div>
+
+    <!-- Main Content -->
     <main class="devlog-container">
-        <div class="loading" id="loading">Loading dev logs...</div>
-        <div class="error" id="error" style="display: none;"></div>
-        <div class="devlog-list" id="devlog-list" style="display: none;"></div>
+        <div class="devlog-loading" id="loading">
+            <div class="loading-spinner"></div>
+            <span class="loading-text">Loading dev logs...</span>
+        </div>
+        <div class="devlog-error" id="error" style="display:none;"></div>
+        <div class="devlog-list" id="devlog-list" style="display:none;"></div>
         <div id="pagination-container"></div>
     </main>
 
-    <script src="/devlogs/index.js"></script>
-    <script src="/devlogs/parser.js"></script>
+    <!-- Footer (populated from global.json) -->
+    <footer class="footer" id="footer"></footer>
+
+    <!-- Module script — parser.js is imported inside index.js -->
+    <script type="module" src="/devlogs/index.js"></script>
 </body>
 </html>

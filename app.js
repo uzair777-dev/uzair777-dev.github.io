@@ -66,6 +66,14 @@ function setupNavigation() {
             li.appendChild(a);
             navMenu.appendChild(li);
         });
+
+        // Add devLOGS link (separate page, not SPA route)
+        const devlogLi = document.createElement('li');
+        const devlogA = document.createElement('a');
+        devlogA.href = '/devlogs/';
+        devlogA.textContent = 'devLOGS';
+        devlogLi.appendChild(devlogA);
+        navMenu.appendChild(devlogLi);
     }
 }
 
