@@ -56,26 +56,50 @@ async function init() {
 
 // ═══════════════════════════════════════════════
 //  Content Processing  (censor / pcensor / glitch)
+//
+//  Custom tags (defined in logs.xml):
+//   <censor>text</censor>
+//       → replaces every char with █ (U+2588)
+//   <PCensor>text</PCensor>
+//       → partial censor: only the first and second-to-last
+//         character of each word are visible,
+//         everything else is * (applied per-word)
+//   <glitch intensity="N">text</glitch>
+//       → replaces the font of every letter with a random font,
+//         replaces the letter with a random letter.
+//         If no text given, generates 3-7 random chars.
+//         Intensity (2-10) controls animation speed.
 // ═══════════════════════════════════════════════
 
 function processContent(content) {
-    // Full censor — replace with block chars
+    // Full censor — replace every character with █
     content = content.replace(/<censor>(.*?)<\/censor>/gi, (_m, p1) =>
         `<span class="censor-text">${'█'.repeat(p1.length)}</span>`
     );
 
-    // Partial censor — show ~30 % of each word
+    // Partial censor — first char + second-to-last char visible, rest is *
     content = content.replace(/<PCensor>(.*?)<\/PCensor>/gi, (_m, p1) => {
         return p1.split(' ').map(word => {
-            if (word.length <= 3) return word;
-            const v = Math.floor(word.length * 0.3);
-            return word.slice(0, v) + '*'.repeat(word.length - v);
+            if (word.length <= 2) return word;
+            if (word.length === 3) return word[0] + '*' + word[2];
+            // Show first char and second-to-last char
+            const secondToLast = word.length - 2;
+            return word.split('').map((ch, i) => {
+                if (i === 0 || i === secondToLast) return ch;
+                return '*';
+            }).join('');
         }).join(' ');
     });
 
-    // Glitch — every letter gets a random font AND a random replacement letter
+    // Glitch — handles BOTH forms:
+    //   <glitch intensity="N">text</glitch>       (normal)
+    //   <glitch intensity="N"/>                    (self-closing, XML serialisation of empty tags)
+    //   <glitch intensity="N"></glitch>             (empty)
     content = content.replace(/<glitch\s+intensity="(\d+)">(.*?)<\/glitch>/gi, (_m, int, txt) => {
         return renderGlitchText(txt, Math.min(Math.max(parseInt(int), 2), 10));
+    });
+    content = content.replace(/<glitch\s+intensity="(\d+)"\s*\/>/gi, (_m, int) => {
+        return renderGlitchText('', Math.min(Math.max(parseInt(int), 2), 10));
     });
 
     // Normalise through a temp element (safe HTML)
