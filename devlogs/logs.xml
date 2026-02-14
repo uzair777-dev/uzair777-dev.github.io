@@ -2,10 +2,12 @@
 <!-- This is a comment. The renderer will not see this.-->
 <feed xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <channel>
+    <item>
+
     <title>My dev logs</title>
-    <link>https://example.com</link>
-    <description>Latest updates from Example Blog</description>
-<item>
+    <id>1</id>
+    <type></type>
+    <heading>Example heading, idk</heading>
       <description><![CDATA[This is a sample description, that will be visible in the devlog list.This only has single line.]]></description>
       <content>
         This is the content that will be visible when the user clicks on any card in the devlog list.
@@ -17,12 +19,14 @@
         or i could just do <i><b>this word</b></i> in bold and italics 
         Also it supports my own custom schenaigans like for example censoring.
         like this :
-        <censor>This sentence is censored</censor>
-        You can unhide this 
+        <censor>This sentence is censored</censor> PS: it says 
+        It is repalced by full block, U+2588 (█). 
         Or you could censor a particular word for example this<PCensor>word</PCensor>. 
+        Here only first and second last word is visible, everything else is just asterisk aka (*).Why you ask? My <PCensor>Fxxxxng</PCensor> will. 
+        This applies to to whole sentences, applying to every word od the sentence.
         Or Giched texts like this: <glitch intensity="2">abracadabra</glitch>
         and this is heavy glitched <glitch intensity="10"></glitch>
-        Here only w is visible, everything else is just asterisk. This applies to each word so its not the whole sentence
+        The glitch works by fetching fonts from the fonts directory, counting the numbers of letters betwwen the tag(excluding spaces), or if none is given just guesses a random number between 3 and 7 and then replaces the font of every letter with a random font, also while replacing the letter to a random letter. I know, confusing. Also this is controlled by the intensity which has a range of 2 to 10 (could go up but,imma get dizzy)
       </content>
       <pubDate>
         <date>1770976574</date>
