@@ -512,12 +512,23 @@ h1, h2, h3, h4, h5, h6 {
 
 /* SVG Icon Styles */
 .svg-icon {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 2rem;
     height: 2rem;
     fill: currentColor;
     vertical-align: middle;
     margin-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Force inline SVGs to scale to their container regardless of viewBox */
+.svg-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: inherit;
+    display: block;
 }
 
 .skill-item .svg-icon,

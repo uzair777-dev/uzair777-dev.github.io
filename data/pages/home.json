@@ -13,19 +13,19 @@
   },
   "featured": [
     {
-      "title": "Linux Development",
-      "description": "Building Open Source and sustainable Software for Linux",
-      "icon": "res/svg/linux.svg"
+      "title": "Flexibility",
+      "description": "Adapting to new challenges and environments, quickly.",
+      "icon": "res/svg/flexible.svg"
     },
     {
-      "title": "Cloud Management",
-      "description": "Managing and maintaining cloud services, to keep stuff running smoothly",
-      "icon": "res/svg/Cloud.svg"
+      "title": "Learning",
+      "description": "Always eager to learn new things and improve myself.",
+      "icon": "res/svg/brain.svg"
     },
     {
-      "title": "Penetration Testing",
-      "description": "Testing the security of systems and networks to find vulnerabilities and weaknesses",
-      "icon": "res/svg/pen-testing.svg"
+      "title": "Critical and out-of-the-box thinking",
+      "description": "Thinking critically and out-of-the-box to solve problems.",
+      "icon": "res/svg/think.svg"
     }
   ]
 }
