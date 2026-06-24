@@ -2,14 +2,19 @@
 let globalConfig = {};
 let currentPage = 'home';
 const svgCache = {};
+const jsonCache = {};
 
 // Load JSON file
 async function loadJSON(path) {
+    if (jsonCache[path]) return jsonCache[path];
+    
     const response = await fetch(path);
     if (!response.ok) {
         throw new Error(`Failed to load ${path}: ${response.statusText}`);
     }
-    return await response.json();
+    const data = await response.json();
+    jsonCache[path] = data;
+    return data;
 }
 
 // Setup navigation
@@ -305,7 +310,7 @@ async function renderAboutPage(data) {
     html += '<div class="section-content">';
 
     if (data.image) {
-        html += `<img src="${data.image}" alt="About ${data.title || 'the developer'}" class="about-image">`;
+        html += `<img src="${data.image}" alt="About ${data.title || 'the developer'}" class="about-image" loading="lazy">`;
     }
 
     if (data.content) {
