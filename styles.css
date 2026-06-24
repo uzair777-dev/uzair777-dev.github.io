@@ -77,7 +77,7 @@
     --border-color: #f2e9e4;
     --hover-color:#f0cff0;
     --icon-color: #050505;
-    --shadow: 5px 5px 0px var(--text-color);
+    --shadow: 4px 4px 0px var(--text-color);
     --shadow-lg: 8px 8px 0px var(--text-color);
     --shadow-img: 0 0 0 var(--text-color);
     --glow: none;
@@ -98,8 +98,8 @@
     --border-color: #4a4e69;
     --hover-color:#ecddec;
     --icon-color: #f8f9fa;
-    --shadow: 5px 5px 0px var(--text-color);
-    --shadow-lg: 8px 8px 0px var(--text-color);
+    --shadow: 3px 3px 0px var(--text-color);
+    --shadow-lg: 2px 2px 0px var(--text-color);
     --shadow-img: 0 0 0 var(--bg-color);
     --glow: none;
     --glow-strong: none;
