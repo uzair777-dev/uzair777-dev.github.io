@@ -3,8 +3,8 @@
   "title": "Home",
   "hero": {
     "name": "Uzair Shaikh",
-    "title": "Cybersecurity Engineer",
-    "description": "Passionate cybersecurity engineer creating innovative solutions with modern technologies. Specialized in Linux, Cloud technologies and architecture, and Penetration Testing.",
+    "title": "Security Enthusiast | Student",
+    "description": "Enthusiastic learner exploring the world of Cybersecurity, Networking, and Programming. Constantly experimenting with new technologies and building cool projects.",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Black_-_replace_this_image_male.svg/960px-Black_-_replace_this_image_male.svg.png",
     "cta": {
       "text": "Learn More About Me",
@@ -15,7 +15,8 @@
     "repos": [
       "https://github.com/The-RJ-Studios/FusionDb",
       "https://github.com/uzair777-dev/uzair777-dev.github.io",
-      "https://github.com/uzair777-dev/habit_tracker"
+      "https://github.com/uzair777-dev/habit_tracker",
+      "https://github.com/Rj2537/Project-Adam-and-Eve"
     ]
   }
 }
