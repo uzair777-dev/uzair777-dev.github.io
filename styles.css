@@ -12,9 +12,12 @@
     --text-light: #000000c6;
     --bg-color: #faf9f6;
     --bg-light: #ffffff;
+    --bg-img-border: #050505;
     --border-color: #f2e9e4;
-    --shadow: 0 4px 12px rgba(74, 78, 105, 0.05);
-    --shadow-lg: 0 8px 24px rgba(74, 78, 105, 0.08);
+    --hover-color:#f0cff0;
+    --shadow: 5px 5px 0px var(--text-color);
+    --shadow-lg: 8px 8px 0px var(--text-color);
+    --shadow-img: 0 0 0 var(--text-color);
     --glow: none;
     --glow-strong: none;
     --preloader-bg: rgba(250, 249, 246, 0.95);
@@ -28,10 +31,13 @@
     --text-color: #f8f9fa;
     --text-light: #dee2e6;
     --bg-color: #22223b;
+    --bg-img-border: #050505;
     --bg-light: #4a4e69;
     --border-color: #4a4e69;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.25);
+    --hover-color:#ecddec;
+    --shadow: 5px 5px 0px var(--text-color);
+    --shadow-lg: 8px 8px 0px var(--text-color);
+    --shadow-img: 0 0 0 var(--bg-color);
     --glow: none;
     --glow-strong: none;
     --preloader-bg: rgba(34, 34, 59, 0.95);
@@ -54,7 +60,7 @@
     padding: 0.5rem;
     border-radius: 50%;
     transition: background-color 0.2s ease;
-    color: var(--text-light);
+    color: var(--text-color);
 }
 
 .theme-toggle .theme-option:hover {
@@ -92,15 +98,21 @@ body {
 .skill-item,
 .repo-card,
 .experience-card,
-.contact-form {
+.contact-form,
+.resource-item,
+.resource-popup-content {
     background: var(--bg-color) !important;
     box-shadow: var(--shadow-lg) !important;
+    border: 2px solid var(--text-color) !important;
+    border-radius: 8px !important;
 }
 
 .skill-item:hover,
 .repo-card:hover,
-.experience-card:hover {
-    box-shadow: var(--shadow-lg) !important;
+.experience-card:hover,
+.resource-item:hover {
+    box-shadow: 10px 10px 0px var(--text-color) !important;
+    transform: translate(-2px, -2px);
 }
 
 .experience-card .company,
@@ -126,7 +138,7 @@ h6 {
 /* Navigation */
 .navbar {
     background: var(--bg-color);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 2px solid var(--text-color);
     box-shadow: var(--shadow);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -246,7 +258,8 @@ h6 {
     object-fit: cover;
     margin: 2rem auto;
     display: block;
-    box-shadow: var(--glow-strong);
+    box-shadow: var(--shadow-img);
+    border: 2px solid var(--bg-img-border);
 }
 
 /* Section Styles */
@@ -256,9 +269,12 @@ h6 {
 
 .section-title {
     font-size: 2.5rem;
-    margin-bottom: 2rem;
+    margin: 0 auto 2rem auto;
     text-align: center;
     color: var(--text-color);
+    border-bottom: 4px solid var(--text-color);
+    width: fit-content;
+    padding-bottom: 0.5rem;
 }
 
 .section-content {
@@ -280,16 +296,19 @@ h6 {
     border-radius: 10px;
     margin: 2rem auto;
     display: block;
-    box-shadow: var(--glow-strong);
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--text-color);
 }
 
 /* Experience Section */
 .experience-subtitle {
-    margin-top: 2.5rem;
-    margin-bottom: 0.75rem;
+    margin: 2.5rem auto 0.75rem auto;
     font-size: 1.75rem;
     text-align: center;
     color: var(--text-color);
+    border-bottom: 3px solid var(--text-color);
+    width: fit-content;
+    padding-bottom: 0.25rem;
 }
 
 .experience-timeline {
@@ -305,9 +324,9 @@ h6 {
     left: 0.8rem;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
-    opacity: 0.9;
+    width: 4px;
+    background: var(--text-color);
+    opacity: 1;
 }
 
 .experience-timeline-item {
@@ -318,14 +337,13 @@ h6 {
 .experience-timeline-item::before {
     content: '';
     position: absolute;
-    left: -2.24rem;
+    left: -2.35rem;
     top: 0.9rem;
     width: 14px;
     height: 14px;
     border-radius: 50%;
     background: var(--primary-color);
-    border: 3px solid var(--bg-color);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+    border: 4px solid var(--text-color);
 }
 
 /* .resume-button{
@@ -337,16 +355,8 @@ h6 {
 
 } */
 .experience-card {
-    background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem 1.75rem;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.experience-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
 }
 
 .experience-card h3 {
@@ -392,19 +402,11 @@ h6 {
 }
 
 .repo-card {
-    background: var(--bg-color);
-    border-radius: 12px;
     text-decoration: none;
     color: inherit;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: block;
     overflow: hidden;
-}
-
-.repo-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
 }
 
 .repo-card-image {
@@ -421,10 +423,7 @@ h6 {
 .repo-card-name {
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary-color);
 }
 
 .repo-card-description {
@@ -442,17 +441,9 @@ h6 {
 }
 
 .skill-item {
-    background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem;
-    border-radius: 10px;
     text-align: center;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.skill-item:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .skill-item h4 {
@@ -464,10 +455,7 @@ h6 {
 .contact-form {
     max-width: 600px;
     margin: 0 auto;
-    background: rgba(17, 24, 39, 0.85);
     padding: 2rem;
-    border-radius: 10px;
-    box-shadow: var(--glow);
 }
 
 .form-group {
@@ -504,38 +492,55 @@ h6 {
 }
 
 .btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
+    background: var(--primary-color);
+    color: var(--text-color);
     padding: 0.75rem 2rem;
-    border: none;
+    border: 2px solid var(--text-color);
+    border-right-width: 5px;
+    border-bottom-width: 5px;
     border-radius: 5px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: var(--glow);
+    transition: transform 0.1s ease, background-color 0.2s ease;
+    box-shadow: none;
 }
 
 .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--glow-strong);
+    transform: translate(-2px, -2px);
+    border-right-width: 7px;
+    border-bottom-width: 7px;
+    background-color: var(--hover-color);
+}
+
+.btn:active {
+    transform: translate(2px, 2px);
+    border-right-width: 2px;
+    border-bottom-width: 2px;
 }
 
 .btn-glass {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--bg-light);
     color: var(--text-color);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0px 0px 32px 10px rgba(31, 38, 135, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    border: 2px solid var(--text-color);
+    border-right-width: 5px;
+    border-bottom-width: 5px;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 .btn-glass:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.18);
+    transform: translate(-2px, -2px);
+    border-right-width: 7px;
+    border-bottom-width: 7px;
+    background-color: var(--hover-color);
+}
+
+.btn-glass:active {
+    transform: translate(2px, 2px);
+    border-right-width: 2px;
+    border-bottom-width: 2px;
 }
 
 .social-links {
@@ -572,7 +577,7 @@ h6 {
     justify-content: center;
     width: 2rem;
     height: 2rem;
-    fill: currentColor;  /*ffs gradient wouldn't work*/
+    fill: var(--text-color);  /*ffs gradient wouldn't work*/
     vertical-align: middle;
     margin-bottom: 0.5rem;
     flex-shrink: 0;
