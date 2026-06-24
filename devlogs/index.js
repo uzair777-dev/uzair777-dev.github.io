@@ -334,8 +334,19 @@ function setTheme(theme) {
         : theme;
     document.documentElement.setAttribute('data-theme', resolved);
     localStorage.setItem('theme', theme);
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const strokeColor = isDark ? '#f8f9fa' : '#050505';
+
     document.querySelectorAll('.theme-option').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.theme === theme);
+        const isActive = btn.dataset.theme === theme;
+        btn.classList.toggle('active', isActive);
+        
+        const svg = btn.querySelector('svg');
+        if (svg) {
+            svg.setAttribute('stroke', strokeColor);
+            svg.style.stroke = strokeColor;
+        }
     });
 }
 
