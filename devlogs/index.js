@@ -336,7 +336,7 @@ function setTheme(theme) {
     localStorage.setItem('theme', theme);
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const strokeColor = isDark ? '#f8f9fa' : '#050505';
+    const strokeColor = isDark ? '#e8e2f0' : '#050505';
 
     document.querySelectorAll('.theme-option').forEach(btn => {
         const isActive = btn.dataset.theme === theme;

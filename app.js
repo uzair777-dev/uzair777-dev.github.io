@@ -775,7 +775,7 @@ function setTheme(theme) {
 function updateActiveThemeButton(theme) {
     const buttons = document.querySelectorAll('.theme-option');
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const strokeColor = isDark ? '#f8f9fa' : '#050505';
+    const strokeColor = isDark ? '#e8e2f0' : '#050505';
 
     buttons.forEach(button => {
         const isActive = button.dataset.theme === theme;
