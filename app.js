@@ -27,10 +27,12 @@ function setupNavigation() {
         navMenu.innerHTML = '';
         globalConfig.navigation.menu.forEach(item => {
             const li = document.createElement('li');
+            li.setAttribute('role', 'none');
             const a = document.createElement('a');
             a.href = '#';
             a.textContent = item.label;
             a.dataset.page = item.page;
+            a.setAttribute('role', 'menuitem');
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 loadPage(item.page);
@@ -41,9 +43,11 @@ function setupNavigation() {
 
         // Add devLOGS link (separate page, not SPA route)
         const devlogLi = document.createElement('li');
+        devlogLi.setAttribute('role', 'none');
         const devlogA = document.createElement('a');
         devlogA.href = '/devlogs/';
         devlogA.textContent = 'devLOGS';
+        devlogA.setAttribute('role', 'menuitem');
         devlogLi.appendChild(devlogA);
         navMenu.appendChild(devlogLi);
     }
@@ -55,7 +59,9 @@ function setupMobileMenu() {
     const navMenu = document.getElementById('nav-menu');
 
     hamburger.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
+        const isActive = navMenu.classList.toggle('active');
+        hamburger.setAttribute('aria-expanded', String(isActive));
+        hamburger.setAttribute('aria-label', isActive ? 'Close navigation menu' : 'Open navigation menu');
     });
 
     // Close menu when clicking on a link
@@ -63,7 +69,19 @@ function setupMobileMenu() {
     navLinks.forEach(link => {
         link.addEventListener('click', () => {
             navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.setAttribute('aria-label', 'Open navigation menu');
         });
+    });
+
+    // Close menu on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.setAttribute('aria-label', 'Open navigation menu');
+            hamburger.focus();
+        }
     });
 }
 
@@ -162,8 +180,8 @@ function renderRepoCards(grid, repos) {
     let html = '';
     for (const repo of repos) {
         const ogImage = `https://opengraph.githubassets.com/1/${repo.full_name}`;
-        html += `<a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="repo-card">`;
-        html += `<img src="${ogImage}" alt="${repo.name}" class="repo-card-image" loading="lazy">`;
+        html += `<a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="repo-card" aria-label="${repo.name}: ${repo.description || 'No description'}">`;
+        html += `<img src="${ogImage}" alt="Preview image for ${repo.name}" class="repo-card-image" loading="lazy">`;
         html += `<div class="repo-card-body">`;
         html += `<h4 class="repo-card-name">${repo.name}</h4>`;
         html += `<p class="repo-card-description">${repo.description || 'No description provided.'}</p>`;
@@ -222,7 +240,7 @@ async function renderHomePage(data) {
     html += '<section class="hero">';
 
     if (data.hero && data.hero.image) {
-        html += `<img src="${data.hero.image}" alt="${data.hero.name || 'Profile'}" class="hero-image">`;
+        html += `<img src="${data.hero.image}" alt="Portrait of ${data.hero.name || 'the developer'}" class="hero-image">`;
     }
 
     if (data.hero && data.hero.name) {
@@ -287,7 +305,7 @@ async function renderAboutPage(data) {
     html += '<div class="section-content">';
 
     if (data.image) {
-        html += `<img src="${data.image}" alt="About" class="about-image">`;
+        html += `<img src="${data.image}" alt="About ${data.title || 'the developer'}" class="about-image">`;
     }
 
     if (data.content) {
@@ -458,7 +476,7 @@ async function renderContactPage(data) {
         });
     }
 
-    html += '<button type="submit" class="btn">Send Message</button>';
+    html += '<button type="submit" class="btn" aria-label="Send contact message">Send Message</button>';
     html += '</form>';
     html += '</div>';
 
@@ -467,7 +485,7 @@ async function renderContactPage(data) {
         html += '<div class="social-links">';
         for (const link of data.social) {
             const iconContent = await renderSVGIcon(link.icon);
-            html += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" class="svg-icon">${iconContent}</a>`;
+            html += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" aria-label="Visit ${link.name}" class="svg-icon">${iconContent}</a>`;
         }
         html += '</div>';
     }
@@ -611,6 +629,9 @@ function setupResourceButtons() {
             currentPopup = document.createElement('div');
             currentPopup.id = 'exclusive-resource-popup';
             currentPopup.className = 'resource-popup';
+            currentPopup.setAttribute('role', 'dialog');
+            currentPopup.setAttribute('aria-modal', 'true');
+            currentPopup.setAttribute('aria-label', `${semesterText} Resources`);
 
             // Create popup content container
             const popupContent = document.createElement('div');
@@ -620,16 +641,23 @@ function setupResourceButtons() {
             const closeButton = document.createElement('button');
             closeButton.textContent = '×';
             closeButton.className = 'resource-popup-close';
+            closeButton.setAttribute('aria-label', 'Close resources popup');
 
-            closeButton.addEventListener('click', () => {
+            const closePopup = () => {
                 currentPopup.remove();
                 currentPopup = null;
-            });
+                button.focus(); // Return focus to the button that opened the popup
+            };
+
+            closeButton.addEventListener('click', closePopup);
 
             // Create title
+            const popupTitleId = 'resource-popup-title-' + folderId;
             const popupTitle = document.createElement('h2');
             popupTitle.textContent = `${semesterText} Resources`;
             popupTitle.className = 'resource-popup-title';
+            popupTitle.id = popupTitleId;
+            currentPopup.setAttribute('aria-labelledby', popupTitleId);
 
             // Create iframe container
             const iframeContainer = document.createElement('div');
@@ -640,6 +668,7 @@ function setupResourceButtons() {
             iframe.src = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
             iframe.allow = 'fullscreen; clipboard-read; clipboard-write';
             iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+            iframe.title = `${semesterText} Resources - Google Drive`;
 
             // Add load event listener for better user experience
             iframe.addEventListener('load', function () {
@@ -674,10 +703,18 @@ function setupResourceButtons() {
             // Add click outside to close
             currentPopup.addEventListener('click', (e) => {
                 if (e.target === currentPopup) {
-                    currentPopup.remove();
-                    currentPopup = null;
+                    closePopup();
                 }
             });
+
+            // Close on Escape key
+            const onEscape = (e) => {
+                if (e.key === 'Escape' && currentPopup) {
+                    closePopup();
+                    document.removeEventListener('keydown', onEscape);
+                }
+            };
+            document.addEventListener('keydown', onEscape);
 
             // Add to body
             document.body.appendChild(currentPopup);
@@ -695,12 +732,12 @@ async function setupFooter() {
                 footerHTML += `<p>${globalConfig.footer.copyright}</p>`;
             }
             if (globalConfig.footer.links && globalConfig.footer.links.length > 0) {
-                footerHTML += '<div class="social-links">';
+                footerHTML += '<nav aria-label="Social media links"><div class="social-links">';
                 for (const link of globalConfig.footer.links) {
                     const iconContent = await renderSVGIcon(link.icon);
-                    footerHTML += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" class="svg-icon">${iconContent}</a>`;
+                    footerHTML += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" aria-label="Visit ${link.name}" class="svg-icon">${iconContent}</a>`;
                 }
-                footerHTML += '</div>';
+                footerHTML += '</div></nav>';
             }
             footerHTML += globalConfig.footer.footerNote;
             footer.innerHTML = footerHTML;
@@ -732,10 +769,18 @@ function setTheme(theme) {
 
 function updateActiveThemeButton(theme) {
     const buttons = document.querySelectorAll('.theme-option');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const strokeColor = isDark ? '#f8f9fa' : '#050505';
+
     buttons.forEach(button => {
-        button.classList.remove('active');
-        if (button.dataset.theme === theme) {
-            button.classList.add('active');
+        const isActive = button.dataset.theme === theme;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+        
+        const svg = button.querySelector('svg');
+        if (svg) {
+            svg.setAttribute('stroke', strokeColor);
+            svg.style.stroke = strokeColor;
         }
     });
 }
