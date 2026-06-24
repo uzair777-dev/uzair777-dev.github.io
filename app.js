@@ -887,6 +887,42 @@ async function preloadAssets() {
     }
 }
 
+// Relocate theme toggle based on viewport size
+function handleResponsiveThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    const navContainer = document.querySelector('.nav-container');
+    const hamburger = document.getElementById('hamburger');
+
+    if (!themeToggle || !navMenu || !navContainer || !hamburger) return;
+
+    if (window.innerWidth <= 768) {
+        // Move to nav-menu if not already there
+        if (themeToggle.parentElement !== navMenu) {
+            let li = document.getElementById('mobile-theme-toggle-container');
+            if (!li) {
+                li = document.createElement('li');
+                li.id = 'mobile-theme-toggle-container';
+                li.style.display = 'flex';
+                li.style.justifyContent = 'center';
+                li.style.marginTop = '1rem';
+                li.style.paddingBottom = '1rem';
+            }
+            li.appendChild(themeToggle);
+            navMenu.appendChild(li);
+        }
+    } else {
+        // Move back to nav container if not already there
+        if (themeToggle.parentElement !== navContainer) {
+            const li = document.getElementById('mobile-theme-toggle-container');
+            if (li) {
+                li.remove();
+            }
+            navContainer.insertBefore(themeToggle, hamburger);
+        }
+    }
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
     window.__preloaderStartTime = performance.now();
@@ -910,6 +946,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Setup footer
         await setupFooter();
+
+        // Setup responsive theme toggle
+        window.addEventListener('resize', handleResponsiveThemeToggle);
+        handleResponsiveThemeToggle();
     } catch (error) {
         console.error('Error initializing app:', error);
         document.getElementById('main-content').innerHTML =
