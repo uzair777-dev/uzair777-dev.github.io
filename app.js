@@ -16,12 +16,12 @@ async function loadJSON(path) {
 function setupNavigation() {
     const navLogo = document.getElementById('nav-logo');
     const navMenu = document.getElementById('nav-menu');
-    
+
     // Set logo text
     if (globalConfig.site && globalConfig.site.logo) {
         navLogo.textContent = globalConfig.site.logo;
     }
-    
+
     // Build navigation menu
     if (globalConfig.navigation && globalConfig.navigation.menu) {
         navMenu.innerHTML = '';
@@ -53,11 +53,11 @@ function setupNavigation() {
 function setupMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('nav-menu');
-    
+
     hamburger.addEventListener('click', () => {
         navMenu.classList.toggle('active');
     });
-    
+
     // Close menu when clicking on a link
     const navLinks = document.querySelectorAll('.nav-menu a');
     navLinks.forEach(link => {
@@ -70,24 +70,24 @@ function setupMobileMenu() {
 // Load page content
 async function loadPage(pageName) {
     currentPage = pageName;
-    
+
     try {
         // Update active nav link
         updateActiveNavLink(pageName);
-        
+
         // Load page-specific JSON
         const pageData = await loadJSON(`data/pages/${pageName}.json`);
-        
+
         // Render page content
         renderPage(pageData);
-        
+
         // Update page title
         if (pageData.title && globalConfig.site) {
             document.title = `${pageData.title} - ${globalConfig.site.name}`;
         }
     } catch (error) {
         console.error(`Error loading page ${pageName}:`, error);
-        document.getElementById('main-content').innerHTML = 
+        document.getElementById('main-content').innerHTML =
             `<div class="loading"><p>Error loading ${pageName} page. Please check the data file.</p></div>`;
     }
 }
@@ -395,19 +395,19 @@ function renderExperiencePage(data) {
 function renderExperienceCard(exp) {
     let html = '<div class="experience-card">';
     html += `<h3>${exp.title || 'Position'}</h3>`;
-    
+
     if (exp.company || exp.institution) {
         html += `<p class="company">${exp.company || exp.institution}</p>`;
     }
-    
+
     if (exp.duration) {
         html += `<p class="duration">${exp.duration}</p>`;
     }
-    
+
     if (exp.location) {
         html += `<p class="duration">📍 ${exp.location}</p>`;
     }
-    
+
     if (exp.description) {
         if (Array.isArray(exp.description)) {
             html += '<ul>';
@@ -419,14 +419,14 @@ function renderExperienceCard(exp) {
             html += `<p class="description">${exp.description}</p>`;
         }
     }
-    
+
     if (exp.technologies && Array.isArray(exp.technologies)) {
         html += '<div class="tech-tags">';
         html += '<strong>Technologies: </strong>';
         html += exp.technologies.map(tech => `<span class="tech-tag">${tech}</span>`).join('');
         html += '</div>';
     }
-    
+
     html += '</div>';
     return html;
 }
@@ -486,7 +486,7 @@ function renderResourcesPage(data) {
     const note1 = data.note1;
     html += '<p class="note-text"><center>'
     html += note1;
-    html+='</center></p>';
+    html += '</center></p>';
     html += '<div class="section-content">';
 
     if (data.description) {
@@ -516,7 +516,7 @@ function renderResourcesPage(data) {
     const note2 = data.note2;
     html += '<p class="note-text"><center>'
     html += note2;
-    html+='</center></p>';
+    html += '</center></p>';
     html += '</section>';
     html += '</div>';
     return html;
@@ -581,7 +581,7 @@ function setupContactForm() {
             // Get form data
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            
+
             // In a real application, you would send this to a server
             // For now, we'll just show an alert
             alert('Thank you for your message! (This is a stub form submission is not configured, imma do it later, hopefully)');
@@ -642,11 +642,11 @@ function setupResourceButtons() {
             iframe.referrerPolicy = 'strict-origin-when-cross-origin';
 
             // Add load event listener for better user experience
-            iframe.addEventListener('load', function() {
+            iframe.addEventListener('load', function () {
                 console.log('Google Drive iframe loaded successfully');
             });
 
-            iframe.addEventListener('error', function() {
+            iframe.addEventListener('error', function () {
                 console.error('Error loading Google Drive iframe');
                 iframeContainer.innerHTML = `
                     <div style="padding: 2rem; text-align: center; color: var(--text-color);">
@@ -703,7 +703,7 @@ async function setupFooter() {
                 footerHTML += '</div>';
             }
             footerHTML += globalConfig.footer.footerNote;
-            footer.innerHTML = footerHTML ;
+            footer.innerHTML = footerHTML;
         }
     } catch (error) {
         console.error('Error setting up footer:', error);
@@ -748,7 +748,7 @@ function setupThemeToggle() {
             setTheme(theme);
         });
     });
-    
+
     // Watch for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (localStorage.getItem('theme') === 'auto') {
@@ -773,7 +773,7 @@ function showPreloader() {
         preloader.style.justifyContent = 'center';
         preloader.style.alignItems = 'center';
         preloader.style.zIndex = '9999';
-        
+
         if (!document.getElementById('preloader-styles')) {
             const style = document.createElement('style');
             style.id = 'preloader-styles';
@@ -803,12 +803,12 @@ function showPreloader() {
         spinner.style.borderTop = '4px solid var(--primary)';
         spinner.style.width = '40px';
         spinner.style.height = '40px';
-        
+
         // Use custom animation from config or default to 'spin'
         const animation = globalConfig.preloader?.customAnimation || 'spin';
         const duration = (globalConfig.preloader?.duration || 2000) / 1000;
         spinner.style.animation = `${animation} ${duration}s linear infinite`;
-        
+
         // Add animationend event to hide preloader when animation completes
         spinner.addEventListener('animationend', () => {
             const preloader = document.getElementById('preloader');
@@ -880,7 +880,7 @@ async function preloadAssets() {
                 if (resp.ok && url.endsWith('.svg')) {
                     svgCache[url] = await resp.text();
                 }
-            } catch (_) {}
+            } catch (_) { }
         }));
     } catch (error) {
         console.warn('Asset preloading failed:', error);
@@ -894,32 +894,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Preload all assets and set globalConfig
         await preloadAssets();
-        
+
         // Set up navigation
         setupNavigation();
-        
+
         // Load initial page
         loadPage('home');
-        
+
         // Set up mobile menu toggle
         setupMobileMenu();
-        
+
         // Set up theme toggle
         setupThemeToggle();
         setTheme(getPreferredTheme());
-        
+
         // Setup footer
         await setupFooter();
     } catch (error) {
         console.error('Error initializing app:', error);
-        document.getElementById('main-content').innerHTML = 
+        document.getElementById('main-content').innerHTML =
             '<div class="loading"><p>Error loading content. Please check your data files.</p></div>';
     } finally {
         // Ensure preloader is hidden after minimum duration
         const minDuration = globalConfig.preloader?.duration || 2000;
         const elapsed = performance.now() - window.__preloaderStartTime;
         const remaining = Math.max(0, minDuration - elapsed);
-        
+
         setTimeout(() => {
             hidePreloader();
         }, remaining);
