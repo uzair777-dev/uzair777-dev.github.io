@@ -1,53 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <indexing>
- <object alt="" name="Image1" object_type="graphic"/>
+ <object alt="Qr Code" name="Image1" object_type="graphic"/>
  <paragraph index="12" node_type="writer">UZAIR ANWAR SHAIKH</paragraph>
  <paragraph index="13" node_type="writer">Mumbai, Maharashtra
-+91 76669 44215 | uzazirshaikhking777@gmail.com</paragraph>
- <paragraph index="14" node_type="writer">OBJECTIVE</paragraph>
- <paragraph index="15" node_type="writer">Dedicated and enthusiastic Computer Science and Engineering student specializing in Blockchain, IoT, and Cybersecurity, eager to apply technical expertise and analytical skills to real-world challenges. Seeking opportunities to gain hands-on experience, enhance knowledge, and contribute to organizational growth.</paragraph>
- <paragraph index="17" node_type="writer">EDUCATION</paragraph>
- <paragraph index="18" node_type="writer">Bachelor of Engineering in Computer Science and Engineering
++91 76669 44215 | uzairshaikhking777@gmail.com</paragraph>
+ <paragraph index="16" node_type="writer">GOAL</paragraph>
+ <paragraph index="17" node_type="writer">Dedicated and enthusiastic Computer Science and Engineering student specializing in Blockchain, IoT, and Cybersecurity, eager to apply technical expertise and analytical skills to real-world challenges. Seeking opportunities to gain hands-on experience, enhance knowledge, and contribute to organizational growth.</paragraph>
+ <paragraph index="19" node_type="writer">EDUCATION</paragraph>
+ <paragraph index="20" node_type="writer">Bachelor of Engineering in Computer Science and Engineering
 Major: Blockchain, IoT &amp; Cybersecurity
 2024 – 2027 (Pursuing)</paragraph>
- <paragraph index="19" node_type="writer">Diploma in Computer Engineering
+ <paragraph index="21" node_type="writer">Diploma in Computer Engineering
 Vidyalankar Polytechnic, Mumbai
-2021 – 2024 (Pursuing)</paragraph>
- <paragraph index="20" node_type="writer">SSC (10th Standard)
-Saeeda M.S. Naik High School, Ratnagiri
-Passed July 2020 | 85% – First Division</paragraph>
- <paragraph index="22" node_type="writer">TECHNICAL SKILLS</paragraph>
- <paragraph index="23" node_type="writer">Programming Languages: Python, SQL, Shell (Bash &amp; PowerShell)</paragraph>
- <paragraph index="24" node_type="writer">Operating Systems: Linux (Ubuntu/Fedora) - Advanced proficiency, Windows - Intermediate</paragraph>
- <paragraph index="25" node_type="writer">Server Management: Deployment and maintenance of Linux and Windows server environments</paragraph>
- <paragraph index="26" node_type="writer">Hardware: Hardware installation, configuration, and maintenance</paragraph>
- <paragraph index="27" node_type="writer">Software Management: Software installation, configuration, and deployment across multiple platforms</paragraph>
- <paragraph index="28" node_type="writer">Web Technologies: HTML, CSS, Backend Scripting (Basic)</paragraph>
- <paragraph index="29" node_type="writer">Cybersecurity: Threat analysis, Network security principles</paragraph>
- <paragraph index="32" node_type="writer">CERTIFICATIONS</paragraph>
- <paragraph index="33" node_type="writer">SQL Programming Certification</paragraph>
- <paragraph index="34" node_type="writer">Cybersecurity Beginner Certification</paragraph>
- <paragraph index="37" node_type="writer">AREAS OF INTEREST</paragraph>
- <paragraph index="38" node_type="writer">Backend Development &amp; Maintenance</paragraph>
- <paragraph index="39" node_type="writer">System Security and Fault Analysis</paragraph>
- <paragraph index="40" node_type="writer">IoT Systems and Blockchain Applications</paragraph>
- <paragraph index="43" node_type="writer">COMPUTER PROFICIENCY</paragraph>
- <paragraph index="44" node_type="writer">Experienced in configuring and maintaining multi-platform server environments</paragraph>
- <paragraph index="45" node_type="writer">Proficient in hardware installation, troubleshooting, and maintenance</paragraph>
- <paragraph index="46" node_type="writer">Skilled in software installation, configuration, and deployment across Linux and Windows platforms</paragraph>
- <paragraph index="47" node_type="writer">Strong expertise in Linux system administration with advanced command-line proficiency</paragraph>
- <paragraph index="48" node_type="writer">Comfortable working in various IDEs and production environments (VS Code, PyCharm, terminal editors)</paragraph>
- <paragraph index="51" node_type="writer">PERSONAL ATTRIBUTES</paragraph>
- <paragraph index="52" node_type="writer">Quick learner and detail-oriented</paragraph>
- <paragraph index="53" node_type="writer">Strong analytical and problem-solving skills</paragraph>
- <paragraph index="54" node_type="writer">Adaptable, curious, and collaborative team player</paragraph>
- <paragraph index="57" node_type="writer">PORTFOLIO</paragraph>
- <paragraph index="58" node_type="writer">Website: https://uzairshaikh.pages.dev/</paragraph>
- <paragraph index="59" node_type="writer"> PS : Scan the QR Code on the front page to visit my website</paragraph>
+2021 – 2024 (Completed)</paragraph>
+ <paragraph index="23" node_type="writer">TECHNICAL SKILLS</paragraph>
+ <paragraph index="24" node_type="writer">Programming Languages: Python, SQL, Shell (Bash &amp; PowerShell)</paragraph>
+ <paragraph index="25" node_type="writer">Operating Systems: Linux (Ubuntu/Fedora) - Advanced proficiency, Windows - Intermediate</paragraph>
+ <paragraph index="26" node_type="writer">Server Management: Deployment and maintenance of Linux and Windows server environments</paragraph>
+ <paragraph index="27" node_type="writer">Hardware: Hardware installation, configuration, and maintenance</paragraph>
+ <paragraph index="28" node_type="writer">Software Management: Software installation, configuration, and deployment across multiple platforms</paragraph>
+ <paragraph index="29" node_type="writer">Web Technologies: HTML, CSS, Back-end Scripting (Basic)</paragraph>
+ <paragraph index="30" node_type="writer">Cybersecurity: Threat analysis, Network security principles</paragraph>
+ <paragraph index="33" node_type="writer">CERTIFICATIONS</paragraph>
+ <paragraph index="34" node_type="writer">SQL Programming Certification</paragraph>
+ <paragraph index="35" node_type="writer">Cybersecurity Beginner Certification</paragraph>
+ <paragraph index="38" node_type="writer">AREAS OF INTEREST</paragraph>
+ <paragraph index="39" node_type="writer">Back-end Development &amp; Maintenance</paragraph>
+ <paragraph index="40" node_type="writer">System Security and Fault Analysis</paragraph>
+ <paragraph index="41" node_type="writer">IoT Systems and Blockchain Applications</paragraph>
+ <paragraph index="44" node_type="writer">COMPUTER PROFICIENCY</paragraph>
+ <paragraph index="45" node_type="writer">Experienced in configuring and maintaining multi-platform server environments</paragraph>
+ <paragraph index="46" node_type="writer">Proficient in hardware installation, troubleshooting, and maintenance</paragraph>
+ <paragraph index="47" node_type="writer">Skilled in software installation, configuration, and deployment across Linux and Windows platforms</paragraph>
+ <paragraph index="48" node_type="writer">Strong expertise in Linux system administration with advanced command-line proficiency</paragraph>
+ <paragraph index="49" node_type="writer">Comfortable working in various IDEs and production environments (VS Code, PyCharm, terminal editors)</paragraph>
+ <paragraph index="52" node_type="writer">PERSONAL ATTRIBUTES</paragraph>
+ <paragraph index="53" node_type="writer">Quick learner and detail-oriented</paragraph>
+ <paragraph index="54" node_type="writer">Strong analytical and problem-solving skills</paragraph>
+ <paragraph index="55" node_type="writer">Adaptable, curious, and collaborative team player</paragraph>
+ <paragraph index="58" node_type="writer">PORTFOLIO</paragraph>
+ <paragraph index="59" node_type="writer">Website: https://uzairshaikh.pages.dev/</paragraph>
+ <paragraph index="60" node_type="writer"> PS : Scan the QR Code on the front page to visit my website</paragraph>
  <object name="Shape1" alt="" object_type="shape" description=""/>
  <object name="Shape2" alt="" object_type="shape" description=""/>
  <object name="Shape3" alt="" object_type="shape" description=""/>
- <object name="Shape4" alt="" object_type="shape" description=""/>
  <object name="Shape5" alt="" object_type="shape" description=""/>
  <object name="Shape6" alt="" object_type="shape" description=""/>
  <object name="Shape7" alt="" object_type="shape" description=""/>
