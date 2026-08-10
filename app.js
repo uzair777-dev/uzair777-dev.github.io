@@ -158,38 +158,60 @@ async function fetchGitHubRepos() {
 
     try {
         // Check sessionStorage cache first
-        const cached = sessionStorage.getItem(cacheKey);
-        if (cached) {
-            const { data, timestamp } = JSON.parse(cached);
-            if (Date.now() - timestamp < cacheTTL) {
-                renderRepoCards(grid, data);
-                return;
+        try {
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+                const { data, timestamp } = JSON.parse(cached);
+                if (Array.isArray(data) && data.length > 0 && (Date.now() - timestamp < cacheTTL)) {
+                    renderRepoCards(grid, data);
+                    return;
+                }
             }
-        }
+        } catch (_) {}
 
         // Parse each URL into owner/repo and fetch individually
         const fetches = repoUrls.map(url => {
             const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
             if (!match) return Promise.resolve(null);
             const [, owner, repo] = match;
+            const fallbackRepo = {
+                name: repo,
+                full_name: `${owner}/${repo}`,
+                html_url: url,
+                description: `GitHub repository: ${owner}/${repo}`
+            };
+
             return fetch(`https://api.github.com/repos/${owner}/${repo}`)
-                .then(r => r.ok ? r.json() : null)
-                .catch(() => null);
+                .then(r => r.ok ? r.json() : fallbackRepo)
+                .catch(() => fallbackRepo);
         });
 
         const results = await Promise.all(fetches);
         const repos = results.filter(Boolean);
 
-        // Cache the result
-        sessionStorage.setItem(cacheKey, JSON.stringify({ data: repos, timestamp: Date.now() }));
+        // Cache valid results
+        if (repos.length > 0) {
+            try {
+                sessionStorage.setItem(cacheKey, JSON.stringify({ data: repos, timestamp: Date.now() }));
+            } catch (_) {}
+        }
         renderRepoCards(grid, repos);
     } catch (error) {
         console.error('Error fetching GitHub repos:', error);
-        grid.innerHTML = `
-            <div style="grid-column:1/-1;text-align:center;">
-                <p class="text-secondary">Unable to load repositories right now.</p>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="btn" style="margin-top:1rem;display:inline-block;text-decoration:none;">Visit GitHub</a>
-            </div>`;
+        // Fallback: parse URLs directly
+        const fallbackRepos = repoUrls.map(url => {
+            const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+            if (!match) return null;
+            const [, owner, repo] = match;
+            return {
+                name: repo,
+                full_name: `${owner}/${repo}`,
+                html_url: url,
+                description: `GitHub repository: ${owner}/${repo}`
+            };
+        }).filter(Boolean);
+
+        renderRepoCards(grid, fallbackRepos);
     }
 }
 
@@ -204,7 +226,7 @@ function renderRepoCards(grid, repos) {
     for (const repo of repos) {
         const ogImage = `https://opengraph.githubassets.com/1/${repo.full_name}`;
         html += `<a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="repo-card" aria-label="${repo.name}: ${repo.description || 'No description'}">`;
-        html += `<img src="${ogImage}" alt="Preview image for ${repo.name}" class="repo-card-image" width="600" height="300" loading="lazy">`;
+        html += `<img src="${ogImage}" alt="Preview image for ${repo.name}" class="repo-card-image" loading="lazy">`;
         html += `<div class="repo-card-body">`;
         html += `<h3 class="repo-card-name">${repo.name}</h3>`;
         html += `<p class="repo-card-description">${repo.description || 'No description provided.'}</p>`;
