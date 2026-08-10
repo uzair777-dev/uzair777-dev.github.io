@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /devlogs/editor.html
+Disallow: /test_*.html
+
+Sitemap: https://uzair777-dev.github.io/sitemap.xml

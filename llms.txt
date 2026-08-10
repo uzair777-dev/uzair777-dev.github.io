@@ -1,0 +1,22 @@
+# Uzair Shaikh - Developer Portfolio & devLOGS
+
+> Security enthusiast, student, and programmer exploring Cybersecurity, Networking, and Software Engineering.
+
+## Site Summary
+- **Owner**: Uzair Shaikh
+- **Portfolio Website**: https://uzair777-dev.github.io
+- **devLOGS (Blog)**: https://uzair777-dev.github.io/devlogs/
+- **GitHub Profile**: https://github.com/uzair777-dev
+
+## Sections & Content
+- **Home**: Brief introduction, featured projects and open-source GitHub repositories.
+- **About**: Background, technical interests (Networking, Cybersecurity, System Architecture), and tools.
+- **Experience**: Academic & project timeline.
+- **devLOGS**: Technical blog posts covering software projects, security research, and personal dev logs.
+- **Contact**: Reach out via social channels and direct message form.
+
+## Key Projects
+- **FusionDb**: High performance database system experiments (https://github.com/The-RJ-Studios/FusionDb)
+- **Project-Adam-and-Eve**: Open-source collaborative development (https://github.com/Rj2537/Project-Adam-and-Eve)
+- **Virtual Gamepads Plus**: Input customization & gaming utility (https://github.com/uzair777-dev/Virtual-gamepads-plus)
+- **Habit Tracker**: Personal productivity tool (https://github.com/uzair777-dev/habit_tracker)
