@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="404 - Page Not Found. The requested page on Uzair Shaikh's portfolio could not be found.">
+    <title>Page Not Found - Uzair Shaikh</title>
+    
+    <!-- Canonical & OpenGraph -->
+    <link rel="canonical" href="https://uzair777-dev.github.io/404.html">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="404 Page Not Found - Uzair Shaikh">
+    <meta property="og:description" content="The page you are looking for does not exist or has been moved.">
+    <meta property="og:image" content="https://uzair777-dev.github.io/res/img/bot.png">
+    <meta property="og:url" content="https://uzair777-dev.github.io/404.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="404 Page Not Found - Uzair Shaikh">
+    <meta name="twitter:description" content="The page you are looking for does not exist or has been moved.">
+    <meta name="twitter:image" content="https://uzair777-dev.github.io/res/img/bot.png">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://api.github.com">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/styles.css">
+    
+    <!-- Standardized Favicons -->
+    <link rel="icon" type="image/x-icon" href="/res/img/bot.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/res/img/bot.png">
+    <link rel="icon" type="image/svg+xml" href="/res/svg/bot.svg">
+    <link rel="apple-touch-icon" href="/res/img/bot.png">
+
+    <!-- Theme Inline Initialization -->
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('theme') ||
+                    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', saved);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Skip to main content -->
+    <a href="#main-content" class="sr-only sr-only-focusable" id="skip-link">Skip to main content</a>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-logo" id="nav-logo">Uzair Shaikh</a>
+            <ul class="nav-menu" id="nav-menu" role="menubar">
+                <li role="none"><a href="/" role="menuitem">Home</a></li>
+                <li role="none"><a href="/devlogs/" role="menuitem">devLOGS</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content" role="main">
+        <div class="container">
+            <section class="error-404-container">
+                <div class="error-badge">404</div>
+                <h1 class="error-title">Page Not Found</h1>
+                <p class="error-description">
+                    Oops! The page you're looking for doesn't exist, has been removed, or is temporarily unavailable. Or you're plain stupid.
+                </p>
+                <div class="error-actions">
+                    <a href="/" class="btn btn-glass">Return Home</a>
+                    <a href="/devlogs/" class="btn btn-glass">Explore devLOGS</a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer" role="contentinfo">
+        <div class="container">
+            <p>&copy; 2026 Uzair Shaikh. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Cloudflare Web Analytics -->
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}'></script>
+</body>
+</html>
