@@ -32,12 +32,10 @@ function setupNavigation() {
         navMenu.innerHTML = '';
         globalConfig.navigation.menu.forEach(item => {
             const li = document.createElement('li');
-            li.setAttribute('role', 'none');
             const a = document.createElement('a');
             a.href = '#';
             a.textContent = item.label;
             a.dataset.page = item.page;
-            a.setAttribute('role', 'menuitem');
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 loadPage(item.page);
@@ -48,11 +46,9 @@ function setupNavigation() {
 
         // Add devLOGS link (separate page, not SPA route)
         const devlogLi = document.createElement('li');
-        devlogLi.setAttribute('role', 'none');
         const devlogA = document.createElement('a');
         devlogA.href = '/devlogs/';
         devlogA.textContent = 'devLOGS';
-        devlogA.setAttribute('role', 'menuitem');
         devlogLi.appendChild(devlogA);
         navMenu.appendChild(devlogLi);
     }
@@ -208,9 +204,9 @@ function renderRepoCards(grid, repos) {
     for (const repo of repos) {
         const ogImage = `https://opengraph.githubassets.com/1/${repo.full_name}`;
         html += `<a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="repo-card" aria-label="${repo.name}: ${repo.description || 'No description'}">`;
-        html += `<img src="${ogImage}" alt="Preview image for ${repo.name}" class="repo-card-image" loading="lazy">`;
+        html += `<img src="${ogImage}" alt="Preview image for ${repo.name}" class="repo-card-image" width="600" height="300" loading="lazy">`;
         html += `<div class="repo-card-body">`;
-        html += `<h4 class="repo-card-name">${repo.name}</h4>`;
+        html += `<h3 class="repo-card-name">${repo.name}</h3>`;
         html += `<p class="repo-card-description">${repo.description || 'No description provided.'}</p>`;
         html += `</div>`;
         html += `</a>`;
@@ -267,7 +263,7 @@ async function renderHomePage(data) {
     html += '<section class="hero">';
 
     if (data.hero && data.hero.image) {
-        html += `<img src="${data.hero.image}" alt="Portrait of ${data.hero.name || 'the developer'}" class="hero-image">`;
+        html += `<img src="${data.hero.image}" alt="Portrait of ${data.hero.name || 'the developer'}" class="hero-image" width="160" height="160">`;
     }
 
     if (data.hero && data.hero.name) {
@@ -332,7 +328,7 @@ async function renderAboutPage(data) {
     html += '<div class="section-content">';
 
     if (data.image) {
-        html += `<img src="${data.image}" alt="About ${data.title || 'the developer'}" class="about-image" loading="lazy">`;
+        html += `<img src="${data.image}" alt="About ${data.title || 'the developer'}" class="about-image" width="400" height="400" loading="lazy">`;
     }
 
     if (data.content) {

@@ -4,19 +4,20 @@
 
 ## Site Summary
 - **Owner**: Uzair Shaikh
-- **Portfolio Website**: https://uzair777-dev.github.io
-- **devLOGS (Blog)**: https://uzair777-dev.github.io/devlogs/
-- **GitHub Profile**: https://github.com/uzair777-dev
+- **Portfolio Website**: [Portfolio Home](https://uzair777-dev.github.io/)
+- **devLOGS Blog**: [devLOGS](https://uzair777-dev.github.io/devlogs/)
+- **GitHub Profile**: [GitHub Profile](https://github.com/uzair777-dev)
+- **llms.txt**: [llms.txt](https://uzair777-dev.github.io/llms.txt)
 
-## Sections & Content
-- **Home**: Brief introduction, featured projects and open-source GitHub repositories.
-- **About**: Background, technical interests (Networking, Cybersecurity, System Architecture), and tools.
-- **Experience**: Academic & project timeline.
-- **devLOGS**: Technical blog posts covering software projects, security research, and personal dev logs.
-- **Contact**: Reach out via social channels and direct message form.
+## Key Pages & Sections
+- [Portfolio Homepage](https://uzair777-dev.github.io/): Main portfolio landing page featuring open-source projects.
+- [About Section](https://uzair777-dev.github.io/#about): Background in networking, cybersecurity, and system architecture.
+- [Experience Section](https://uzair777-dev.github.io/#experience): Academic background and key project milestones.
+- [devLOGS Blog](https://uzair777-dev.github.io/devlogs/): Developer thoughts, Linux kernel notes, and project logs.
 
-## Key Projects
-- **FusionDb**: High performance database system experiments (https://github.com/The-RJ-Studios/FusionDb)
-- **Project-Adam-and-Eve**: Open-source collaborative development (https://github.com/Rj2537/Project-Adam-and-Eve)
-- **Virtual Gamepads Plus**: Input customization & gaming utility (https://github.com/uzair777-dev/Virtual-gamepads-plus)
-- **Habit Tracker**: Personal productivity tool (https://github.com/uzair777-dev/habit_tracker)
+## Projects & Repositories
+- [FusionDb Repository](https://github.com/The-RJ-Studios/FusionDb): High performance database system experiments.
+- [Project-Adam-and-Eve Repository](https://github.com/Rj2537/Project-Adam-and-Eve): Collaborative software development project.
+- [Virtual Gamepads Plus Repository](https://github.com/uzair777-dev/Virtual-gamepads-plus): Virtual gamepad input utility.
+- [Habit Tracker Repository](https://github.com/uzair777-dev/habit_tracker): Personal productivity and habit tracking application.
+- [Portfolio Source Code Repository](https://github.com/uzair777-dev/uzair777-dev.github.io): Source code for this portfolio website.
