@@ -9,76 +9,80 @@
 
 function parseXMLWorker(xmlString) {
     return new Promise((resolve, reject) => {
-        const workerCode = `
-            self.onmessage = function(e) {
-                try {
-                    if (typeof DOMParser === 'undefined') {
-                        throw new Error('DOMParser not available in worker');
+        try {
+            const workerCode = `
+                self.onmessage = function(e) {
+                    try {
+                        if (typeof DOMParser === 'undefined') {
+                            throw new Error('DOMParser not available in worker');
+                        }
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(e.data, 'application/xml');
+
+                        const errors = validateXMLStructure(xmlDoc);
+                        if (errors.length > 0) throw new Error('Invalid XML: ' + errors.join(', '));
+
+                        const channel = xmlDoc.querySelector('feed > channel');
+                        if (!channel) throw new Error('No channel element found');
+
+                        const items = channel.querySelectorAll('item');
+                        const parsed = Array.from(items).map(parseItem);
+
+                        self.postMessage({ success: true, data: parsed });
+                    } catch (error) {
+                        self.postMessage({ success: false, error: error.message });
                     }
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(e.data, 'application/xml');
+                };
 
-                    const errors = validateXMLStructure(xmlDoc);
-                    if (errors.length > 0) throw new Error('Invalid XML: ' + errors.join(', '));
-
-                    const channel = xmlDoc.querySelector('feed > channel');
-                    if (!channel) throw new Error('No channel element found');
-
-                    const items = channel.querySelectorAll('item');
-                    const parsed = Array.from(items).map(parseItem);
-
-                    self.postMessage({ success: true, data: parsed });
-                } catch (error) {
-                    self.postMessage({ success: false, error: error.message });
+                function validateXMLStructure(doc) {
+                    const e = [];
+                    if (!doc.querySelector('feed'))    e.push('Missing <feed>');
+                    if (!doc.querySelector('channel')) e.push('Missing <channel>');
+                    if (doc.querySelectorAll('item').length === 0) e.push('No <item> elements');
+                    return e;
                 }
+
+                function parseItem(item) {
+                    if (!item.querySelector('title') || !item.querySelector('id'))
+                        throw new Error('Missing required title/id in <item>');
+
+                    const pubDate = item.querySelector('pubDate');
+                    return {
+                        title:       item.querySelector('title').textContent,
+                        id:          item.querySelector('id').textContent,
+                        type:        item.querySelector('type')?.textContent || '',
+                        heading:     item.querySelector('heading')?.textContent || '',
+                        description: item.querySelector('description')?.textContent || '',
+                        content:     item.querySelector('content')?.innerHTML || '',
+                        pubDate: pubDate ? {
+                            date:     pubDate.querySelector('date')?.textContent     || '',
+                            timezone: pubDate.querySelector('timezone')?.textContent || ''
+                        } : {}
+                    };
+                }
+            `;
+
+            const blob      = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(blob);
+            const worker    = new Worker(workerUrl);
+
+            worker.onmessage = function(e) {
+                worker.terminate();
+                URL.revokeObjectURL(workerUrl);
+                if (e.data.success) resolve(e.data.data);
+                else reject(new Error(e.data.error));
             };
 
-            function validateXMLStructure(doc) {
-                const e = [];
-                if (!doc.querySelector('feed'))    e.push('Missing <feed>');
-                if (!doc.querySelector('channel')) e.push('Missing <channel>');
-                if (doc.querySelectorAll('item').length === 0) e.push('No <item> elements');
-                return e;
-            }
+            worker.onerror = function(e) {
+                worker.terminate();
+                URL.revokeObjectURL(workerUrl);
+                reject(new Error('Worker error: ' + (e.message || 'Worker failure')));
+            };
 
-            function parseItem(item) {
-                if (!item.querySelector('title') || !item.querySelector('id'))
-                    throw new Error('Missing required title/id in <item>');
-
-                const pubDate = item.querySelector('pubDate');
-                return {
-                    title:       item.querySelector('title').textContent,
-                    id:          item.querySelector('id').textContent,
-                    type:        item.querySelector('type')?.textContent || '',
-                    heading:     item.querySelector('heading')?.textContent || '',
-                    description: item.querySelector('description')?.textContent || '',
-                    content:     item.querySelector('content')?.innerHTML || '',
-                    pubDate: pubDate ? {
-                        date:     pubDate.querySelector('date')?.textContent     || '',
-                        timezone: pubDate.querySelector('timezone')?.textContent || ''
-                    } : {}
-                };
-            }
-        `;
-
-        const blob      = new Blob([workerCode], { type: 'application/javascript' });
-        const workerUrl = URL.createObjectURL(blob);
-        const worker    = new Worker(workerUrl);
-
-        worker.onmessage = function(e) {
-            worker.terminate();
-            URL.revokeObjectURL(workerUrl);
-            if (e.data.success) resolve(e.data.data);
-            else reject(new Error(e.data.error));
-        };
-
-        worker.onerror = function(e) {
-            worker.terminate();
-            URL.revokeObjectURL(workerUrl);
-            reject(new Error('Worker error: ' + e.message));
-        };
-
-        worker.postMessage(xmlString);
+            worker.postMessage(xmlString);
+        } catch (err) {
+            reject(err);
+        }
     });
 }
 

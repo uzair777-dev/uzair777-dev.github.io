@@ -104,14 +104,36 @@ async function loadPage(pageName) {
         // Render page content
         renderPage(pageData);
 
-        // Update page title
-        if (pageData.title && globalConfig.site) {
-            document.title = `${pageData.title} - ${globalConfig.site.name}`;
-        }
+        // Update page title, description, canonical link & OpenGraph tags dynamically
+        const siteName = (globalConfig.site && globalConfig.site.name) ? globalConfig.site.name : 'Uzair Shaikh';
+        const pageTitle = pageData.title ? `${pageData.title} - ${siteName}` : `${siteName} - Developer Portfolio`;
+        document.title = pageTitle;
+
+        const pageDesc = pageData.description || (globalConfig.site && globalConfig.site.description) || "Uzair Shaikh's developer portfolio — Cybersecurity, networking, system architecture, and programming projects.";
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', pageDesc);
+
+        const currentUrl = pageName === 'home' ? 'https://uzair777-dev.github.io/' : `https://uzair777-dev.github.io/#${pageName}`;
+        const canonicalEl = document.getElementById('canonical-link');
+        if (canonicalEl) canonicalEl.setAttribute('href', currentUrl);
+
+        const ogTitle = document.getElementById('og-title');
+        if (ogTitle) ogTitle.setAttribute('content', pageTitle);
+        const ogDesc = document.getElementById('og-description');
+        if (ogDesc) ogDesc.setAttribute('content', pageDesc);
+        const ogUrl = document.getElementById('og-url');
+        if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+
+        const twTitle = document.getElementById('twitter-title');
+        if (twTitle) twTitle.setAttribute('content', pageTitle);
+        const twDesc = document.getElementById('twitter-description');
+        if (twDesc) twDesc.setAttribute('content', pageDesc);
     } catch (error) {
         console.error(`Error loading page ${pageName}:`, error);
-        document.getElementById('main-content').innerHTML =
-            `<div class="loading"><p>Error loading ${pageName} page. Please check the data file.</p></div>`;
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `<div class="loading"><p>Error loading ${pageName} page. Please check the data file.</p></div>`;
+        }
     }
 }
 
@@ -754,10 +776,12 @@ async function setupFooter() {
 
 // Theme functions
 function getPreferredTheme() {
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme) {
-        return storedTheme;
-    }
+    try {
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme) {
+            return storedTheme;
+        }
+    } catch (_) {}
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
@@ -768,7 +792,9 @@ function setTheme(theme) {
     } else {
         document.documentElement.setAttribute('data-theme', theme);
     }
-    localStorage.setItem('theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch (_) {}
     updateActiveThemeButton(theme);
 }
 
@@ -801,9 +827,11 @@ function setupThemeToggle() {
 
     // Watch for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'auto') {
-            setTheme('auto');
-        }
+        try {
+            if (localStorage.getItem('theme') === 'auto') {
+                setTheme('auto');
+            }
+        } catch (_) {}
     });
 }
 

@@ -261,6 +261,30 @@ function openOverlay(logId) {
 
     // Update URL hash
     history.pushState(null, '', `#${log.id}`);
+
+    // Update page title & metadata dynamically
+    const titleText = `${log.title} — devLOGS`;
+    document.title = titleText;
+
+    const descText = log.description || `${log.title} - Read post on devLOGS by Uzair Shaikh`;
+    const metaDesc = document.getElementById('meta-description');
+    if (metaDesc) metaDesc.setAttribute('content', descText);
+
+    const postUrl = `https://uzair777-dev.github.io/devlogs/#${log.id}`;
+    const canonicalEl = document.getElementById('canonical-link');
+    if (canonicalEl) canonicalEl.setAttribute('href', postUrl);
+
+    const ogTitle = document.getElementById('og-title');
+    if (ogTitle) ogTitle.setAttribute('content', titleText);
+    const ogDesc = document.getElementById('og-description');
+    if (ogDesc) ogDesc.setAttribute('content', descText);
+    const ogUrl = document.getElementById('og-url');
+    if (ogUrl) ogUrl.setAttribute('content', postUrl);
+
+    const twTitle = document.getElementById('twitter-title');
+    if (twTitle) twTitle.setAttribute('content', titleText);
+    const twDesc = document.getElementById('twitter-description');
+    if (twDesc) twDesc.setAttribute('content', descText);
 }
 
 function closeOverlay() {
@@ -270,6 +294,29 @@ function closeOverlay() {
 
     // Clear hash
     history.pushState(null, '', window.location.pathname);
+
+    // Restore title & metadata
+    document.title = 'devLOGS — Uzair Shaikh';
+    const defaultDesc = 'devLOGS — Developer thoughts, builds, security research, and programming experiments by Uzair Shaikh.';
+    const defaultUrl = 'https://uzair777-dev.github.io/devlogs/';
+
+    const metaDesc = document.getElementById('meta-description');
+    if (metaDesc) metaDesc.setAttribute('content', defaultDesc);
+
+    const canonicalEl = document.getElementById('canonical-link');
+    if (canonicalEl) canonicalEl.setAttribute('href', defaultUrl);
+
+    const ogTitle = document.getElementById('og-title');
+    if (ogTitle) ogTitle.setAttribute('content', 'devLOGS — Uzair Shaikh');
+    const ogDesc = document.getElementById('og-description');
+    if (ogDesc) ogDesc.setAttribute('content', defaultDesc);
+    const ogUrl = document.getElementById('og-url');
+    if (ogUrl) ogUrl.setAttribute('content', defaultUrl);
+
+    const twTitle = document.getElementById('twitter-title');
+    if (twTitle) twTitle.setAttribute('content', 'devLOGS — Uzair Shaikh');
+    const twDesc = document.getElementById('twitter-description');
+    if (twDesc) twDesc.setAttribute('content', defaultDesc);
 }
 
 // ═══════════════════════════════════════════════
@@ -324,8 +371,11 @@ async function setupNavigation() {
 // ═══════════════════════════════════════════════
 
 function getPreferredTheme() {
-    return localStorage.getItem('theme') ||
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    try {
+        const stored = localStorage.getItem('theme');
+        if (stored) return stored;
+    } catch (_) {}
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function setTheme(theme) {
@@ -333,7 +383,9 @@ function setTheme(theme) {
         ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
         : theme;
     document.documentElement.setAttribute('data-theme', resolved);
-    localStorage.setItem('theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch (_) {}
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const strokeColor = isDark ? '#e8e2f0' : '#050505';
@@ -355,7 +407,9 @@ function setupThemeToggle() {
         btn.addEventListener('click', () => setTheme(btn.dataset.theme))
     );
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'auto') setTheme('auto');
+        try {
+            if (localStorage.getItem('theme') === 'auto') setTheme('auto');
+        } catch (_) {}
     });
 }
 
