@@ -1,5 +1,5 @@
 User-agent: *
-Allow: /
+Allow: /sitemap.xml
 Disallow: /devlogs/editor.html
 Disallow: /test_*.html
 
