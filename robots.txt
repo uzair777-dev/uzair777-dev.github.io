@@ -3,4 +3,4 @@ Allow: /sitemap.xml
 Disallow: /devlogs/editor.html
 Disallow: /test_*.html
 
-Sitemap: https://uzair777-dev.github.io/sitemap.xml
+Sitemap: https://uzairshaikh.pages.dev/sitemap.xml
