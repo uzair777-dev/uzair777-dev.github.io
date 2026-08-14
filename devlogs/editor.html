@@ -970,8 +970,34 @@
         }
     }
 
+    // ── Auto-Detect Next ID from logs.xml ──
+    async function autoSetNextId(force = false) {
+        try {
+            const resp = await fetch('logs.xml');
+            if (!resp.ok) return;
+            const xmlText = await resp.text();
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+            const idNodes = xmlDoc.querySelectorAll('item > id');
+            let maxId = 0;
+            idNodes.forEach(node => {
+                const val = parseInt(node.textContent.trim(), 10);
+                if (!isNaN(val) && val > maxId) {
+                    maxId = val;
+                }
+            });
+            const nextId = maxId + 1;
+            if (force || !fields.id.value) {
+                fields.id.value = nextId;
+                updatePreview();
+            }
+        } catch (e) {
+            console.error('Failed to auto-detect next ID from logs.xml:', e);
+        }
+    }
+
     // ── Clear all fields ──
-    function clearAll() {
+    async function clearAll() {
         Object.values(fields).forEach(el => {
             if (el.tagName === 'SELECT') {
                 el.selectedIndex = 0;
@@ -981,6 +1007,7 @@
         });
         clearDraftStorage();
         setNow();
+        await autoSetNextId(true);
         updatePreview();
         showToast('🗑️', 'Fields & cached draft cleared');
     }
@@ -1017,13 +1044,18 @@
     document.getElementById('btn-clear').addEventListener('click', clearAll);
 
     // ── Initialize Editor & Load Cached Draft ──
-    const restored = loadDraft();
-    if (!restored) {
-        setNow();
-    } else {
-        showToast('💾', 'Restored draft from local cache');
+    async function initEditor() {
+        const restored = loadDraft();
+        if (!restored) {
+            setNow();
+        } else {
+            showToast('💾', 'Restored draft from local cache');
+        }
+        await autoSetNextId();
+        updatePreview();
     }
-    updatePreview();
+
+    initEditor();
     </script>
 </body>
 </html>
