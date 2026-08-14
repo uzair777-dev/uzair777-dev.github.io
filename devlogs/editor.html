@@ -680,6 +680,8 @@
     //  Editor Logic
     // ═══════════════════════════════════════════════
 
+    const STORAGE_KEY = 'devlogs_editor_draft';
+
     // ── Theme ──
     (function initTheme() {
         const saved = localStorage.getItem('theme') ||
@@ -713,8 +715,47 @@
     const xmlSection        = document.getElementById('xml-output-section');
     const xmlOutput         = document.getElementById('xml-output');
 
-    // ── Set current date/time on load ──
-    setNow();
+    // ── Local Storage Caching ──
+    function saveDraft() {
+        try {
+            const data = {};
+            Object.keys(fields).forEach(key => {
+                if (fields[key]) {
+                    data[key] = fields[key].value;
+                }
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.error('Failed to save draft to localStorage:', e);
+        }
+    }
+
+    function loadDraft() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            const data = JSON.parse(saved);
+            let hasValue = false;
+            Object.keys(fields).forEach(key => {
+                if (data[key] !== undefined && fields[key]) {
+                    fields[key].value = data[key];
+                    if (data[key]) hasValue = true;
+                }
+            });
+            return hasValue;
+        } catch (e) {
+            console.error('Failed to load draft from localStorage:', e);
+            return false;
+        }
+    }
+
+    function clearDraftStorage() {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {
+            console.error('Failed to clear draft from localStorage:', e);
+        }
+    }
 
     // ── Tag Insertion ──
     document.getElementById('tag-bar').addEventListener('click', e => {
@@ -755,6 +796,9 @@
         const desc    = fields.desc.value.trim();
         const content = fields.content.value;
         const tz      = fields.tz.value;
+
+        // Auto-save draft to local storage whenever inputs change
+        saveDraft();
 
         const hasAnything = title || id || heading || desc || content;
 
@@ -935,9 +979,10 @@
                 el.value = '';
             }
         });
+        clearDraftStorage();
         setNow();
         updatePreview();
-        showToast('🗑️', 'Fields cleared');
+        showToast('🗑️', 'Fields & cached draft cleared');
     }
 
     // ── Toast ──
@@ -971,7 +1016,13 @@
     document.getElementById('btn-now').addEventListener('click', setNow);
     document.getElementById('btn-clear').addEventListener('click', clearAll);
 
-    // ── Initial preview ──
+    // ── Initialize Editor & Load Cached Draft ──
+    const restored = loadDraft();
+    if (!restored) {
+        setNow();
+    } else {
+        showToast('💾', 'Restored draft from local cache');
+    }
     updatePreview();
     </script>
 </body>
