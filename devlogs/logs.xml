@@ -153,5 +153,45 @@
         <timezone>IST</timezone>
       </pubDate>
     </item>
+    <item>
+      <title>Vgp release</title>
+      <id>4</id>
+      <type>Release announcement</type>
+      <heading>VGP release</heading>
+      <description><![CDATA[Virtual gamepads plus release and projects I've been working on.]]></description>
+      <content>
+        Hey there 👋. It's me. 
+        <br/>
+         For past couple of montha, I've been working on a small but useful project called Virtual gamepad plus. Originally I didn't mean to work on it, I had other projects (I'll talk about in a few secs) that would've been better use of my time, but ... Whatever... It's labour of love tbh, and I don't mind
+        <br/><br/>
+        So... How did it come to be?
+        <hr/>
+        Well, few months back, I wanted something like a mobile controller. I, myself, am pretty much, broke. Basically, student life in india isn't quite forgiving. There's constant pressure to do stuff is not really healthy, for any human. So, I usually game to relieve my stress. Gaming has been one of the best ways to just forget about the team world, and just game. Many people would agree, racing games were a big part of our childhood and current times too. I myself used too, and play Need for Speed series games. Currently I am into more of a trucking guy (ETS2), but that's just a personal preference. Usually most of us use mouse and keyboard, the thing that usually comes with the laptop you bought ( or that was bought for you). Pretty much that's the only thing that I've been playing with and on every game I played. People suggest that to just liven up your setup, just buy a controller. In a country like mine Controllers are still a novelty. Racing setups, are just too out of reach for normal common folks like us. It's not something that should make others feel bad, it is what it is. 
+        <br/><br/>
+        So, in order to maximize what we have people search for mobile game controllers, that make their existing device ( which btw has perfect capabilities for it) and use it for their use-case. Windows pretty much has this problem's solution, pretty much in place. GNU/Linux on the other hand, is a bit of a pickle. I mean there are... But they are a mess. <a href="https://www.reddit.com/r/linux_gaming/s/df4hyuyTtG" target="_blank">This</a> will basically summarize it for you. Basically it has some pretty good options, but some are dead, or some are paid. Not a thing that you can run for long time... 
+        <br/>
+        <hr/>
+        So I made VGP, Virtual gamepads plus (not to be confused with <a href="https://kitswas.github.io/VirtualGamePad/" target="_blank"> Virtual gamepad project </a>). It was a fork of a <a href="https://github.com/alr86/node-virtual-gamepads-revived" target="_blank">fork</a> of <a href="https://github.com/jehervy/node-virtual-gamepads" target="_blank">another project</a>. It was in a pretty bad state when I found it, so.... Yeah.... Not really great news. But the fork maintainer did a really good job in solving stuff that the original did mess up, so chaps to them. I did work on it and here it is. It basically runs on browser, so it has platform support of basically any mobile phone that supports major browsers* ( why asterisk, I'll tell you later). It is light on the server system. Just connect with qr code. Boom, you're in! Slightly workable... 
+        
+        <hr/>
+        
+        It does have its caveats.
+        <br/>
+        <br/>
+        First of all is browser limitation. Modern browsers are like siblings that can't agree on a single thing. Like why the <PCensor>fuck</PCensor> can you not???
+        <br/>
+        One such example, is gyroscope. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Gyroscope" target="_blank">Gyroscope API</a> which comes under a greater batch of <a href="https://developer.mozilla.org/en-US/docs/Web/API/Sensor_APIs" target="_blank">Sensors APIs</a>, is not a baseline standard. <b>WHY????</b>. Because why not. Chrome supports it, heck even Edge supports it, however Safari? Nahhhh. Even them mozilla, the one describing the standard, don't support it in their browser. I know it's a privacy concern, but really??? 2 things
+        <li> It is through permissions api, so it's asked to user before doing anything. If the user <PCensor>fucks</PCensor> up with even warning them, they bought this upon themselves</li>
+        <li> Really? Privacy? In big 2026?. I don't wanna talk about it further but the one's that know, will know</li>
+        
+        <br/><hr/>
+        
+        So this is it. I'm bored and it's already midnight, so imma have a good night sleep. See ya, have fun 👋
+      </content>
+      <pubDate>
+        <date>1786994880</date>
+        <timezone>IST</timezone>
+      </pubDate>
+    </item>
   </channel>
 </feed>   
