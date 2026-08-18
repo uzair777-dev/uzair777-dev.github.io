@@ -25,10 +25,11 @@ async function init() {
     currentPage = 1;
     try {
         // UI controls
+        await setupNavigation();
         setupThemeToggle();
         setTheme(getPreferredTheme());
         setupMobileMenu();
-        await setupNavigation();
+        handleResponsiveThemeToggle();
 
         // Create the overlay element
         createOverlay();
@@ -336,6 +337,8 @@ function handleHashNavigation() {
 
 async function setupNavigation() {
     const navMenu = document.getElementById('nav-menu');
+    if (!navMenu) return;
+
     try {
         const resp = await fetch('/data/global.json');
         if (!resp.ok) throw new Error();
@@ -343,14 +346,20 @@ async function setupNavigation() {
         cachedGlobalConfig = cfg;
 
         if (cfg.navigation?.menu) {
-            navMenu.innerHTML = '';
+            const mobileContainer = document.getElementById('mobile-theme-toggle-container');
+            navMenu.querySelectorAll('li:not(#mobile-theme-toggle-container)').forEach(el => el.remove());
+
             cfg.navigation.menu.forEach(item => {
                 const li = document.createElement('li');
                 const a  = document.createElement('a');
                 a.href        = '/';
                 a.textContent = item.label;
                 li.appendChild(a);
-                navMenu.appendChild(li);
+                if (mobileContainer) {
+                    navMenu.insertBefore(li, mobileContainer);
+                } else {
+                    navMenu.appendChild(li);
+                }
             });
             // "devLOGS" as active link
             const li = document.createElement('li');
@@ -359,10 +368,26 @@ async function setupNavigation() {
             a.textContent = 'devLOGS';
             a.classList.add('active');
             li.appendChild(a);
-            navMenu.appendChild(li);
+            if (mobileContainer) {
+                navMenu.insertBefore(li, mobileContainer);
+            } else {
+                navMenu.appendChild(li);
+            }
         }
     } catch (_) {
-        navMenu.innerHTML = '<li><a href="/">Home</a></li><li><a href="/devlogs/" class="active">devLOGS</a></li>';
+        const mobileContainer = document.getElementById('mobile-theme-toggle-container');
+        navMenu.querySelectorAll('li:not(#mobile-theme-toggle-container)').forEach(el => el.remove());
+        const homeLi = document.createElement('li');
+        homeLi.innerHTML = '<a href="/">Home</a>';
+        const devlogsLi = document.createElement('li');
+        devlogsLi.innerHTML = '<a href="/devlogs/" class="active">devLOGS</a>';
+        if (mobileContainer) {
+            navMenu.insertBefore(homeLi, mobileContainer);
+            navMenu.insertBefore(devlogsLi, mobileContainer);
+        } else {
+            navMenu.appendChild(homeLi);
+            navMenu.appendChild(devlogsLi);
+        }
     }
 }
 
@@ -399,6 +424,36 @@ function setTheme(theme) {
     });
 }
 
+function handleResponsiveThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    const navContainer = document.querySelector('.nav-container');
+    const hamburger = document.getElementById('hamburger');
+
+    if (!themeToggle || !navMenu || !navContainer || !hamburger) return;
+
+    if (window.innerWidth <= 768) {
+        if (themeToggle.parentElement !== navMenu && !navMenu.contains(themeToggle)) {
+            let li = document.getElementById('mobile-theme-toggle-container');
+            if (!li) {
+                li = document.createElement('li');
+                li.id = 'mobile-theme-toggle-container';
+                li.className = 'mobile-theme-item';
+            }
+            li.appendChild(themeToggle);
+            navMenu.appendChild(li);
+        }
+    } else {
+        if (themeToggle.parentElement !== navContainer) {
+            const li = document.getElementById('mobile-theme-toggle-container');
+            if (li) {
+                li.remove();
+            }
+            navContainer.insertBefore(themeToggle, hamburger);
+        }
+    }
+}
+
 function setupThemeToggle() {
     document.querySelectorAll('.theme-option').forEach(btn =>
         btn.addEventListener('click', () => setTheme(btn.dataset.theme))
@@ -408,6 +463,8 @@ function setupThemeToggle() {
             if (localStorage.getItem('theme') === 'auto') setTheme('auto');
         } catch (_) {}
     });
+    window.addEventListener('resize', handleResponsiveThemeToggle);
+    handleResponsiveThemeToggle();
 }
 
 // ═══════════════════════════════════════════════

@@ -29,7 +29,9 @@ function setupNavigation() {
 
     // Build navigation menu
     if (globalConfig.navigation && globalConfig.navigation.menu) {
-        navMenu.innerHTML = '';
+        const mobileContainer = document.getElementById('mobile-theme-toggle-container');
+        navMenu.querySelectorAll('li:not(#mobile-theme-toggle-container)').forEach(el => el.remove());
+
         globalConfig.navigation.menu.forEach(item => {
             const li = document.createElement('li');
             const a = document.createElement('a');
@@ -41,7 +43,11 @@ function setupNavigation() {
                 loadPage(item.page);
             });
             li.appendChild(a);
-            navMenu.appendChild(li);
+            if (mobileContainer) {
+                navMenu.insertBefore(li, mobileContainer);
+            } else {
+                navMenu.appendChild(li);
+            }
         });
 
         // Add devLOGS link (separate page, not SPA route)
@@ -50,7 +56,11 @@ function setupNavigation() {
         devlogA.href = '/devlogs/';
         devlogA.textContent = 'devLOGS';
         devlogLi.appendChild(devlogA);
-        navMenu.appendChild(devlogLi);
+        if (mobileContainer) {
+            navMenu.insertBefore(devlogLi, mobileContainer);
+        } else {
+            navMenu.appendChild(devlogLi);
+        }
     }
 }
 
@@ -982,7 +992,7 @@ async function preloadAssets() {
     }
 }
 
-// Relocate theme toggle based on viewport size
+// Relocate theme toggle based on viewport size (inside burger menu on mobile)
 function handleResponsiveThemeToggle() {
     const themeToggle = document.getElementById('theme-toggle');
     const navMenu = document.getElementById('nav-menu');
@@ -992,22 +1002,19 @@ function handleResponsiveThemeToggle() {
     if (!themeToggle || !navMenu || !navContainer || !hamburger) return;
 
     if (window.innerWidth <= 768) {
-        // Move to nav-menu if not already there
-        if (themeToggle.parentElement !== navMenu) {
+        // Move inside nav-menu if not already there
+        if (themeToggle.parentElement !== navMenu && !navMenu.contains(themeToggle)) {
             let li = document.getElementById('mobile-theme-toggle-container');
             if (!li) {
                 li = document.createElement('li');
                 li.id = 'mobile-theme-toggle-container';
-                li.style.display = 'flex';
-                li.style.justifyContent = 'center';
-                li.style.marginTop = '1rem';
-                li.style.paddingBottom = '1rem';
+                li.className = 'mobile-theme-item';
             }
             li.appendChild(themeToggle);
             navMenu.appendChild(li);
         }
     } else {
-        // Move back to nav container if not already there
+        // Move back to nav-container before hamburger on desktop
         if (themeToggle.parentElement !== navContainer) {
             const li = document.getElementById('mobile-theme-toggle-container');
             if (li) {
@@ -1039,12 +1046,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupThemeToggle();
         setTheme(getPreferredTheme());
 
-        // Setup footer
-        await setupFooter();
-
-        // Setup responsive theme toggle
+        // Setup responsive theme toggle inside burger menu for mobile
         window.addEventListener('resize', handleResponsiveThemeToggle);
         handleResponsiveThemeToggle();
+
+        // Setup footer
+        await setupFooter();
     } catch (error) {
         console.error('Error initializing app:', error);
         document.getElementById('main-content').innerHTML =
@@ -1060,3 +1067,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, remaining);
     }
 });
+

@@ -185,6 +185,17 @@
     fill: none;
 }
 
+/* In Light Mode, give the inactive Dark Mode (moon) icon the dark accent color (#1e3a8a) */
+:root .theme-toggle button[data-theme="dark"]:not(.active) svg,
+:root .theme-toggle button[data-theme="dark"]:not(.active) svg path {
+    stroke: var(--accent-start, #1e3a8a) !important;
+}
+
+:root .theme-toggle button[data-theme="dark"]:not(.active):hover svg,
+:root .theme-toggle button[data-theme="dark"]:not(.active):hover svg path {
+    stroke: var(--secondary-color, #7e22ce) !important;
+}
+
 .theme-toggle .theme-option.active svg,
 .theme-toggle .theme-option.active svg path,
 .theme-toggle .theme-option.active svg circle,
@@ -229,6 +240,16 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.mobile-theme-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .nav-logo {
