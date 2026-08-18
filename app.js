@@ -818,18 +818,17 @@ function setTheme(theme) {
 
 function updateActiveThemeButton(theme) {
     const buttons = document.querySelectorAll('.theme-option');
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const strokeColor = isDark ? '#e8e2f0' : '#050505';
 
     buttons.forEach(button => {
         const isActive = button.dataset.theme === theme;
         button.classList.toggle('active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
         
+        // Let CSS handle stroke colours via currentColor — no hardcoded values
         const svg = button.querySelector('svg');
         if (svg) {
-            svg.setAttribute('stroke', strokeColor);
-            svg.style.stroke = strokeColor;
+            svg.removeAttribute('stroke');
+            svg.style.stroke = '';
         }
     });
 }
@@ -894,9 +893,9 @@ function showPreloader() {
         preloaderContent.style.textAlign = 'center';
 
         const spinner = document.createElement('div');
-        spinner.style.border = '4px solid rgba(255, 255, 255, 0.3)';
+        spinner.style.border = '4px solid var(--border-color)';
         spinner.style.borderRadius = '50%';
-        spinner.style.borderTop = '4px solid var(--primary)';
+        spinner.style.borderTop = '4px solid var(--primary-color)';
         spinner.style.width = '40px';
         spinner.style.height = '40px';
 

@@ -387,17 +387,14 @@ function setTheme(theme) {
         localStorage.setItem('theme', theme);
     } catch (_) {}
 
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const strokeColor = isDark ? '#e8e2f0' : '#050505';
-
     document.querySelectorAll('.theme-option').forEach(btn => {
         const isActive = btn.dataset.theme === theme;
         btn.classList.toggle('active', isActive);
         
         const svg = btn.querySelector('svg');
         if (svg) {
-            svg.setAttribute('stroke', strokeColor);
-            svg.style.stroke = strokeColor;
+            svg.removeAttribute('stroke');
+            svg.style.stroke = '';
         }
     });
 }
