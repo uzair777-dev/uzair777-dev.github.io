@@ -123,10 +123,10 @@
     --hover-color: #382e5c;
     --icon-color: #f8fafc;
 
-    /* Shadows in dark mode */
-    --shadow: 4px 4px 0px #090710;
-    --shadow-lg: 6px 6px 0px #090710;
-    --shadow-img: 4px 4px 0px #090710;
+    /* Light pastel shadows in dark mode (Solid Pastel Lavender) */
+    --shadow: 4px 4px 0px #c4b5fd;
+    --shadow-lg: 6px 6px 0px #c4b5fd;
+    --shadow-img: 4px 4px 0px #c4b5fd;
 
     /* Preloader & popup */
     --preloader-bg: #161324e6;
@@ -907,7 +907,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="dark"] .resource-popup-content {
-    box-shadow: 8px 8px 0px #090710;
+    box-shadow: 8px 8px 0px #c4b5fd;
 }
 
 .resource-popup-close {

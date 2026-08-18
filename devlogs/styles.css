@@ -72,7 +72,7 @@
 }
 
 [data-theme="dark"] .filter-btn.active {
-  box-shadow: 2px 2px 0px #090710;
+  box-shadow: 2px 2px 0px #c4b5fd;
 }
 
 /* Sort Button */
@@ -294,7 +294,7 @@
 }
 
 [data-theme="dark"] .overlay-close {
-  box-shadow: 3px 3px 0px #090710;
+  box-shadow: 3px 3px 0px #c4b5fd;
 }
 
 .overlay-close:hover {
@@ -480,7 +480,7 @@
 }
 
 [data-theme="dark"] .overlay-body pre {
-  box-shadow: 3px 3px 0px #090710;
+  box-shadow: 3px 3px 0px #c4b5fd;
 }
 
 .overlay-body pre code {
@@ -583,7 +583,7 @@
 }
 
 [data-theme="dark"] .pagination button {
-  box-shadow: 2px 2px 0px #090710;
+  box-shadow: 2px 2px 0px #c4b5fd;
 }
 
 .pagination button:hover:not(:disabled) {
