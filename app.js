@@ -496,12 +496,64 @@ async function loadJSON(path) {
     return req;
 }
 
+// Network-awareness helpers (respect Save-Data and Slow 3G / 2G cold loads)
+function isSlowConnection() {
+    try {
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (!conn) return false;
+        if (conn.saveData) return true;
+        const eff = String(conn.effectiveType || '').toLowerCase();
+        if (eff === 'slow-2g' || eff === '2g' || eff === '3g') return true;
+        if (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 1.5) return true;
+    } catch (_) {}
+    return false;
+}
+
+function isConstrainedNetwork() {
+    try {
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (!conn) return false;
+        if (conn.saveData) return true;
+        const eff = String(conn.effectiveType || '').toLowerCase();
+        if (eff === 'slow-2g' || eff === '2g') return true;
+        if (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 0.7) return true;
+    } catch (_) {}
+    return false;
+}
+
+// Ensure async /styles.css has finished loading and switched from media="print" -> "all" before revealing page
+function waitForMainStylesheet() {
+    const link = document.getElementById('main-stylesheet-link');
+    if (!link) return Promise.resolve();
+    if (window.__mainCssLoaded || link.media === 'all' || link.sheet) {
+        link.media = 'all';
+        window.__mainCssLoaded = true;
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        let settled = false;
+        const finish = () => {
+            if (settled) return;
+            settled = true;
+            link.media = 'all';
+            window.__mainCssLoaded = true;
+            resolve();
+        };
+        link.addEventListener('load', finish, { once: true });
+        link.addEventListener('error', finish, { once: true });
+        // Safety ceiling so a stalled network never traps the preloader forever
+        setTimeout(finish, 8000);
+    });
+}
+
 // Non-blocking route prefetch on hover/focus or idle
-function prefetchPage(pageName) {
+function prefetchPage(pageName, options = {}) {
+    const { includeIcons = true } = options;
     if (!VALID_PAGES.has(pageName)) return;
     const jsonPath = `data/pages/${pageName}.json`;
     loadJSON(jsonPath)
         .then((pd) => {
+            if (!includeIcons || isSlowConnection()) return;
             const icons = [];
             if (pd.featured) pd.featured.forEach(i => { if (i.icon) icons.push(i.icon); });
             if (pd.skills) pd.skills.forEach(s => { if (s.icon) icons.push(s.icon); });
@@ -641,7 +693,7 @@ function navigateTo(pageName, options = {}) {
 
 // Load page content (with cinematic pastel ribbon curtain on SPA route switches)
 async function loadPage(pageName, options = {}) {
-    const { scrollToTop = true, announce = false, moveFocus = false, animate = false } = options;
+    const { scrollToTop = true, announce = false, moveFocus = false, animate = false, deferRepos = false } = options;
     const token = ++routeTransitionToken;
     currentPage = pageName;
 
@@ -700,7 +752,7 @@ async function loadPage(pageName, options = {}) {
         const pageData = await pageDataPromise;
         if (token !== routeTransitionToken) return;
 
-        await renderPage(pageData, { stagger: false });
+        await renderPage(pageData, { stagger: false, deferRepos });
         if (token !== routeTransitionToken) return;
 
         if (scrollToTop) {
@@ -812,6 +864,7 @@ async function fetchGitHubRepos() {
             }
         } catch (_) {}
 
+        const apiTimeoutMs = isSlowConnection() ? 3600 : 5000;
         const fetches = repoUrls.map(url => {
             const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
             if (!match) return Promise.resolve(null);
@@ -827,9 +880,13 @@ async function fetchGitHubRepos() {
                 pushed_at: null
             };
 
-            return fetch(`https://api.github.com/repos/${owner}/${repo}`)
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timer = controller ? setTimeout(() => controller.abort(), apiTimeoutMs) : null;
+
+            return fetch(`https://api.github.com/repos/${owner}/${repo}`, controller ? { signal: controller.signal } : undefined)
                 .then(r => r.ok ? r.json() : fallbackRepo)
-                .catch(() => fallbackRepo);
+                .catch(() => fallbackRepo)
+                .finally(() => { if (timer) clearTimeout(timer); });
         });
 
         const results = await Promise.all(fetches);
@@ -887,10 +944,13 @@ function renderRepoCards(grid, repos) {
             ? metaParts.join(' · ')
             : escapeHTML(repo.full_name);
 
+        const skipHeavyOgPreview = isConstrainedNetwork();
         html += `<a href="${escapeHTML(repo.html_url)}" target="_blank" rel="noopener noreferrer" class="repo-card${isLead ? ' repo-card--lead' : ''}" aria-label="${escapeHTML(repo.name)}: ${escapeHTML(repo.description || 'No description')}">`;
         html += `<div class="repo-card-media">`;
-        html += `<img src="${ogImage}" alt="Preview image for ${escapeHTML(repo.name)}" class="repo-card-image" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
-        html += `<div class="repo-card-fallback" aria-hidden="true"><span>${escapeHTML(repo.full_name)}</span></div>`;
+        if (!skipHeavyOgPreview) {
+            html += `<img src="${ogImage}" alt="Preview image for ${escapeHTML(repo.name)}" class="repo-card-image" loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer">`;
+        }
+        html += `<div class="repo-card-fallback${skipHeavyOgPreview ? ' visible' : ''}" aria-hidden="true"><span>${escapeHTML(repo.full_name)}</span></div>`;
         html += `</div>`;
         html += `<div class="repo-card-body">`;
         html += `<div class="repo-card-topline">`;
@@ -948,7 +1008,9 @@ async function renderPage(pageData, options = {}) {
     }
 
     if (pageData.type === 'home') {
-        fetchGitHubRepos();
+        if (!options.deferRepos) {
+            fetchGitHubRepos();
+        }
         setupHeroArtworkTilt();
     }
     if (pageData.type === 'about') {
@@ -1791,44 +1853,55 @@ function setupResourceButtons() {
     });
 }
 
-// Setup Footer
-async function setupFooter() {
+// Setup Footer (renders synchronously first, then hydrates social SVGs non-blockingly)
+function setupFooter() {
     try {
         const footer = document.getElementById('footer');
-        if (globalConfig.footer) {
-            let footerHTML = '<div class="container footer-inner">';
-            footerHTML += '<div class="footer-top">';
-            if (globalConfig.footer.copyright) {
-                footerHTML += `<p class="footer-copyright">${escapeHTML(globalConfig.footer.copyright)}</p>`;
-            }
-            if (globalConfig.footer.links && globalConfig.footer.links.length > 0) {
-                const footerIcons = await Promise.all(
-                    globalConfig.footer.links.map(link => link.icon ? renderSVGIcon(link.icon) : Promise.resolve(''))
-                );
-                footerHTML += '<nav aria-label="Social media links"><div class="social-links footer-social">';
-                globalConfig.footer.links.forEach((link, idx) => {
-                    footerHTML += `<a href="${escapeHTML(link.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(link.name)}" aria-label="Visit ${escapeHTML(link.name)}" class="svg-icon">${footerIcons[idx]}</a>`;
-                });
-                footerHTML += '</div></nav>';
-            }
-            footerHTML += '</div>';
-            if (globalConfig.footer.footerNote) {
-                footerHTML += `<div class="footer-note">${globalConfig.footer.footerNote}</div>`;
-            }
-            // Sweet hidden pocket note exclusively discoverable via keyboard Tab or screen reader
-            footerHTML += `<button type="button" class="sr-only sr-only-focusable secret-a11y-egg" id="secret-a11y-egg">Psst — you found Uzair's hidden pocket note. Press Enter for a little kindness.</button>`;
-            footerHTML += '</div>';
-            footer.innerHTML = footerHTML;
+        if (!footer || !globalConfig.footer) return;
 
-            const eggBtn = document.getElementById('secret-a11y-egg');
-            if (eggBtn) {
-                eggBtn.addEventListener('click', () => {
-                    const note = HIDDEN_POCKET_NOTES[pocketNoteIndex % HIDDEN_POCKET_NOTES.length];
-                    pocketNoteIndex += 1;
-                    eggBtn.textContent = note;
-                    announceA11y(note);
-                });
-            }
+        let footerHTML = '<div class="container footer-inner">';
+        footerHTML += '<div class="footer-top">';
+        if (globalConfig.footer.copyright) {
+            footerHTML += `<p class="footer-copyright">${escapeHTML(globalConfig.footer.copyright)}</p>`;
+        }
+        if (globalConfig.footer.links && globalConfig.footer.links.length > 0) {
+            footerHTML += '<nav aria-label="Social media links"><div class="social-links footer-social">';
+            globalConfig.footer.links.forEach((link, idx) => {
+                const shortLabel = escapeHTML((link.name || '').slice(0, 2).toUpperCase());
+                footerHTML += `<a href="${escapeHTML(link.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(link.name)}" aria-label="Visit ${escapeHTML(link.name)}" class="svg-icon" data-footer-icon-idx="${idx}"><span class="sr-only">${escapeHTML(link.name)}</span><span aria-hidden="true" style="font-family:var(--font-mono);font-size:0.72rem;font-weight:600">${shortLabel}</span></a>`;
+            });
+            footerHTML += '</div></nav>';
+        }
+        footerHTML += '</div>';
+        if (globalConfig.footer.footerNote) {
+            footerHTML += `<div class="footer-note">${globalConfig.footer.footerNote}</div>`;
+        }
+        // Sweet hidden pocket note exclusively discoverable via keyboard Tab or screen reader
+        footerHTML += `<button type="button" class="sr-only sr-only-focusable secret-a11y-egg" id="secret-a11y-egg">Psst — you found Uzair's hidden pocket note. Press Enter for a little kindness.</button>`;
+        footerHTML += '</div>';
+        footer.innerHTML = footerHTML;
+
+        const eggBtn = document.getElementById('secret-a11y-egg');
+        if (eggBtn) {
+            eggBtn.addEventListener('click', () => {
+                const note = HIDDEN_POCKET_NOTES[pocketNoteIndex % HIDDEN_POCKET_NOTES.length];
+                pocketNoteIndex += 1;
+                eggBtn.textContent = note;
+                announceA11y(note);
+            });
+        }
+
+        // Hydrate footer SVG icons in background without blocking initial page reveal
+        if (globalConfig.footer.links && globalConfig.footer.links.length > 0) {
+            globalConfig.footer.links.forEach((link, idx) => {
+                if (!link.icon) return;
+                renderSVGIcon(link.icon).then((svgMarkup) => {
+                    const anchor = footer.querySelector(`a[data-footer-icon-idx="${idx}"]`);
+                    if (anchor && svgMarkup) {
+                        anchor.innerHTML = svgMarkup;
+                    }
+                }).catch(() => {});
+            });
         }
     } catch (error) {
         console.error('Error setting up footer:', error);
@@ -1838,17 +1911,24 @@ async function setupFooter() {
 // Snappy, FOUC-free Preloader powered by time-synced custom solar loaders
 function showPreloader() {
     let preloader = document.getElementById('preloader');
+    const loaderMarkup = (window.PortfolioThemeEngine && typeof window.PortfolioThemeEngine.buildSolarLoaderMarkup === 'function')
+        ? window.PortfolioThemeEngine.buildSolarLoaderMarkup()
+        : '<div class="solar-loader"><span class="solar-loader-label">// loading portfolio...</span></div>';
+
     if (!preloader) {
         preloader = document.createElement('div');
         preloader.id = 'preloader';
         preloader.className = 'site-preloader';
         preloader.setAttribute('role', 'status');
         preloader.setAttribute('aria-live', 'polite');
-        const loaderMarkup = (window.PortfolioThemeEngine && typeof window.PortfolioThemeEngine.buildSolarLoaderMarkup === 'function')
-            ? window.PortfolioThemeEngine.buildSolarLoaderMarkup()
-            : '<div class="solar-loader"><span class="solar-loader-label">// loading portfolio...</span></div>';
-        preloader.innerHTML = `<div class="preloader-inner">${loaderMarkup}</div>`;
+        preloader.innerHTML = `<div class="preloader-inner" id="preloader-inner">${loaderMarkup}</div>`;
         document.body.appendChild(preloader);
+    } else {
+        // Upgrade packet-1 inline preloader seamlessly to the full 4-phase solar SVG once theme-engine.js arrives
+        const inner = preloader.querySelector('.preloader-inner');
+        if (inner && !inner.querySelector('[data-solar-loader]')) {
+            inner.innerHTML = loaderMarkup;
+        }
     }
     preloader.classList.remove('is-hidden');
 }
@@ -1863,24 +1943,32 @@ function hidePreloader() {
     }
 }
 
-// Idle background prefetcher (warms non-active routes after critical first paint)
+// Idle background prefetcher (runs AFTER first reveal and skips eager flooding on Slow 3G / Save-Data)
 function scheduleBackgroundPrefetch(initialPage) {
+    if (isSlowConnection()) return;
     const runPrefetch = () => {
+        if (isSlowConnection()) return;
         const pageNames = (globalConfig.navigation?.menu?.map(m => m.page) || ['home', 'about', 'experience', 'contact', 'resources'])
             .filter(p => p !== initialPage);
-        pageNames.forEach(p => prefetchPage(p));
+        // Warm tiny route JSONs only on idle; page SVGs prefetch on nav hover/focus
+        pageNames.forEach(p => prefetchPage(p, { includeIcons: false }));
     };
 
-    if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(runPrefetch, { timeout: 1200 });
-    } else {
-        setTimeout(runPrefetch, 350);
-    }
+    const kick = () => {
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(runPrefetch, { timeout: 2500 });
+        } else {
+            setTimeout(runPrefetch, 800);
+        }
+    };
+    setTimeout(kick, 1200);
 }
 
-// Initialize when DOM is loaded (hydrates critical assets + fonts cleanly during solar loader showcase or incoming curtain handoff)
+// Initialize when DOM is loaded (packet-1 preloader is already painted; hydrates critical JSON + CSS cleanly)
 document.addEventListener('DOMContentLoaded', async () => {
-    window.__preloaderStartTime = performance.now();
+    if (typeof window.__preloaderStartTime !== 'number') {
+        window.__preloaderStartTime = performance.now();
+    }
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const themeEngine = window.PortfolioThemeEngine || null;
     if (themeEngine) {
@@ -1892,34 +1980,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (solarWelcome) {
         solarWelcome.textContent = getCurrentSolarMood().greeting;
     }
-    if (!arrivedViaCurtain) {
+    if (arrivedViaCurtain) {
+        const pre = document.getElementById('preloader');
+        if (pre) pre.style.display = 'none';
+    } else {
         showPreloader();
     }
 
     const initialPage = getPageFromHash();
+    const slowNet = isSlowConnection();
 
     try {
-        // Hydrate global config + active route JSON + web fonts (bounded timeout so slow networks never stall)
-        const fontsReadyBounded = (document.fonts && document.fonts.ready)
-            ? Promise.race([document.fonts.ready, waitMs(550)])
+        // Hydrate global config + active route JSON + main stylesheet in parallel (zero font-blocking on slow networks)
+        const fontsReadyBounded = (!slowNet && document.fonts && document.fonts.ready)
+            ? Promise.race([document.fonts.ready, waitMs(220)])
             : Promise.resolve();
 
         const [cfg] = await Promise.all([
             loadJSON('data/global.json'),
             loadJSON(`data/pages/${initialPage}.json`),
+            waitForMainStylesheet(),
             fontsReadyBounded,
         ]);
         globalConfig = cfg;
         setupNavigation();
+        setupFooter();
 
-        // Warm remaining routes in parallel during the intentional showcase window so SPA switches are instant
-        scheduleBackgroundPrefetch(initialPage);
-
-        // Render initial page + footer concurrently
-        await Promise.all([
-            loadPage(initialPage, { scrollToTop: false }),
-            setupFooter(),
-        ]);
+        // Render initial page immediately (defer GitHub repo network calls until right after reveal)
+        await loadPage(initialPage, { scrollToTop: false, deferRepos: initialPage === 'home' });
 
         // Browser back / forward & hash deep-link support
         window.addEventListener('hashchange', () => {
@@ -1942,6 +2030,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } finally {
         const mainContent = document.getElementById('main-content');
+        const kickPostRevealWork = () => {
+            if (initialPage === 'home' && currentPage === 'home') {
+                fetchGitHubRepos();
+            }
+            scheduleBackgroundPrefetch(initialPage);
+        };
+
         if (arrivedViaCurtain && themeEngine && typeof themeEngine.releaseIncomingCurtain === 'function') {
             themeEngine.releaseIncomingCurtain({
                 minHoldMs: 260,
@@ -1949,12 +2044,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (!prefersReducedMotion) {
                         applyRouteStagger(mainContent);
                     }
+                    kickPostRevealWork();
                 },
             });
         } else {
-            // Intentional showcase & slow-network hydration window (~720ms) so visitors enjoy the custom solar loader
-            // and slow-connection assets settle before first reveal (instant under reduced motion)
-            const minDuration = prefersReducedMotion ? 0 : 720;
+            // Preserve brief solar-loader showcase (~680ms total from packet 1) on fast links,
+            // while adding 0ms extra wait when slow networks already spent >680ms hydrating assets.
+            const minDuration = prefersReducedMotion ? 0 : 680;
             const elapsed = performance.now() - window.__preloaderStartTime;
             const remaining = Math.max(0, minDuration - elapsed);
             setTimeout(() => {
@@ -1962,6 +2058,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!prefersReducedMotion) {
                     applyRouteStagger(mainContent);
                 }
+                kickPostRevealWork();
             }, remaining);
         }
     }

@@ -303,7 +303,8 @@ test('project is standalone with zero Gemini API, env key, or platform runtime d
   assert.equal('express' in allDeps, false, 'package.json must not carry unused Express dependency');
   assert.equal('dotenv' in allDeps, false, 'package.json must not carry unused dotenv dependency');
   assert.equal(fs.existsSync(path.join(rootDir, '.env.example')), false, 'No .env.example asking for API keys should exist');
-  assert.equal(fs.existsSync(path.join(rootDir, 'public')), false, 'All static site files should live directly in project root (no public/ split)');
+  assert.equal(fs.existsSync(path.join(rootDir, 'public/app.js')), false, 'All static site files should live directly in project root (no public/ split)');
+  assert.equal(fs.existsSync(path.join(rootDir, 'public/styles.css')), false, 'styles.css should live directly in project root (no public/ split)');
 
   // Verify original uzair777-dev.github.io root structure
   for (const rel of [
@@ -327,4 +328,33 @@ test('project is standalone with zero Gemini API, env key, or platform runtime d
   const viteCfg = fs.readFileSync(path.join(rootDir, 'vite.config.ts'), 'utf-8');
   assert.equal(/aistudio|AI Studio|@vitejs\/plugin-react|@tailwindcss\/vite/i.test(viteCfg), false, 'vite.config.ts must be clean and platform-agnostic');
 });
+
+test('Slow-3G cold-load optimizations and devLOGS overlay pager contrast are enforced', () => {
+  const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
+  const appJs = fs.readFileSync(path.join(rootDir, 'app.js'), 'utf-8');
+  const devlogsCss = fs.readFileSync(path.join(rootDir, 'devlogs/styles.css'), 'utf-8');
+
+  // Packet-1 inline preloader & non-blocking fonts + main stylesheet
+  assert.ok(indexHtml.includes('id="critical-preloader-css"'), 'index.html must inline critical preloader CSS for packet-1 paint');
+  assert.ok(indexHtml.includes('id="preloader"'), 'index.html must include packet-1 #preloader markup');
+  assert.ok(indexHtml.includes('id="main-stylesheet-link"') && indexHtml.includes('media="print"'), 'index.html must load /styles.css non-render-blockingly behind the inline preloader');
+  assert.equal(indexHtml.includes('rel="preconnect" href="https://api.github.com"'), false, 'index.html should not waste Slow-3G t=0 sockets preconnecting to GitHub');
+
+  // Connection-aware startup & non-blocking footer/repo hydration
+  assert.ok(appJs.includes('isSlowConnection') && appJs.includes('isConstrainedNetwork'), 'app.js must adapt prefetching and heavy previews on slow networks');
+  assert.ok(appJs.includes('waitForMainStylesheet'), 'app.js must wait for async main stylesheet before dismissing preloader');
+  assert.ok(appJs.includes('deferRepos'), 'app.js must defer GitHub API requests until after homepage reveal');
+
+  // Image payload budgets
+  const guySize = fs.statSync(path.join(rootDir, 'res/img/guy.png')).size;
+  const clippySize = fs.statSync(path.join(rootDir, 'res/img/clippy.png')).size;
+  assert.ok(guySize < 15 * 1024, `res/img/guy.png should be under 15KB (got ${guySize} bytes)`);
+  assert.ok(clippySize < 150 * 1024, `res/img/clippy.png should be under 150KB (got ${clippySize} bytes)`);
+
+  // devLOGS overlay Prev/Next button contrast & display typography
+  const pagerBlock = devlogsCss.slice(devlogsCss.indexOf('.overlay-pager-btn {'), devlogsCss.indexOf('/* Pagination */'));
+  assert.ok(pagerBlock.includes('color: var(--ink)'), '.overlay-pager-btn must explicitly set readable theme-aware ink color');
+  assert.ok(pagerBlock.includes('.overlay-pager-btn strong'), '.overlay-pager-btn strong must style the adjacent post title with display font and var(--ink)');
+});
+
 

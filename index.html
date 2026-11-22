@@ -24,22 +24,24 @@
     <meta name="twitter:description" id="twitter-description" content="Uzair Shaikh's developer portfolio — Cybersecurity, networking, system architecture, and programming projects.">
     <meta name="twitter:image" id="twitter-image" content="https://uzair777-dev.github.io/res/img/bot.png">
     
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://api.github.com">
-    <link rel="preconnect" href="https://opengraph.githubassets.com">
+    <!-- DNS prefetch for deferred third-party origins (avoids stealing Slow-3G sockets at t=0) -->
+    <link rel="dns-prefetch" href="https://api.github.com">
+    <link rel="dns-prefetch" href="https://opengraph.githubassets.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Preload critical portfolio data in parallel with styles & scripts -->
-    <link rel="preload" href="/data/global.json" as="fetch" crossorigin>
-    <link rel="preload" href="/data/pages/home.json" as="fetch" crossorigin>
 
-    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, IBM Plex Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <!-- Preload critical portfolio data in parallel with styles & scripts -->
+    <link rel="preload" href="/data/global.json" as="fetch" crossorigin fetchpriority="high">
+    <link rel="preload" href="/data/pages/home.json" as="fetch" crossorigin fetchpriority="high">
+
+    <!-- Non-blocking Google Fonts (zero render-blocking on Slow 3G; trimmed to essential weights) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;800&family=IBM+Plex+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;800&family=IBM+Plex+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"></noscript>
+
     <!-- Theme, Solar Palette & Cross-Page Curtain Handoff Inline Initialization (prevents FOUC) -->
     <script>
         (function() {
+            window.__preloaderStartTime = performance.now();
             try {
                 var saved = localStorage.getItem('theme');
                 var resolved = (saved === 'light' || saved === 'dark') ? saved :
@@ -61,21 +63,71 @@
             }
         })();
     </script>
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="/styles.css">
-    
+
+    <!-- Critical inline CSS so the themed Solar Preloader paints on packet 1 (zero wait for 90KB styles.css or JS) -->
+    <style id="critical-preloader-css">
+        :root{--bg-color:#fdf6f1;--ink:#231b1a;--text-light:#736461;--accent:#e07b6d;--accent-2:#a286e8;--border-hairline:#f0dcd4}
+        :root[data-palette="dawn"]{--bg-color:#fff6f0;--ink:#271a16;--text-light:#7d625a;--accent:#e06f5d;--accent-2:#9e78db;--border-hairline:#f0dcd2}
+        :root[data-palette="noon"]{--bg-color:#fdf9f0;--ink:#1f1c14;--text-light:#716754;--accent:#d2872a;--accent-2:#4f97b8;--border-hairline:#ede3ce}
+        :root[data-palette="night"]{--bg-color:#f3f5fc;--ink:#171c2b;--text-light:#5b6582;--accent:#6874dc;--accent-2:#3ea3b5;--border-hairline:#d8dff2}
+        :root[data-theme="dark"]{--bg-color:#1a1516;--ink:#f5eae4;--text-light:#baa7a1;--accent:#f2a08c;--accent-2:#c7aefc;--border-hairline:#382e31}
+        :root[data-theme="dark"][data-palette="dawn"]{--bg-color:#1b1514;--ink:#f8ece5;--text-light:#c0a69c;--accent:#f59f88;--accent-2:#d0aff8;--border-hairline:#3a2e2b}
+        :root[data-theme="dark"][data-palette="noon"]{--bg-color:#181713;--ink:#f6f0e2;--text-light:#b6ac94;--accent:#f0b960;--accent-2:#7ec9e6;--border-hairline:#343127}
+        :root[data-theme="dark"][data-palette="night"]{--bg-color:#111420;--ink:#eaeefa;--text-light:#9da9c7;--accent:#9aa8ff;--accent-2:#7ad8e8;--border-hairline:#272e45}
+        html,body{margin:0;padding:0;background:var(--bg-color);color:var(--ink)}
+        #preloader.site-preloader{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg-color);transition:opacity .4s ease,visibility .4s ease}
+        #preloader.site-preloader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+        html[data-curtain-handoff] #preloader.site-preloader{display:none!important}
+        .preloader-inner,.solar-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.85rem;text-align:center}
+        .solar-loader-svg{width:68px;height:68px;display:block;overflow:visible}
+        .solar-loader-label{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light)}
+        .sl-fast-orbit{transform-origin:34px 34px;animation:slFastSpin 3.2s linear infinite}
+        .sl-fast-pulse{transform-origin:34px 34px;animation:slFastPulse 2s ease-in-out infinite}
+        @keyframes slFastSpin{to{transform:rotate(360deg)}}
+        @keyframes slFastPulse{0%,100%{transform:scale(.94);opacity:.78}50%{transform:scale(1.06);opacity:1}}
+        @media (prefers-reduced-motion:reduce){.sl-fast-orbit,.sl-fast-pulse{animation:none!important}}
+    </style>
+
+    <!-- Non-blocking main stylesheet (downloads at high priority in parallel while inline preloader paints on packet 1) -->
+    <link rel="stylesheet" href="/styles.css" media="print" id="main-stylesheet-link" fetchpriority="high" onload="this.media='all';window.__mainCssLoaded=true">
+    <noscript><link rel="stylesheet" href="/styles.css"></noscript>
+
     <!-- Standardized Favicons -->
     <link rel="icon" type="image/x-icon" href="/res/img/bot.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/res/img/bot.png">
     <link rel="icon" type="image/svg+xml" href="/res/svg/bot.svg">
     <link rel="apple-touch-icon" href="/res/img/bot.png">
-    
+
     <!-- Scripts -->
-    <script src="/theme-engine.js" defer></script>
-    <script src="/app.js" defer></script>
+    <script src="/theme-engine.js" defer fetchpriority="high"></script>
+    <script src="/app.js" defer fetchpriority="high"></script>
 </head>
 <body>
+    <!-- Packet-1 Solar Preloader (visible immediately before external CSS/JS arrive; upgraded/dismissed cleanly by app.js) -->
+    <div id="preloader" class="site-preloader" role="status" aria-live="polite">
+        <div class="preloader-inner" id="preloader-inner">
+            <div class="solar-loader">
+                <svg class="solar-loader-svg" viewBox="0 0 68 68" aria-hidden="true">
+                    <circle cx="34" cy="34" r="24" fill="none" stroke="var(--border-hairline)" stroke-width="2" />
+                    <g class="sl-fast-orbit">
+                        <circle cx="34" cy="34" r="24" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="36 116" stroke-linecap="round" />
+                        <circle cx="34" cy="10" r="3.4" fill="var(--accent-2)" />
+                    </g>
+                    <circle class="sl-fast-pulse" cx="34" cy="34" r="10" fill="var(--accent)" />
+                </svg>
+                <span class="solar-loader-label" id="preloader-label">// loading portfolio...</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            var p = document.documentElement.getAttribute('data-palette') || 'dusk';
+            var labels = { dawn: '// warming up sunrise...', noon: '// calibrating solar noon...', dusk: '// tuning golden hour...', night: '// syncing starlight...' };
+            var el = document.getElementById('preloader-label');
+            if (el && labels[p]) el.textContent = labels[p];
+        })();
+    </script>
+
     <!-- Skip to main content link for keyboard / screen reader users -->
     <a href="#main-content" class="sr-only sr-only-focusable" id="skip-link">Skip to main content</a>
     <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
