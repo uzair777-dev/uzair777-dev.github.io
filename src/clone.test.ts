@@ -148,8 +148,12 @@ test('all multi-page HTML entry points use semantic button hamburgers, burger dr
   assert.ok(devlogsHtml.includes('id="burger-drawer"'), 'devlogs/index.html must include unified burger drawer');
   assert.ok(indexHtml.includes('id="a11y-announcer"'), 'index.html must include polite ARIA live announcer');
   assert.ok(devlogsHtml.includes('id="a11y-announcer"'), 'devlogs/index.html must include polite ARIA live announcer');
-  assert.equal(indexHtml.includes('id="theme-toggle"'), false, 'index.html navbar must not have standalone theme toggle outside burger drawer');
-  assert.equal(devlogsHtml.includes('id="theme-toggle"'), false, 'devlogs/index.html navbar must not have standalone theme toggle outside burger drawer');
+  assert.ok(indexHtml.includes('id="nav-theme-slot"'), 'index.html must mount desktop dark-mode toggle directly in navbar');
+  assert.ok(devlogsHtml.includes('id="nav-theme-slot"'), 'devlogs/index.html must mount desktop dark-mode toggle directly in navbar');
+  assert.equal(indexHtml.includes('drawer-close-btn'), false, 'index.html must not render duplicate X close button inside burger drawer');
+  assert.equal(devlogsHtml.includes('drawer-close-btn'), false, 'devlogs/index.html must not render duplicate X close button inside burger drawer');
+  assert.equal(html404.includes('drawer-close-btn'), false, '404.html must not render duplicate X close button inside burger drawer');
+  assert.equal(editorHtml.includes('drawer-close-btn'), false, 'devlogs/editor.html must not render duplicate X close button');
   assert.equal(editorHtml.includes('--accent-gradient'), false, 'devlogs/editor.html must not reference removed --accent-gradient');
   assert.ok(editorHtml.includes('escapeCdata'), 'devlogs/editor.html should sanitize ]]> inside CDATA');
   assert.ok(editorHtml.includes('[\\s\\S]*?'), 'devlogs/editor.html should support multi-line custom tags');
@@ -240,7 +244,7 @@ test('theme-engine.js resolves solar palettes, builds 4 custom solar loaders, an
   assert.equal(css.includes('.driver-grid'), false, 'styles.css must not keep dead .driver-grid rules');
 
   // Animated sky diorama switch + glitch-free bi-directional pinhole iris zoom transition
-  assert.ok(engineCode.includes('role="switch"') && engineCode.includes('class="sky-toggle"'), 'Drawer must render animated sky diorama switch');
+  assert.ok(engineCode.includes('role="switch"') && engineCode.includes('class="sky-toggle') && engineCode.includes('sky-toggle--compact'), 'Drawer and desktop navbar must render animated sky diorama switch');
   assert.ok(engineCode.includes('startViewTransition') && engineCode.includes('spawnIrisHaloRing'), 'theme-engine.js must drive pinhole iris zoom transition');
   assert.ok(engineCode.includes("fill: 'both'"), 'Pinhole iris WAAPI animation must use fill:both to prevent Dark->Light final-frame flash');
   assert.ok(engineCode.includes('theme-iris-freeze') && css.includes('html.theme-iris-freeze'), 'View Transition must freeze CSS color transitions during snapshot capture');
@@ -355,6 +359,13 @@ test('Slow-3G cold-load optimizations and devLOGS overlay pager contrast are enf
   const pagerBlock = devlogsCss.slice(devlogsCss.indexOf('.overlay-pager-btn {'), devlogsCss.indexOf('/* Pagination */'));
   assert.ok(pagerBlock.includes('color: var(--ink)'), '.overlay-pager-btn must explicitly set readable theme-aware ink color');
   assert.ok(pagerBlock.includes('.overlay-pager-btn strong'), '.overlay-pager-btn strong must style the adjacent post title with display font and var(--ink)');
+
+  // True AMOLED pitch-black dark theme across all 4 solar palettes + desktop toggle + single-X mobile drawer
+  const css = fs.readFileSync(path.join(siteRoot, 'styles.css'), 'utf-8');
+  const amoledMatches = css.match(/--bg-color:\s*#000000;/g) || [];
+  assert.ok(amoledMatches.length >= 4, `Expected AMOLED #000000 --bg-color across all 4 dark solar palettes (found ${amoledMatches.length})`);
+  assert.ok(css.includes('.sky-toggle--compact'), 'styles.css must style the compact scaled desktop navbar sky toggle');
+  assert.ok(css.includes('html.theme-iris-freeze .sky-toggle.is-iris-active'), 'styles.css must scope View Transition name to clicked toggle only');
 });
 
 

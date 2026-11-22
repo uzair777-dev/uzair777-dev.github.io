@@ -142,42 +142,42 @@ main h1[tabindex="-1"]:focus {
 
 :root[data-theme="dark"],
 :root[data-theme="dark"][data-palette="dusk"] {
-    /* Dark Mode — Dusk (High-Visibility Twilight Orchid Borders) */
-    --bg-color: #161119;
-    --bg-light: #201824;
-    --bg-subtle: #2c2132;
-    --hover-color: #382a40;
+    /* True AMOLED Dark Mode — Dusk (Pitch Black #000000 + Twilight Orchid Accents) */
+    --bg-color: #000000;
+    --bg-light: #0b080c;
+    --bg-subtle: #140f17;
+    --hover-color: #1e1622;
 
-    --ink: #f7eef5;
-    --text-color: #f7eef5;
-    --text-light: #cbb7c8;
-    --text-muted: #9e869b;
+    --ink: #f8f1f6;
+    --text-color: #f8f1f6;
+    --text-light: #cab7c7;
+    --text-muted: #988396;
 
-    --border-color: #987a96;
-    --border-hairline: rgba(173, 141, 171, 0.36);
-    --card-border: #987a96;
-    --grid-line: rgba(240, 150, 184, 0.05);
+    --border-color: #7d627b;
+    --border-hairline: rgba(168, 134, 166, 0.3);
+    --card-border: #7d627b;
+    --grid-line: rgba(240, 150, 184, 0.04);
 
     --accent: #f096b8;
-    --accent-hover: #f6b0ca;
-    --accent-ink: #161119;
+    --accent-hover: #f7b2cd;
+    --accent-ink: #000000;
     --accent-2: #f4b078;
-    --accent-soft: rgba(240, 150, 184, 0.13);
-    --accent-2-soft: rgba(244, 176, 120, 0.11);
+    --accent-soft: rgba(240, 150, 184, 0.14);
+    --accent-2-soft: rgba(244, 176, 120, 0.12);
     --primary-color: #f096b8;
-    --secondary-color: #f7eef5;
+    --secondary-color: #f8f1f6;
 
     --btn-extrude: #a85576;
-    --card-extrude: #684d66;
+    --card-extrude: #4a3548;
     --accent-extrude: #a85576;
-    --surface-highlight: rgba(255, 255, 255, 0.14);
+    --surface-highlight: rgba(255, 255, 255, 0.11);
 
     --shadow-sm: 0 3px 0 0 var(--card-extrude);
     --shadow: 0 5px 0 0 var(--card-extrude);
     --shadow-lg: 0 6px 0 0 var(--accent-extrude);
 
-    --preloader-bg: #161119;
-    --backdrop: rgba(12, 8, 14, 0.8);
+    --preloader-bg: #000000;
+    --backdrop: rgba(0, 0, 0, 0.72);
 }
 
 /* ── Phase 1: Dawn (05:00–10:59) — Sunrise Peach-Coral & Morning Apricot ── */
@@ -213,34 +213,34 @@ main h1[tabindex="-1"]:focus {
 }
 
 :root[data-theme="dark"][data-palette="dawn"] {
-    --bg-color: #161114;
-    --bg-light: #20181d;
-    --bg-subtle: #2b2027;
-    --hover-color: #372932;
+    --bg-color: #000000;
+    --bg-light: #0c090a;
+    --bg-subtle: #151012;
+    --hover-color: #20181b;
 
-    --ink: #f8efec;
-    --text-color: #f8efec;
-    --text-light: #cbb8b5;
-    --text-muted: #9e8986;
+    --ink: #f8f1ee;
+    --text-color: #f8f1ee;
+    --text-light: #cab8b5;
+    --text-muted: #988582;
 
-    --border-color: #997b84;
-    --border-hairline: rgba(176, 144, 153, 0.36);
-    --card-border: #997b84;
-    --grid-line: rgba(244, 163, 147, 0.05);
+    --border-color: #80646c;
+    --border-hairline: rgba(176, 144, 153, 0.3);
+    --card-border: #80646c;
+    --grid-line: rgba(244, 163, 147, 0.04);
 
     --accent: #f4a393;
-    --accent-hover: #f8b9ad;
-    --accent-ink: #161114;
+    --accent-hover: #f9bbb0;
+    --accent-ink: #000000;
     --accent-2: #f2c683;
-    --accent-soft: rgba(244, 163, 147, 0.13);
-    --accent-2-soft: rgba(242, 198, 131, 0.11);
+    --accent-soft: rgba(244, 163, 147, 0.14);
+    --accent-2-soft: rgba(242, 198, 131, 0.12);
     --primary-color: #f4a393;
-    --secondary-color: #f8efec;
+    --secondary-color: #f8f1ee;
 
     --btn-extrude: #ad6253;
-    --card-extrude: #694f58;
+    --card-extrude: #4c373e;
     --accent-extrude: #ad6253;
-    --preloader-bg: #161114;
+    --preloader-bg: #000000;
 }
 
 /* ── Phase 2: Noon (11:00–16:59) — Warm Sunlit Honey-Gold & Clear Daylight Sky ── */
@@ -276,34 +276,34 @@ main h1[tabindex="-1"]:focus {
 }
 
 :root[data-theme="dark"][data-palette="noon"] {
-    --bg-color: #141510;
-    --bg-light: #1d1e17;
-    --bg-subtle: #28291f;
-    --hover-color: #343629;
+    --bg-color: #000000;
+    --bg-light: #0a0a07;
+    --bg-subtle: #14140f;
+    --hover-color: #1e1e17;
 
-    --ink: #f7f5eb;
-    --text-color: #f7f5eb;
-    --text-light: #c9c5b2;
-    --text-muted: #9c9782;
+    --ink: #f8f6ed;
+    --text-color: #f8f6ed;
+    --text-light: #c8c4b2;
+    --text-muted: #96917d;
 
-    --border-color: #969172;
-    --border-hairline: rgba(173, 168, 134, 0.36);
-    --card-border: #969172;
-    --grid-line: rgba(242, 207, 120, 0.05);
+    --border-color: #7c775c;
+    --border-hairline: rgba(173, 168, 134, 0.3);
+    --card-border: #7c775c;
+    --grid-line: rgba(242, 207, 120, 0.04);
 
     --accent: #f2cf78;
-    --accent-hover: #f7dc97;
-    --accent-ink: #141510;
+    --accent-hover: #f8de9c;
+    --accent-ink: #000000;
     --accent-2: #8ad4e6;
-    --accent-soft: rgba(242, 207, 120, 0.13);
-    --accent-2-soft: rgba(138, 212, 230, 0.11);
+    --accent-soft: rgba(242, 207, 120, 0.14);
+    --accent-2-soft: rgba(138, 212, 230, 0.12);
     --primary-color: #f2cf78;
-    --secondary-color: #f7f5eb;
+    --secondary-color: #f8f6ed;
 
     --btn-extrude: #a6883c;
-    --card-extrude: #66624a;
+    --card-extrude: #4a4734;
     --accent-extrude: #a6883c;
-    --preloader-bg: #141510;
+    --preloader-bg: #000000;
 }
 
 /* ── Phase 4: Night (21:00–04:59) — Moonlit Periwinkle-Indigo & Starlight Cyan ── */
@@ -339,34 +339,34 @@ main h1[tabindex="-1"]:focus {
 }
 
 :root[data-theme="dark"][data-palette="night"] {
-    --bg-color: #0e111b;
-    --bg-light: #151a29;
-    --bg-subtle: #1f263b;
-    --hover-color: #29324d;
+    --bg-color: #000000;
+    --bg-light: #08090f;
+    --bg-subtle: #10131f;
+    --hover-color: #181d2f;
 
-    --ink: #eef1fa;
-    --text-color: #eef1fa;
+    --ink: #eef1fc;
+    --text-color: #eef1fc;
     --text-light: #b3bcd6;
-    --text-muted: #8591b3;
+    --text-muted: #828eb0;
 
-    --border-color: #7686b0;
-    --border-hairline: rgba(139, 157, 204, 0.36);
-    --card-border: #7686b0;
-    --grid-line: rgba(167, 176, 248, 0.05);
+    --border-color: #617099;
+    --border-hairline: rgba(139, 157, 204, 0.3);
+    --card-border: #617099;
+    --grid-line: rgba(167, 176, 248, 0.04);
 
     --accent: #a7b0f8;
-    --accent-hover: #bfc6fb;
-    --accent-ink: #0e111b;
+    --accent-hover: #c2c9fc;
+    --accent-ink: #000000;
     --accent-2: #7ee0d2;
-    --accent-soft: rgba(167, 176, 248, 0.13);
-    --accent-2-soft: rgba(126, 224, 210, 0.11);
+    --accent-soft: rgba(167, 176, 248, 0.14);
+    --accent-2-soft: rgba(126, 224, 210, 0.12);
     --primary-color: #a7b0f8;
-    --secondary-color: #eef1fa;
+    --secondary-color: #eef1fc;
 
     --btn-extrude: #5f69b0;
-    --card-extrude: #495478;
+    --card-extrude: #363f5e;
     --accent-extrude: #5f69b0;
-    --preloader-bg: #0e111b;
+    --preloader-bg: #000000;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -397,6 +397,10 @@ body {
 
 [data-theme="dark"] body {
     letter-spacing: 0.008em;
+    background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 36px 36px, 36px 36px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -939,9 +943,15 @@ html[data-curtain-handoff] .site-preloader {
     flex-shrink: 0;
 }
 
-/* Always-visible solid keycap Burger Button (opens Theme Studio + Mobile Nav) */
-.hamburger {
+.nav-theme-slot {
     display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Mobile-only solid keycap Burger Button (hidden on desktop where nav links & sky toggle live directly in navbar) */
+.hamburger {
+    display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -997,16 +1007,26 @@ html[data-curtain-handoff] .site-preloader {
     transform: translateY(-6.5px) rotate(-45deg);
 }
 
-/* ── Unified Burger Drawer (Mobile Nav + Light/Dark Toggle) ── */
+/* ── Mobile Burger Drawer (Navigation + Full-Size Light/Dark Toggle; hidden on desktop) ── */
 .burger-backdrop {
+    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(9, 13, 17, 0.36);
+    background: rgba(15, 18, 24, 0.2);
     z-index: 1040;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+:root[data-theme="dark"] .burger-backdrop {
+    background: rgba(0, 0, 0, 0.62);
+}
+
+/* Keep the outside of the pinhole iris 100% pure bright Light on mobile too */
+html.theme-iris-freeze .burger-backdrop {
+    background: transparent !important;
 }
 
 .burger-backdrop.open {
@@ -1016,6 +1036,7 @@ html[data-curtain-handoff] .site-preloader {
 }
 
 .burger-drawer {
+    display: none;
     position: fixed;
     top: 72px;
     right: max(1.25rem, calc((100vw - 1240px) / 2 + 2rem));
@@ -1556,6 +1577,83 @@ html[data-curtain-handoff] .site-preloader {
     opacity: 1;
 }
 
+/* ── Compact Desktop Navbar Sky Diorama Switch (Proportionally Scaled for 64px Navbar) ── */
+.sky-toggle-wrap--compact {
+    width: auto;
+}
+
+.sky-toggle--compact {
+    width: 96px;
+    height: 36px;
+    box-shadow: 0 3px 0 0 var(--card-extrude), inset 0 1px 0 0 var(--surface-highlight);
+}
+
+.sky-toggle--compact:hover {
+    box-shadow: 0 4px 0 0 var(--accent-extrude), inset 0 1px 0 0 var(--surface-highlight);
+}
+
+.sky-toggle--compact .sky-orb-track {
+    inset: 4px;
+}
+
+.sky-toggle--compact .sky-orb {
+    width: 26px;
+    height: 26px;
+}
+
+.sky-toggle--compact.is-dark .sky-orb {
+    transform: translateX(calc(100cqi - 26px)) rotate(360deg);
+}
+
+.sky-toggle--compact .sky-orb-halo {
+    inset: -6px;
+}
+
+.sky-toggle--compact .sky-sun-rays {
+    inset: -3px;
+}
+
+.sky-toggle--compact .sky-sun-rays i {
+    width: 32px;
+    height: 1.8px;
+    margin-left: -16px;
+    margin-top: -0.9px;
+}
+
+.sky-toggle--compact .sky-orb-disc {
+    width: 23px;
+    height: 23px;
+}
+
+.sky-toggle--compact .sky-moon-craters .crater-a { width: 5px; height: 5px; bottom: 4px; left: 4px; }
+.sky-toggle--compact .sky-moon-craters .crater-b { width: 3.5px; height: 3.5px; top: 6px; left: 6px; }
+.sky-toggle--compact .sky-moon-craters .crater-c { width: 3px; height: 3px; bottom: 6px; right: 7px; }
+
+.sky-toggle--compact .sky-eclipse-cut {
+    top: -3px;
+    right: -3px;
+    width: 18px;
+    height: 18px;
+    transform: translate(14px, -13px) scale(0.4);
+}
+
+.sky-toggle--compact.is-dark .sky-eclipse-cut {
+    transform: translate(0, 0) scale(1);
+}
+
+.sky-toggle--compact .sky-state-tag {
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+}
+
+.sky-toggle--compact .sky-state-tag--day {
+    right: 10px;
+}
+
+.sky-toggle--compact .sky-state-tag--night {
+    left: 10px;
+}
+
 /* ── Cinematic Bi-Directional Pinhole Iris Zoom + Live Gliding Sun/Moon Orb ── */
 /* Freeze live CSS transitions during View Transition snapshot capture for crisp Light/Dark frames */
 html.theme-iris-freeze *,
@@ -1564,13 +1662,12 @@ html.theme-iris-freeze *::after {
     transition: none !important;
 }
 
-/* Lift open sky diorama + celestial orb into dedicated top-layer View Transition groups so the
-   Sun <-> Moon orb visibly glides & spins across the track right on top of the pinhole iris */
-html.theme-iris-freeze .burger-drawer.open .sky-toggle {
+/* Lift ONLY the clicked sky diorama + celestial orb into dedicated top-layer View Transition groups */
+html.theme-iris-freeze .sky-toggle.is-iris-active {
     view-transition-name: sky-toggle-diorama;
 }
 
-html.theme-iris-freeze .burger-drawer.open .sky-orb {
+html.theme-iris-freeze .sky-toggle.is-iris-active .sky-orb {
     view-transition-name: sky-celestial-orb;
 }
 
@@ -1589,6 +1686,7 @@ html.theme-iris-freeze .burger-drawer.open .sky-orb {
 ::view-transition-old(root),
 ::view-transition-new(root) {
     height: 100%;
+    opacity: 1;
     transform-origin: center center;
     backface-visibility: hidden;
 }
@@ -3512,6 +3610,19 @@ html.theme-iris-to-light::view-transition-old(root),
 
     .nav-menu {
         display: none;
+    }
+
+    .nav-theme-slot:not(.nav-theme-slot--always) {
+        display: none;
+    }
+
+    .hamburger {
+        display: inline-flex;
+    }
+
+    .burger-backdrop,
+    .burger-drawer {
+        display: block;
     }
 
     .drawer-nav-section {

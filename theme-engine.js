@@ -367,8 +367,15 @@
         if (typeof document.startViewTransition === 'function') {
             const root = document.documentElement;
             const irisClass = toDark ? 'theme-iris-to-dark' : 'theme-iris-to-light';
+            const activeToggle = originEl && originEl.closest ? originEl.closest('.sky-toggle') : null;
 
-            // Freeze live CSS color/transform transitions during snapshot capture so new(root) is 100% crisp
+            // Lift ONLY the clicked toggle & orb into dedicated View Transition groups (avoids duplicate view-transition-name)
+            document.querySelectorAll('.sky-toggle.is-iris-active').forEach((el) => el.classList.remove('is-iris-active'));
+            if (activeToggle) {
+                activeToggle.classList.add('is-iris-active');
+            }
+
+            // Freeze live CSS color/transform transitions during snapshot capture so old/new(root) are 100% crisp
             root.classList.remove('theme-iris-to-dark', 'theme-iris-to-light');
             root.classList.add(irisClass, 'theme-iris-freeze');
             root.setAttribute('data-iris', toDark ? 'to-dark' : 'to-light');
@@ -390,11 +397,10 @@
                 const duration = 860;
 
                 if (toDark) {
-                    // Expanding pinhole iris: Dark sweeps smoothly outward from the gliding Sun/Moon orb
+                    // Expanding pinhole iris: AMOLED Dark sweeps smoothly outward from the orb while bright Light fills the outside
                     root.animate(
                         {
                             clipPath: clipExpand,
-                            transform: ['scale(1.014)', 'scale(1)'],
                         },
                         {
                             duration,
@@ -404,8 +410,7 @@
                         }
                     );
                 } else {
-                    // Contracting pinhole iris: Dark collapses cleanly back into the orb to unveil Light.
-                    // Top masking layer stays at scale(1) with fill:'both' — zero edge-gap or final-frame flash.
+                    // Contracting pinhole iris: AMOLED Dark collapses cleanly back into the orb while bright Light fills the outside
                     root.animate(
                         {
                             clipPath: clipCollapse,
@@ -417,23 +422,15 @@
                             pseudoElement: '::view-transition-old(root)',
                         }
                     );
-                    root.animate(
-                        {
-                            transform: ['scale(1.014)', 'scale(1)'],
-                        },
-                        {
-                            duration,
-                            easing,
-                            fill: 'both',
-                            pseudoElement: '::view-transition-new(root)',
-                        }
-                    );
                 }
             }).catch(() => {});
 
             transition.finished.finally(() => {
                 root.classList.remove('theme-iris-to-dark', 'theme-iris-to-light', 'theme-iris-freeze');
                 root.removeAttribute('data-iris');
+                if (activeToggle) {
+                    activeToggle.classList.remove('is-iris-active');
+                }
                 clearTimeout(safetyTimer);
                 setTimeout(releaseLock, 80);
             });
@@ -445,10 +442,16 @@
         commitThemeState(next, silent, changed);
     }
 
-    function buildThemeToggleMarkup() {
+    function buildThemeToggleMarkup(options) {
+        const opts = options || {};
+        const compact = Boolean(opts.compact);
+        const variant = compact ? 'compact' : 'drawer';
+        const gradId = `sky-shoot-grad-${variant}`;
+        const btnId = compact ? 'nav-theme-toggle' : 'drawer-theme-toggle';
+
         return `
-            <div class="sky-toggle-wrap">
-                <button type="button" role="switch" id="theme-toggle" class="sky-toggle" aria-checked="false" aria-label="Toggle dark mode">
+            <div class="sky-toggle-wrap${compact ? ' sky-toggle-wrap--compact' : ''}">
+                <button type="button" role="switch" id="${btnId}" class="sky-toggle${compact ? ' sky-toggle--compact' : ''}" aria-checked="false" aria-label="Toggle dark mode">
                     <span class="sky-toggle-stage" aria-hidden="true">
                         <span class="sky-layer sky-layer--day"></span>
                         <span class="sky-layer sky-layer--night"></span>
@@ -479,9 +482,9 @@
                             <circle class="sky-star sky-star-4" cx="62" cy="36" r="1.7" fill="#ffffff" />
                             <circle class="sky-star sky-star-5" cx="108" cy="40" r="1.5" fill="#bae6fd" />
                             <circle class="sky-star sky-star-6" cx="24" cy="42" r="1.4" fill="#fef08a" />
-                            <line class="sky-shooting-star" x1="112" y1="8" x2="66" y2="28" stroke="url(#sky-shoot-grad)" stroke-width="1.8" stroke-linecap="round" />
+                            <line class="sky-shooting-star" x1="112" y1="8" x2="66" y2="28" stroke="url(#${gradId})" stroke-width="1.8" stroke-linecap="round" />
                             <defs>
-                                <linearGradient id="sky-shoot-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
                                     <stop offset="0%" stop-color="#ffffff" stop-opacity="0" />
                                     <stop offset="100%" stop-color="#ffffff" stop-opacity="0.95" />
                                 </linearGradient>
@@ -543,17 +546,23 @@
         const drawer = document.getElementById(opts.drawerId || 'burger-drawer');
         const backdrop = document.getElementById(opts.backdropId || 'burger-backdrop');
         const themeHost = document.getElementById(opts.themeHostId || 'burger-drawer-theme');
+        const navThemeSlot = document.getElementById(opts.navThemeSlotId || 'nav-theme-slot');
 
-        if (themeHost && !drawerMounted) {
-            drawerMounted = true;
-            themeHost.innerHTML = buildThemeToggleMarkup();
-            const toggleBtn = themeHost.querySelector('.sky-toggle');
+        const mountToggle = (host, compact) => {
+            if (!host || host.dataset.toggleMounted === 'true') return;
+            host.dataset.toggleMounted = 'true';
+            host.innerHTML = buildThemeToggleMarkup({ compact });
+            const toggleBtn = host.querySelector('.sky-toggle');
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => {
                     setTheme(currentTheme === 'dark' ? 'light' : 'dark', false, toggleBtn);
                 });
             }
-        }
+        };
+
+        mountToggle(navThemeSlot, true);
+        mountToggle(themeHost, false);
+        drawerMounted = true;
 
         syncThemeButtons();
 
@@ -585,11 +594,6 @@
                 const willOpen = !drawer.classList.contains('open');
                 setDrawerOpen(willOpen, !willOpen);
             });
-
-            const closeBtn = drawer.querySelector('.drawer-close-btn');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => setDrawerOpen(false, true));
-            }
 
             if (backdrop) {
                 backdrop.addEventListener('click', () => setDrawerOpen(false, false));
@@ -623,6 +627,14 @@
                     setDrawerOpen(false, false);
                 }
             });
+
+            if (typeof window !== 'undefined') {
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768 && drawer.classList.contains('open')) {
+                        setDrawerOpen(false, false);
+                    }
+                }, { passive: true });
+            }
         }
 
         if (!storageBound && typeof window !== 'undefined') {

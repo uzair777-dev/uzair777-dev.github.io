@@ -70,10 +70,10 @@
         :root[data-palette="dawn"]{--bg-color:#fff6f0;--ink:#271a16;--text-light:#7d625a;--accent:#e06f5d;--accent-2:#9e78db;--border-hairline:#f0dcd2}
         :root[data-palette="noon"]{--bg-color:#fdf9f0;--ink:#1f1c14;--text-light:#716754;--accent:#d2872a;--accent-2:#4f97b8;--border-hairline:#ede3ce}
         :root[data-palette="night"]{--bg-color:#f3f5fc;--ink:#171c2b;--text-light:#5b6582;--accent:#6874dc;--accent-2:#3ea3b5;--border-hairline:#d8dff2}
-        :root[data-theme="dark"]{--bg-color:#1a1516;--ink:#f5eae4;--text-light:#baa7a1;--accent:#f2a08c;--accent-2:#c7aefc;--border-hairline:#382e31}
-        :root[data-theme="dark"][data-palette="dawn"]{--bg-color:#1b1514;--ink:#f8ece5;--text-light:#c0a69c;--accent:#f59f88;--accent-2:#d0aff8;--border-hairline:#3a2e2b}
-        :root[data-theme="dark"][data-palette="noon"]{--bg-color:#181713;--ink:#f6f0e2;--text-light:#b6ac94;--accent:#f0b960;--accent-2:#7ec9e6;--border-hairline:#343127}
-        :root[data-theme="dark"][data-palette="night"]{--bg-color:#111420;--ink:#eaeefa;--text-light:#9da9c7;--accent:#9aa8ff;--accent-2:#7ad8e8;--border-hairline:#272e45}
+        :root[data-theme="dark"]{--bg-color:#000000;--ink:#f7f1f6;--text-light:#c4b3c2;--accent:#f096b8;--accent-2:#f4b078;--border-hairline:rgba(173,141,171,.3)}
+        :root[data-theme="dark"][data-palette="dawn"]{--bg-color:#000000;--ink:#f8f1ee;--text-light:#c8b6b3;--accent:#f4a393;--accent-2:#f2c683;--border-hairline:rgba(176,144,153,.3)}
+        :root[data-theme="dark"][data-palette="noon"]{--bg-color:#000000;--ink:#f7f5ec;--text-light:#c7c3b0;--accent:#f2cf78;--accent-2:#8ad4e6;--border-hairline:rgba(173,168,134,.3)}
+        :root[data-theme="dark"][data-palette="night"]{--bg-color:#000000;--ink:#eef1fc;--text-light:#b3bcd6;--accent:#a7b0f8;--accent-2:#7ee0d2;--border-hairline:rgba(139,157,204,.3)}
         html,body{margin:0;padding:0;background:var(--bg-color);color:var(--ink)}
         #preloader.site-preloader{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg-color);transition:opacity .4s ease,visibility .4s ease}
         #preloader.site-preloader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
@@ -141,6 +141,7 @@
                 <!-- Navigation items will be dynamically loaded -->
             </ul>
             <div class="nav-actions">
+                <div class="nav-theme-slot" id="nav-theme-slot"></div>
                 <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="burger-drawer">
                     <span></span>
                     <span></span>
@@ -150,12 +151,11 @@
         </div>
     </nav>
 
-    <!-- Burger Menu Drawer (Navigation + Light/Dark Toggle) -->
+    <!-- Mobile Burger Menu Drawer (Navigation + Light/Dark Toggle) -->
     <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
     <aside class="burger-drawer" id="burger-drawer" aria-label="Navigation menu" aria-hidden="true">
         <div class="drawer-header">
             <span class="drawer-title">Menu</span>
-            <button type="button" class="drawer-close-btn" aria-label="Close menu">&times;</button>
         </div>
         <div class="drawer-body">
             <div class="drawer-nav-section">
