@@ -23,8 +23,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, Instrument Serif, IBM Plex Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, IBM Plex Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/styles.css">
@@ -35,19 +35,20 @@
     <link rel="icon" type="image/svg+xml" href="/res/svg/bot.svg">
     <link rel="apple-touch-icon" href="/res/img/bot.png">
 
-    <!-- Theme & Palette Inline Initialization -->
+    <!-- Theme & Solar Palette Inline Initialization -->
     <script>
         (function() {
             try {
                 var saved = localStorage.getItem('theme');
                 var resolved = (saved === 'light' || saved === 'dark') ? saved :
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                var pal = localStorage.getItem('themeActivePalette') || localStorage.getItem('themePalette') || 'jade';
+                var h = new Date().getHours();
+                var pal = (h >= 5 && h <= 10) ? 'dawn' : (h >= 11 && h <= 16) ? 'noon' : (h >= 17 && h <= 20) ? 'dusk' : 'night';
                 document.documentElement.setAttribute('data-theme', resolved);
                 document.documentElement.setAttribute('data-palette', pal);
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.documentElement.setAttribute('data-palette', 'jade');
+                document.documentElement.setAttribute('data-palette', 'dusk');
             }
         })();
     </script>
@@ -56,6 +57,7 @@
 <body>
     <!-- Skip to main content -->
     <a href="#main-content" class="sr-only sr-only-focusable" id="skip-link">Skip to main content</a>
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Navigation -->
     <nav class="navbar" id="navbar" aria-label="Main navigation">
@@ -66,7 +68,7 @@
                 <li><a href="/devlogs/">devLOGS</a></li>
             </ul>
             <div class="nav-actions">
-                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu and theme controls" aria-expanded="false" aria-controls="burger-drawer">
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="burger-drawer">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -76,16 +78,13 @@
     </nav>
 
     <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
-    <aside class="burger-drawer" id="burger-drawer" aria-label="Menu and theme controls" aria-hidden="true">
+    <aside class="burger-drawer" id="burger-drawer" aria-label="Navigation menu" aria-hidden="true">
         <div class="drawer-header">
-            <span class="drawer-title">Menu &amp; Theme</span>
+            <span class="drawer-title">Menu</span>
             <button type="button" class="drawer-close-btn" aria-label="Close menu">&times;</button>
         </div>
         <div class="drawer-body">
             <div class="drawer-nav-section">
-                <div class="drawer-section-header" style="margin-bottom: 0.6rem;">
-                    <span class="drawer-section-title">Navigate</span>
-                </div>
                 <ul class="drawer-nav-list">
                     <li><a href="/">Home</a></li>
                     <li><a href="/devlogs/">devLOGS</a></li>
@@ -96,14 +95,48 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content" id="main-content" role="main">
+    <main class="main-content" id="main-content" role="main" tabindex="-1">
         <div class="container">
             <section class="error-404-container">
-                <div class="error-badge">404</div>
+                <div class="error-404-svg-frame">
+                    <span class="crop-mark crop-tl" aria-hidden="true"></span>
+                    <span class="crop-mark crop-tr" aria-hidden="true"></span>
+                    <span class="crop-mark crop-bl" aria-hidden="true"></span>
+                    <span class="crop-mark crop-br" aria-hidden="true"></span>
+                    <div class="error-404-svg-viewport">
+                        <svg class="theme-svg" viewBox="0 0 360 202" role="img" aria-label="Theme-reactive broken route radar schematic showing a disconnected packet path." xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="err404-grid" width="18" height="18" patternUnits="userSpaceOnUse">
+                                    <circle cx="9" cy="9" r="0.9" fill="var(--border-hairline)" />
+                                </pattern>
+                            </defs>
+                            <rect width="360" height="202" fill="var(--bg-color)" />
+                            <rect width="360" height="202" fill="url(#err404-grid)" />
+                            <!-- Concentric Radar Sweeps -->
+                            <g transform="translate(180, 108)">
+                                <circle cx="0" cy="0" r="70" fill="none" stroke="var(--border-hairline)" stroke-width="1.2" stroke-dasharray="4 5" />
+                                <circle cx="0" cy="0" r="46" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3" opacity="0.65" />
+                                <circle cx="0" cy="0" r="22" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.5" />
+                                <!-- Broken X Signal Core -->
+                                <line x1="-7" y1="-7" x2="7" y2="7" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" />
+                                <line x1="7" y1="-7" x2="-7" y2="7" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" />
+                            </g>
+                            <!-- Severed Route Traces -->
+                            <path d="M 28 108 H 104 L 116 94" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M 244 122 L 256 108 H 332" fill="none" stroke="var(--accent-2)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="28" cy="108" r="4" fill="var(--accent)" />
+                            <circle cx="332" cy="108" r="4" fill="var(--accent-2)" class="svg-pulse" />
+                            <text x="18" y="22" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600" fill="var(--text-light)">// ROUTE.NULL</text>
+                            <text x="278" y="22" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600" fill="var(--accent-2)">ERR · 404</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="error-badge" aria-hidden="true">404</div>
                 <h1 class="error-title">Page Not Found</h1>
                 <p class="error-description">
                     Oops! The page you're looking for doesn't exist, has been removed, or is temporarily unavailable. Or you're plain stupid.
                 </p>
+                <p class="sr-only">Psst — hidden friendly note for screen reader visitors: ignore the cheeky joke above, you are not lost at all. You just found the secret hallway, and the links right below will carry you safely back home.</p>
                 <div class="error-actions">
                     <a href="/" class="btn btn-glass">Return Home</a>
                     <a href="/devlogs/" class="btn btn-glass">Explore devLOGS</a>
@@ -115,7 +148,7 @@
     <!-- Footer -->
     <footer class="footer" id="footer" role="contentinfo">
         <div class="container">
-            <p>&copy; 2026 Uzair Shaikh. All rights reserved.</p>
+            <p>&copy; 2027 Uzair Shaikh. All rights reserved.</p>
         </div>
     </footer>
 

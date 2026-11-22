@@ -4,9 +4,466 @@ let currentPage = 'home';
 let currentSkillFilter = 'all';
 const svgCache = {};
 const jsonCache = {};
+const jsonPromises = new Map();
+const svgPromises = new Map();
 
-const HERO_ARTWORK_PATH = '/src/assets/images/hero_cyber_jade_artwork_1795271990034.jpg';
 const VALID_PAGES = new Set(['home', 'about', 'experience', 'contact', 'resources']);
+
+const HIDDEN_POCKET_NOTES = [
+    'Secret note 1 of 5: You have great curiosity — most visitors never wander this far down the keyboard path. Thanks for exploring my little corner of the internet.',
+    'Secret note 2 of 5: Fun fact — this site quietly shifts its colors with the sun outside your window, moving from sunrise peach to warm midday gold, sunset rose, and moonlit indigo.',
+    'Secret note 3 of 5: Gentle reminder from a fellow terminal dweller: unclench your jaw, drop your shoulders, and take one slow breath. You are doing better than you think.',
+    'Secret note 4 of 5: sudo apt-get install good-day — completed with zero broken packages, 100 percent deserved.',
+    'Secret note 5 of 5: That is all five hidden notes! You unlocked the unofficial Champion of the Quiet Lane badge. Wishing you warm drinks, clean builds, and kind people today.',
+];
+
+let pocketNoteIndex = 0;
+
+function announceA11y(message) {
+    if (window.PortfolioThemeEngine && typeof window.PortfolioThemeEngine.announcePolite === 'function') {
+        window.PortfolioThemeEngine.announcePolite(message);
+        return;
+    }
+    const region = document.getElementById('a11y-announcer');
+    if (region && message) {
+        region.textContent = '';
+        setTimeout(() => { region.textContent = message; }, 30);
+    }
+}
+
+function getCurrentSolarMood() {
+    const pal = document.documentElement.getAttribute('data-palette') || 'dusk';
+    if (window.PortfolioThemeEngine && typeof window.PortfolioThemeEngine.getSolarMeta === 'function') {
+        return window.PortfolioThemeEngine.getSolarMeta(pal);
+    }
+    return {
+        palette: pal,
+        label: 'pastel solar tones',
+        greeting: 'Welcome to the quiet lane. Uzair tucked a few small notes along these pages for screen reader and keyboard visitors.',
+    };
+}
+
+// Theme-adaptive bespoke vector artwork for Home Hero (shifts dynamically with Light/Dark & Solar Phase)
+function buildHeroArtworkSVG() {
+    const mood = getCurrentSolarMood();
+    const ariaDesc = `Geometric solar horizon and isometric network topology blueprint rendered in ${mood.label}, with glowing packet paths linking modular server nodes under a live sun and moon arc.`;
+    return `
+        <svg class="theme-svg hero-svg-art" viewBox="0 0 560 390" role="img" aria-label="${escapeHTML(ariaDesc)}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="hero-dot-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="10" cy="10" r="1" fill="var(--border-hairline)" />
+                </pattern>
+                <radialGradient id="hero-solar-halo" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="var(--solar-disc, var(--accent-2))" stop-opacity="0.46" />
+                    <stop offset="55%" stop-color="var(--accent)" stop-opacity="0.16" />
+                    <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+                </radialGradient>
+                <linearGradient id="hero-horizon-fade" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--accent-soft)" />
+                    <stop offset="100%" stop-color="var(--bg-color)" stop-opacity="0.96" />
+                </linearGradient>
+                <linearGradient id="hero-trace-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="var(--accent)" />
+                    <stop offset="100%" stop-color="var(--accent-2)" />
+                </linearGradient>
+            </defs>
+
+            <!-- Sky Canvas & Technical Dot Grid -->
+            <rect width="560" height="390" fill="var(--bg-color)" />
+            <rect width="560" height="214" fill="url(#hero-dot-grid)" />
+
+            <!-- Subtle Solar Horizon Band -->
+            <rect x="0" y="156" width="560" height="58" fill="url(#hero-horizon-fade)" opacity="0.65" />
+
+            <!-- Soft Celestial Halo (moves with solar phase via CSS) -->
+            <g class="solar-glow" aria-hidden="true">
+                <circle cx="0" cy="0" r="96" fill="url(#hero-solar-halo)" />
+            </g>
+
+            <!-- Dashed Solar Orbital Arc & Phase Ticks -->
+            <path d="M 46 214 Q 280 22 514 214" fill="none" stroke="var(--border-hairline)" stroke-width="1.4" stroke-dasharray="4 6" />
+            <circle cx="122" cy="134" r="3" fill="var(--bg-light)" stroke="var(--border-color)" stroke-width="1.2" />
+            <circle cx="280" cy="72" r="3" fill="var(--bg-light)" stroke="var(--border-color)" stroke-width="1.2" />
+            <circle cx="438" cy="134" r="3" fill="var(--bg-light)" stroke="var(--border-color)" stroke-width="1.2" />
+
+            <!-- Sun Emblem (Dawn / Noon / Dusk) -->
+            <g class="solar-sun" aria-hidden="true">
+                <circle cx="0" cy="0" r="36" fill="none" stroke="var(--solar-disc, var(--accent-2))" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.88" />
+                <circle cx="0" cy="0" r="24" fill="var(--solar-disc, var(--accent-2))" stroke="var(--card-border)" stroke-width="1.6" />
+                <circle cx="0" cy="0" r="13" fill="var(--solar-core, var(--accent))" opacity="0.82" />
+                <line x1="0" y1="-44" x2="0" y2="-38" stroke="var(--solar-disc, var(--accent-2))" stroke-width="1.6" stroke-linecap="round" />
+                <line x1="0" y1="38" x2="0" y2="44" stroke="var(--solar-disc, var(--accent-2))" stroke-width="1.6" stroke-linecap="round" />
+                <line x1="-44" y1="0" x2="-38" y2="0" stroke="var(--solar-disc, var(--accent-2))" stroke-width="1.6" stroke-linecap="round" />
+                <line x1="38" y1="0" x2="44" y2="0" stroke="var(--solar-disc, var(--accent-2))" stroke-width="1.6" stroke-linecap="round" />
+            </g>
+
+            <!-- Crescent Moon & Starfield (Night) -->
+            <g class="solar-stars" aria-hidden="true">
+                <path d="M 96 64 L 99 71 L 106 74 L 99 77 L 96 84 L 93 77 L 86 74 L 93 71 Z" fill="var(--accent-2)" class="svg-pulse" />
+                <path d="M 456 54 L 458.5 60 L 464.5 62.5 L 458.5 65 L 456 71 L 453.5 65 L 447.5 62.5 L 453.5 60 Z" fill="var(--accent)" class="svg-pulse" />
+                <circle cx="174" cy="52" r="2" fill="var(--accent)" />
+                <circle cx="388" cy="88" r="2.2" fill="var(--accent-2)" />
+                <circle cx="494" cy="118" r="1.8" fill="var(--text-light)" />
+                <circle cx="72" cy="126" r="1.8" fill="var(--text-light)" />
+            </g>
+            <g class="solar-moon" aria-hidden="true">
+                <circle cx="0" cy="0" r="34" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 5" opacity="0.75" />
+                <path d="M 8 -22 A 23 23 0 1 0 22 10 A 18 18 0 1 1 8 -22 Z" fill="var(--accent)" stroke="var(--card-border)" stroke-width="1.5" stroke-linejoin="round" />
+            </g>
+
+            <!-- Architectural Horizon Plane & Perspective Grid -->
+            <rect x="0" y="214" width="560" height="176" fill="var(--bg-subtle)" />
+            <line x1="0" y1="214" x2="560" y2="214" stroke="var(--card-border)" stroke-width="1.6" />
+            <line x1="0" y1="219" x2="560" y2="219" stroke="var(--accent)" stroke-width="1.2" opacity="0.6" />
+
+            <!-- Perspective Mesh Lines -->
+            <g stroke="var(--border-hairline)" stroke-width="1">
+                <line x1="280" y1="214" x2="280" y2="390" />
+                <line x1="220" y1="214" x2="110" y2="390" />
+                <line x1="160" y1="214" x2="-40" y2="390" />
+                <line x1="340" y1="214" x2="450" y2="390" />
+                <line x1="400" y1="214" x2="600" y2="390" />
+                <line x1="0" y1="244" x2="560" y2="244" />
+                <line x1="0" y1="280" x2="560" y2="280" />
+                <line x1="0" y1="326" x2="560" y2="326" />
+            </g>
+
+            <!-- Glowing Packet Routing Traces between Isometric Nodes -->
+            <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 228 292 L 284 264 L 352 296 L 424 258" stroke="url(#hero-trace-grad)" stroke-width="2.4" />
+                <path d="M 284 264 L 330 236 L 408 236" stroke="var(--accent-2)" stroke-width="1.8" stroke-dasharray="5 4" />
+            </g>
+
+            <!-- Isometric Node Tower A (Center-Right Primary Core) -->
+            <g stroke="var(--card-border)" stroke-width="1.5" stroke-linejoin="round">
+                <!-- Extruded Base Shadow -->
+                <polygon points="352,324 416,294 480,324 416,354" fill="var(--accent-soft)" stroke="none" />
+                <!-- Left Face -->
+                <polygon points="356,216 416,246 416,336 356,306" fill="var(--bg-light)" />
+                <!-- Right Face -->
+                <polygon points="416,246 476,216 476,306 416,336" fill="var(--accent-soft)" />
+                <!-- Top Face -->
+                <polygon points="416,186 476,216 416,246 356,216" fill="var(--bg-light)" />
+                <!-- Inner Top Accent Cap -->
+                <polygon points="416,198 456,216 416,234 376,216" fill="var(--accent)" stroke="var(--card-border)" stroke-width="1.2" />
+                <!-- Rack Slot Lines -->
+                <line x1="368" y1="242" x2="404" y2="260" stroke="var(--accent)" stroke-width="2.2" />
+                <line x1="368" y1="258" x2="404" y2="276" stroke="var(--accent-2)" stroke-width="2.2" />
+                <line x1="368" y1="274" x2="404" y2="292" stroke="var(--border-color)" stroke-width="1.6" />
+                <line x1="368" y1="290" x2="404" y2="308" stroke="var(--border-color)" stroke-width="1.6" />
+            </g>
+
+            <!-- Isometric Node Tower B (Mid-Back Relay) -->
+            <g stroke="var(--card-border)" stroke-width="1.5" stroke-linejoin="round">
+                <polygon points="246,238 286,258 286,314 246,294" fill="var(--bg-light)" />
+                <polygon points="286,258 326,238 326,294 286,314" fill="var(--accent-2-soft)" />
+                <polygon points="286,218 326,238 286,258 246,238" fill="var(--bg-light)" />
+                <polygon points="286,227 310,238 286,249 262,238" fill="var(--accent-2)" stroke="var(--card-border)" stroke-width="1.1" />
+                <line x1="256" y1="262" x2="276" y2="272" stroke="var(--accent)" stroke-width="2" />
+                <line x1="256" y1="276" x2="276" y2="286" stroke="var(--border-color)" stroke-width="1.5" />
+            </g>
+
+            <!-- Live Signal Nodes -->
+            <circle cx="284" cy="264" r="4.5" fill="var(--accent)" stroke="var(--bg-light)" stroke-width="1.5" class="svg-pulse" />
+            <circle cx="352" cy="296" r="4.5" fill="var(--accent-2)" stroke="var(--bg-light)" stroke-width="1.5" class="svg-pulse" />
+            <circle cx="496" cy="272" r="3.5" fill="var(--accent)" />
+
+            <!-- Foreground Telemetry Terminal Card (Bottom-Left) -->
+            <g>
+                <!-- Keycap Vertical Extrusion -->
+                <rect x="34" y="256" width="194" height="106" rx="6" fill="var(--card-extrude)" />
+                <!-- Main Card Body -->
+                <rect x="34" y="251" width="194" height="106" rx="6" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.6" />
+                <!-- Header Divider -->
+                <line x1="34" y1="273" x2="228" y2="273" stroke="var(--border-hairline)" stroke-width="1.2" />
+                <!-- Window Dots -->
+                <circle cx="48" cy="262" r="3.2" fill="var(--accent)" />
+                <circle cx="60" cy="262" r="3.2" fill="var(--accent-2)" />
+                <circle cx="72" cy="262" r="3.2" fill="var(--border-color)" />
+                <text x="160" y="266" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--text-light)">sys.node</text>
+
+                <!-- Terminal Telemetry Readout -->
+                <text x="46" y="292" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--accent)">$ uname -srm</text>
+                <text x="46" y="308" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--text-color)">Linux · netsec</text>
+                <text x="46" y="324" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--text-light)">19.07°N 72.87°E</text>
+
+                <!-- Signal Bars -->
+                <rect x="46" y="338" width="12" height="8" rx="1.5" fill="var(--accent)" />
+                <rect x="62" y="335" width="12" height="11" rx="1.5" fill="var(--accent)" />
+                <rect x="78" y="332" width="12" height="14" rx="1.5" fill="var(--accent-2)" />
+                <rect x="94" y="336" width="12" height="10" rx="1.5" fill="var(--accent-2)" />
+                <rect x="110" y="340" width="12" height="6" rx="1.5" fill="var(--border-color)" />
+                <rect x="196" y="336" width="18" height="10" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.2" />
+            </g>
+
+            <!-- Top-Left & Top-Right Architectural Coordinate Ticks -->
+            <text x="20" y="26" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--text-light)">// NODE.01</text>
+            <text x="478" y="26" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--accent)">SOLAR.SYNC</text>
+        </svg>
+    `;
+}
+
+// Theme-adaptive bespoke vector schematic for About Page (shifts dynamically with Light/Dark & Solar Phase)
+function buildAboutArtworkSVG() {
+    const mood = getCurrentSolarMood();
+    const ariaDesc = `Architectural Linux terminal and cybersecurity shield schematic styled in ${mood.label}, illustrating kernel, networking, and open-source craft.`;
+    return `
+        <svg class="theme-svg about-svg-art" viewBox="0 0 560 420" role="img" aria-label="${escapeHTML(ariaDesc)}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="about-blueprint-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                    <path d="M 24 0 L 0 0 0 24" fill="none" stroke="var(--border-hairline)" stroke-width="0.9" />
+                </pattern>
+                <linearGradient id="about-bus-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="var(--accent)" />
+                    <stop offset="100%" stop-color="var(--accent-2)" />
+                </linearGradient>
+            </defs>
+
+            <!-- Blueprint Surface -->
+            <rect width="560" height="420" fill="var(--bg-color)" />
+            <rect width="560" height="420" fill="url(#about-blueprint-grid)" opacity="0.72" />
+
+            <!-- Soft Atmospheric Corner Accents -->
+            <circle cx="475" cy="72" r="78" fill="var(--accent-2-soft)" />
+            <circle cx="88" cy="356" r="84" fill="var(--accent-soft)" />
+
+            <!-- Chamfered PCB Bus Traces -->
+            <g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 332 162 L 368 162 L 386 180 L 408 180" stroke="url(#about-bus-grad)" />
+                <path d="M 332 204 L 384 204 L 404 224 L 404 268" stroke="var(--accent-2)" stroke-dasharray="5 4" />
+                <path d="M 118 286 L 118 334 L 146 334" stroke="var(--accent)" />
+                <path d="M 226 286 L 226 334 L 254 334" stroke="var(--accent-2)" />
+                <path d="M 304 286 L 304 334 L 362 334" stroke="var(--border-color)" />
+            </g>
+
+            <!-- Main Linux Terminal Window (Solid Vertical Keycap Extrusion) -->
+            <g>
+                <rect x="36" y="64" width="296" height="226" rx="7" fill="var(--card-extrude)" />
+                <rect x="36" y="58" width="296" height="226" rx="7" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.8" />
+
+                <!-- Terminal Top Bar -->
+                <rect x="36" y="58" width="296" height="32" rx="7" fill="var(--bg-subtle)" stroke="var(--card-border)" stroke-width="1.8" />
+                <rect x="37" y="80" width="294" height="10" fill="var(--bg-subtle)" />
+                <line x1="36" y1="90" x2="332" y2="90" stroke="var(--card-border)" stroke-width="1.4" />
+
+                <!-- Window Controls -->
+                <circle cx="56" cy="74" r="4" fill="var(--accent)" />
+                <circle cx="71" cy="74" r="4" fill="var(--accent-2)" />
+                <circle cx="86" cy="74" r="4" fill="var(--border-color)" />
+                <text x="196" y="78" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--text-light)">uzair@linux:~</text>
+
+                <!-- Terminal Body Text -->
+                <text x="54" y="118" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--accent)">$ whoami</text>
+                <text x="54" y="138" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text-color)">uzair · linux &amp; netsec</text>
+
+                <text x="54" y="166" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--accent)">$ cat stack.conf</text>
+                <text x="54" y="186" font-family="IBM Plex Mono, monospace" font-size="10.8" fill="var(--text-light)">  [01] cybersecurity</text>
+                <text x="54" y="204" font-family="IBM Plex Mono, monospace" font-size="10.8" fill="var(--text-light)">  [02] networking &amp; arch</text>
+                <text x="54" y="222" font-family="IBM Plex Mono, monospace" font-size="10.8" fill="var(--text-light)">  [03] python / bash / oss</text>
+
+                <text x="54" y="250" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--accent-2)">$ status --curiosity</text>
+                <text x="54" y="269" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text-color)">active (always learning)</text>
+                <rect x="220" y="258" width="8" height="13" rx="1.5" fill="var(--accent)" class="svg-cursor" />
+            </g>
+
+            <!-- Geometric Security Shield & Node Constellation (Right) -->
+            <g transform="translate(446, 178)">
+                <circle cx="0" cy="0" r="68" fill="none" stroke="var(--border-hairline)" stroke-width="1.3" stroke-dasharray="4 5" />
+                <circle cx="0" cy="0" r="52" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.6" />
+                <!-- Hexagonal Security Shield -->
+                <path d="M 0 -34 L 29 -19 L 29 7 C 29 24 14 34 0 40 C -14 34 -29 24 -29 7 L -29 -19 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" />
+                <!-- Inner Circuit Shield Core -->
+                <path d="M 0 -20 L 16 -11 L 16 4 C 16 14 7 21 0 25 C -7 21 -16 14 -16 4 L -16 -11 Z" fill="var(--bg-light)" stroke="var(--accent-2)" stroke-width="1.6" stroke-linejoin="round" />
+                <circle cx="0" cy="0" r="5.5" fill="var(--accent)" />
+                <line x1="0" y1="5.5" x2="0" y2="15" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" />
+                <!-- Orbiting Constellation Nodes -->
+                <circle cx="-54" cy="-42" r="4.5" fill="var(--accent-2)" stroke="var(--bg-light)" stroke-width="1.5" class="svg-pulse" />
+                <circle cx="58" cy="-34" r="4" fill="var(--accent)" stroke="var(--bg-light)" stroke-width="1.5" />
+                <circle cx="48" cy="48" r="4.5" fill="var(--accent-2)" stroke="var(--bg-light)" stroke-width="1.5" class="svg-pulse" />
+            </g>
+
+            <!-- Subsystem Keycap Modules (Bottom Row) -->
+            <g font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" text-anchor="middle">
+                <!-- Module 1: KERNEL -->
+                <rect x="64" y="340" width="116" height="40" rx="5" fill="var(--card-extrude)" />
+                <rect x="64" y="336" width="116" height="40" rx="5" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.5" />
+                <rect x="74" y="346" width="6" height="20" rx="2" fill="var(--accent)" />
+                <text x="128" y="360" fill="var(--text-color)">KERNEL</text>
+
+                <!-- Module 2: NETSEC -->
+                <rect x="202" y="340" width="116" height="40" rx="5" fill="var(--card-extrude)" />
+                <rect x="202" y="336" width="116" height="40" rx="5" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.5" />
+                <rect x="212" y="346" width="6" height="20" rx="2" fill="var(--accent-2)" />
+                <text x="266" y="360" fill="var(--text-color)">NETSEC</text>
+
+                <!-- Module 3: OPEN SRC -->
+                <rect x="340" y="340" width="156" height="40" rx="5" fill="var(--card-extrude)" />
+                <rect x="340" y="336" width="156" height="40" rx="5" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.5" />
+                <rect x="350" y="346" width="6" height="20" rx="2" fill="var(--accent)" />
+                <text x="424" y="360" fill="var(--text-color)">OPEN SOURCE</text>
+            </g>
+
+            <!-- Blueprint Registration Header -->
+            <text x="36" y="32" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--text-light)">// WORKSPACE.SPEC</text>
+            <text x="450" y="32" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--accent-2)">REV · 2027</text>
+        </svg>
+    `;
+}
+
+// Theme-adaptive bespoke vector schematic for Experience Page
+function buildExperienceArtworkSVG() {
+    const mood = getCurrentSolarMood();
+    const ariaDesc = `Architectural career trajectory and milestone schematic rendered in ${mood.label}, showing connected progression nodes and a structured dossier plate.`;
+    return `
+        <svg class="theme-svg masthead-svg-art" viewBox="0 0 400 225" role="img" aria-label="${escapeHTML(ariaDesc)}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="exp-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="10" cy="10" r="1" fill="var(--border-hairline)" />
+                </pattern>
+                <linearGradient id="exp-curve-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="var(--accent)" />
+                    <stop offset="100%" stop-color="var(--accent-2)" />
+                </linearGradient>
+            </defs>
+            <rect width="400" height="225" fill="var(--bg-color)" />
+            <rect width="400" height="225" fill="url(#exp-grid)" />
+            <circle cx="336" cy="54" r="54" fill="var(--accent-soft)" />
+            <circle cx="72" cy="186" r="46" fill="var(--accent-2-soft)" />
+
+            <!-- Axis Rails -->
+            <line x1="34" y1="186" x2="368" y2="186" stroke="var(--card-border)" stroke-width="1.4" />
+            <line x1="34" y1="50" x2="34" y2="186" stroke="var(--card-border)" stroke-width="1.4" />
+
+            <!-- Trajectory Spline -->
+            <path d="M 46 168 C 94 168, 102 134, 146 130 C 194 126, 206 94, 250 86 C 292 78, 314 58, 354 56" fill="none" stroke="url(#exp-curve-grad)" stroke-width="2.8" stroke-linecap="round" />
+
+            <!-- Vertical Drop Guides -->
+            <g stroke="var(--border-hairline)" stroke-width="1.2" stroke-dasharray="3 3">
+                <line x1="146" y1="130" x2="146" y2="186" />
+                <line x1="250" y1="86" x2="250" y2="186" />
+                <line x1="354" y1="56" x2="354" y2="186" />
+            </g>
+
+            <!-- Extruded Mini Dossier Card -->
+            <g>
+                <rect x="64" y="52" width="132" height="58" rx="5" fill="var(--card-extrude)" />
+                <rect x="64" y="48" width="132" height="58" rx="5" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.5" />
+                <rect x="74" y="58" width="44" height="5" rx="2" fill="var(--accent)" />
+                <rect x="74" y="70" width="96" height="4" rx="2" fill="var(--border-color)" />
+                <rect x="74" y="80" width="76" height="4" rx="2" fill="var(--border-hairline)" />
+                <rect x="74" y="90" width="54" height="4" rx="2" fill="var(--accent-2)" />
+            </g>
+
+            <!-- Milestone Dots -->
+            <circle cx="46" cy="168" r="5" fill="var(--bg-light)" stroke="var(--accent)" stroke-width="2.2" />
+            <circle cx="146" cy="130" r="5.5" fill="var(--bg-light)" stroke="var(--accent)" stroke-width="2.2" />
+            <circle cx="250" cy="86" r="5.5" fill="var(--bg-light)" stroke="var(--accent-2)" stroke-width="2.2" />
+            <circle cx="354" cy="56" r="6.5" fill="var(--accent)" stroke="var(--bg-light)" stroke-width="2" class="svg-pulse" />
+
+            <text x="20" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--text-light)">// DOSSIER.LOG</text>
+            <text x="316" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--accent)">TIMELINE</text>
+        </svg>
+    `;
+}
+
+// Theme-adaptive bespoke vector schematic for Contact Page
+function buildContactArtworkSVG() {
+    const mood = getCurrentSolarMood();
+    const ariaDesc = `Signal relay and encrypted dispatch console schematic rendered in ${mood.label}, featuring concentric transmission rings and a message packet keycap.`;
+    return `
+        <svg class="theme-svg masthead-svg-art" viewBox="0 0 400 225" role="img" aria-label="${escapeHTML(ariaDesc)}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="contact-grid" width="22" height="22" patternUnits="userSpaceOnUse">
+                    <path d="M 22 0 L 0 0 0 22" fill="none" stroke="var(--border-hairline)" stroke-width="0.85" />
+                </pattern>
+            </defs>
+            <rect width="400" height="225" fill="var(--bg-color)" />
+            <rect width="400" height="225" fill="url(#contact-grid)" opacity="0.78" />
+
+            <!-- Concentric Signal Relay Rings -->
+            <g transform="translate(292, 118)">
+                <circle cx="0" cy="0" r="70" fill="none" stroke="var(--border-hairline)" stroke-width="1.2" stroke-dasharray="4 5" />
+                <circle cx="0" cy="0" r="48" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4" opacity="0.72" />
+                <circle cx="0" cy="0" r="24" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.5" />
+                <circle cx="0" cy="0" r="7" fill="var(--accent-2)" class="svg-pulse" />
+                <circle cx="48" cy="-26" r="4" fill="var(--accent)" stroke="var(--bg-light)" stroke-width="1.5" />
+                <circle cx="-38" cy="36" r="3.5" fill="var(--accent-2)" stroke="var(--bg-light)" stroke-width="1.5" />
+            </g>
+
+            <!-- Routing Trace -->
+            <path d="M 196 118 L 244 118" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" />
+
+            <!-- Extruded Message Packet Card -->
+            <g>
+                <rect x="34" y="68" width="164" height="106" rx="6" fill="var(--card-extrude)" />
+                <rect x="34" y="63" width="164" height="106" rx="6" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.6" />
+                <!-- Envelope Flap Geometry -->
+                <path d="M 40 69 L 116 116 L 192 69" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" />
+                <line x1="40" y1="163" x2="88" y2="122" stroke="var(--border-hairline)" stroke-width="1.3" />
+                <line x1="192" y1="163" x2="144" y2="122" stroke="var(--border-hairline)" stroke-width="1.3" />
+                <rect x="92" y="138" width="48" height="16" rx="3" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="1.2" />
+                <text x="116" y="149" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600" fill="var(--text-color)">PGP.OK</text>
+            </g>
+
+            <text x="20" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--text-light)">// DISPATCH.IO</text>
+            <text x="316" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--accent-2)">CHANNEL.UP</text>
+        </svg>
+    `;
+}
+
+// Theme-adaptive bespoke vector schematic for Resources Page
+function buildResourcesArtworkSVG() {
+    const mood = getCurrentSolarMood();
+    const ariaDesc = `Layered academic archive folders and indexed study stack schematic rendered in ${mood.label}, representing semester study guides and notes.`;
+    return `
+        <svg class="theme-svg masthead-svg-art" viewBox="0 0 400 225" role="img" aria-label="${escapeHTML(ariaDesc)}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="res-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="10" cy="10" r="1" fill="var(--border-hairline)" />
+                </pattern>
+            </defs>
+            <rect width="400" height="225" fill="var(--bg-color)" />
+            <rect width="400" height="225" fill="url(#res-grid)" />
+            <circle cx="322" cy="168" r="54" fill="var(--accent-2-soft)" />
+
+            <!-- Back Archive Folder (SEM 04) -->
+            <g>
+                <path d="M 74 58 H 142 L 154 70 H 316 V 136 H 74 Z" fill="var(--bg-subtle)" stroke="var(--card-border)" stroke-width="1.5" stroke-linejoin="round" />
+                <rect x="86" y="63" width="38" height="4" rx="2" fill="var(--accent-2)" />
+            </g>
+
+            <!-- Mid Archive Folder (SEM 03) -->
+            <g>
+                <path d="M 56 80 H 128 L 140 92 H 302 V 160 H 56 Z" fill="var(--accent-soft)" stroke="var(--card-border)" stroke-width="1.5" stroke-linejoin="round" />
+                <rect x="68" y="85" width="42" height="4" rx="2" fill="var(--accent)" />
+            </g>
+
+            <!-- Front Extruded Study Binder (SEM 01-04) -->
+            <g>
+                <rect x="38" y="109" width="250" height="82" rx="6" fill="var(--card-extrude)" />
+                <path d="M 38 110 C 38 106 41 103 45 103 H 116 L 128 115 H 281 C 285 115 288 118 288 122 V 181 C 288 185 285 188 281 188 H 45 C 41 188 38 185 38 181 Z" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.6" stroke-linejoin="round" />
+                <rect x="54" y="132" width="84" height="7" rx="2" fill="var(--accent)" />
+                <rect x="54" y="148" width="160" height="5" rx="2" fill="var(--border-color)" />
+                <rect x="54" y="160" width="124" height="5" rx="2" fill="var(--border-hairline)" />
+                <rect x="228" y="134" width="44" height="36" rx="4" fill="var(--accent-2-soft)" stroke="var(--accent-2)" stroke-width="1.3" />
+                <text x="250" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="var(--text-color)">PDF</text>
+            </g>
+
+            <!-- Index Node Badges (Right) -->
+            <g stroke="var(--card-border)" stroke-width="1.4">
+                <line x1="316" y1="74" x2="346" y2="74" stroke="var(--accent)" stroke-dasharray="3 3" />
+                <line x1="302" y1="112" x2="346" y2="112" stroke="var(--accent-2)" stroke-dasharray="3 3" />
+                <line x1="288" y1="150" x2="346" y2="150" stroke="var(--accent)" stroke-dasharray="3 3" />
+                <circle cx="352" cy="74" r="6" fill="var(--accent)" class="svg-pulse" />
+                <circle cx="352" cy="112" r="6" fill="var(--accent-2)" />
+                <circle cx="352" cy="150" r="6" fill="var(--bg-light)" stroke="var(--accent)" stroke-width="2" />
+            </g>
+
+            <text x="20" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--text-light)">// ARCHIVE.DB</text>
+            <text x="316" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--accent)">INDEXED</text>
+        </svg>
+    `;
+}
 
 function escapeHTML(str) {
     return String(str ?? '')
@@ -17,17 +474,41 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Load JSON file
+// Load JSON file (with in-flight promise deduplication)
 async function loadJSON(path) {
     if (jsonCache[path]) return jsonCache[path];
+    if (jsonPromises.has(path)) return jsonPromises.get(path);
 
-    const response = await fetch(path);
-    if (!response.ok) {
-        throw new Error(`Failed to load ${path}: ${response.statusText}`);
-    }
-    const data = await response.json();
-    jsonCache[path] = data;
-    return data;
+    const req = fetch(path)
+        .then(async (response) => {
+            if (!response.ok) {
+                throw new Error(`Failed to load ${path}: ${response.statusText}`);
+            }
+            const data = await response.json();
+            jsonCache[path] = data;
+            return data;
+        })
+        .finally(() => {
+            jsonPromises.delete(path);
+        });
+
+    jsonPromises.set(path, req);
+    return req;
+}
+
+// Non-blocking route prefetch on hover/focus or idle
+function prefetchPage(pageName) {
+    if (!VALID_PAGES.has(pageName)) return;
+    const jsonPath = `data/pages/${pageName}.json`;
+    loadJSON(jsonPath)
+        .then((pd) => {
+            const icons = [];
+            if (pd.featured) pd.featured.forEach(i => { if (i.icon) icons.push(i.icon); });
+            if (pd.skills) pd.skills.forEach(s => { if (s.icon) icons.push(s.icon); });
+            if (pd.social) pd.social.forEach(l => { if (l.icon) icons.push(l.icon); });
+            [...new Set(icons)].forEach(icon => { renderSVGIcon(icon).catch(() => {}); });
+        })
+        .catch(() => {});
 }
 
 // Resolve initial route from hash (#about, #experience, etc.)
@@ -68,6 +549,9 @@ function setupNavigation() {
             a.href = `#${item.page}`;
             a.textContent = item.label;
             a.dataset.page = item.page;
+            const warm = () => prefetchPage(item.page);
+            a.addEventListener('pointerenter', warm, { once: true });
+            a.addEventListener('focus', warm, { once: true });
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigateTo(item.page);
@@ -92,9 +576,58 @@ function setupNavigation() {
     populateList(drawerNavList, true);
 }
 
+let routeTransitionToken = 0;
+
+function ensureRouteCurtain() {
+    let curtain = document.getElementById('route-transition-curtain');
+    if (!curtain) {
+        curtain = document.createElement('div');
+        curtain.id = 'route-transition-curtain';
+        curtain.className = 'route-curtain';
+        curtain.setAttribute('aria-hidden', 'true');
+        curtain.innerHTML = `
+            <div class="route-curtain-band route-curtain-band--accent"></div>
+            <div class="route-curtain-band route-curtain-band--accent2"></div>
+            <div class="route-curtain-band route-curtain-band--veil">
+                <div class="route-curtain-stamp">
+                    <span class="route-curtain-stamp-slash">//</span>
+                    <span class="route-curtain-stamp-label" id="route-curtain-label">HOME</span>
+                    <span class="route-curtain-stamp-dot"></span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(curtain);
+    }
+    return curtain;
+}
+
+function applyRouteStagger(container) {
+    if (!container) return;
+    const targets = container.querySelectorAll(
+        '.page-masthead, .hero-editorial, .resume-banner, .about-spread, .pillar-card, .skill-item, .experience-timeline-item, .contact-aside, .contact-form, .resource-item, .note-banner'
+    );
+    targets.forEach((el, idx) => {
+        el.style.setProperty('--stagger-i', String(Math.min(idx, 10)));
+        el.classList.add('route-stagger-item');
+        el.addEventListener('animationend', () => {
+            el.classList.remove('route-stagger-item');
+            el.style.removeProperty('--stagger-i');
+        }, { once: true });
+    });
+}
+
+function waitMs(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function navigateTo(pageName, options = {}) {
     const target = VALID_PAGES.has(pageName) ? pageName : 'home';
-    const { updateHash = true, scrollToTop = true } = options;
+    const { updateHash = true, scrollToTop = true, animate = true } = options;
+
+    if (target === currentPage && !options.force) {
+        if (scrollToTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
 
     if (updateHash) {
         const nextHash = target === 'home' ? '#home' : `#${target}`;
@@ -103,54 +636,125 @@ function navigateTo(pageName, options = {}) {
         }
     }
 
-    loadPage(target, { scrollToTop });
+    loadPage(target, { scrollToTop, announce: true, moveFocus: true, animate });
 }
 
-// Load page content
+// Load page content (with cinematic pastel ribbon curtain on SPA route switches)
 async function loadPage(pageName, options = {}) {
-    const { scrollToTop = true } = options;
+    const { scrollToTop = true, announce = false, moveFocus = false, animate = false } = options;
+    const token = ++routeTransitionToken;
     currentPage = pageName;
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const shouldAnimate = animate && !prefersReducedMotion;
+    const mainContent = document.getElementById('main-content');
 
     try {
         updateActiveNavLink(pageName);
 
-        const pageData = await loadJSON(`data/pages/${pageName}.json`);
-        await renderPage(pageData);
+        // Start fetching page JSON immediately in parallel with curtain sweep-in
+        const pageDataPromise = loadJSON(`data/pages/${pageName}.json`);
+        let curtain = null;
+
+        if (shouldAnimate) {
+            curtain = ensureRouteCurtain();
+            const labelEl = curtain.querySelector('#route-curtain-label');
+            if (labelEl) labelEl.textContent = pageName.toUpperCase();
+
+            curtain.classList.remove('phase-out');
+            curtain.classList.add('is-active');
+            // Force reflow so sweep-in always starts cleanly from bottom
+            void curtain.offsetWidth;
+            curtain.classList.add('phase-in');
+            if (mainContent) mainContent.classList.add('is-route-exiting');
+
+            // Hold curtain gracefully so slow-network route JSONs hydrate cleanly and fast links showcase the pastel sweep
+            const [pageData] = await Promise.all([pageDataPromise, waitMs(420)]);
+            if (token !== routeTransitionToken) return;
+
+            await renderPage(pageData, { stagger: true });
+            if (token !== routeTransitionToken) return;
+
+            if (mainContent) mainContent.classList.remove('is-route-exiting');
+            if (scrollToTop) {
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            }
+
+            // Peel pastel ribbons away on next paint frame to reveal staggered blooming page
+            requestAnimationFrame(() => {
+                if (token !== routeTransitionToken || !curtain) return;
+                curtain.classList.remove('phase-in');
+                curtain.classList.add('phase-out');
+            });
+
+            finalizePageMetadata(pageName, pageData, { announce, moveFocus });
+
+            waitMs(580).then(() => {
+                if (token === routeTransitionToken && curtain) {
+                    curtain.classList.remove('is-active', 'phase-out');
+                }
+            });
+            return;
+        }
+
+        const pageData = await pageDataPromise;
+        if (token !== routeTransitionToken) return;
+
+        await renderPage(pageData, { stagger: false });
+        if (token !== routeTransitionToken) return;
 
         if (scrollToTop) {
             window.scrollTo({ top: 0, behavior: 'auto' });
         }
 
-        const siteName = (globalConfig.site && globalConfig.site.name) ? globalConfig.site.name : 'Uzair Shaikh';
-        const pageTitle = pageData.title ? `${pageData.title} - ${siteName}` : `${siteName} - Developer Portfolio`;
-        document.title = pageTitle;
-
-        const pageDesc = pageData.description || (globalConfig.site && globalConfig.site.description) || "Uzair Shaikh's developer portfolio — Cybersecurity, networking, system architecture, and programming projects.";
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', pageDesc);
-
-        const currentUrl = pageName === 'home' ? 'https://uzair777-dev.github.io/' : `https://uzair777-dev.github.io/#${pageName}`;
-        const canonicalEl = document.getElementById('canonical-link');
-        if (canonicalEl) canonicalEl.setAttribute('href', currentUrl);
-
-        const ogTitle = document.getElementById('og-title');
-        if (ogTitle) ogTitle.setAttribute('content', pageTitle);
-        const ogDesc = document.getElementById('og-description');
-        if (ogDesc) ogDesc.setAttribute('content', pageDesc);
-        const ogUrl = document.getElementById('og-url');
-        if (ogUrl) ogUrl.setAttribute('content', currentUrl);
-
-        const twTitle = document.getElementById('twitter-title');
-        if (twTitle) twTitle.setAttribute('content', pageTitle);
-        const twDesc = document.getElementById('twitter-description');
-        if (twDesc) twDesc.setAttribute('content', pageDesc);
+        finalizePageMetadata(pageName, pageData, { announce, moveFocus });
     } catch (error) {
+        if (mainContent) mainContent.classList.remove('is-route-exiting');
+        const curtain = document.getElementById('route-transition-curtain');
+        if (curtain) curtain.classList.remove('is-active', 'phase-in', 'phase-out');
         console.error(`Error loading page ${pageName}:`, error);
-        const mainContent = document.getElementById('main-content');
         if (mainContent) {
             mainContent.innerHTML = `<div class="container"><div class="loading"><p>Error loading ${escapeHTML(pageName)} page. Please check the data file.</p></div></div>`;
         }
     }
+}
+
+function finalizePageMetadata(pageName, pageData, { announce, moveFocus }) {
+    const siteName = (globalConfig.site && globalConfig.site.name) ? globalConfig.site.name : 'Uzair Shaikh';
+    const pageTitle = pageData.title ? `${pageData.title} - ${siteName}` : `${siteName} - Developer Portfolio`;
+    document.title = pageTitle;
+
+    if (announce) {
+        announceA11y(`Now on ${pageData.title || pageName}.`);
+    }
+
+    if (moveFocus) {
+        const heading = document.querySelector('#main-content h1');
+        if (heading) {
+            heading.setAttribute('tabindex', '-1');
+            heading.focus({ preventScroll: true });
+        }
+    }
+
+    const pageDesc = pageData.description || (globalConfig.site && globalConfig.site.description) || "Uzair Shaikh's developer portfolio — Cybersecurity, networking, system architecture, and programming projects.";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', pageDesc);
+
+    const currentUrl = pageName === 'home' ? 'https://uzair777-dev.github.io/' : `https://uzair777-dev.github.io/#${pageName}`;
+    const canonicalEl = document.getElementById('canonical-link');
+    if (canonicalEl) canonicalEl.setAttribute('href', currentUrl);
+
+    const ogTitle = document.getElementById('og-title');
+    if (ogTitle) ogTitle.setAttribute('content', pageTitle);
+    const ogDesc = document.getElementById('og-description');
+    if (ogDesc) ogDesc.setAttribute('content', pageDesc);
+    const ogUrl = document.getElementById('og-url');
+    if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+
+    const twTitle = document.getElementById('twitter-title');
+    if (twTitle) twTitle.setAttribute('content', pageTitle);
+    const twDesc = document.getElementById('twitter-description');
+    if (twDesc) twDesc.setAttribute('content', pageDesc);
 }
 
 // Update active navigation link (syncs desktop nav bar + burger drawer mobile links)
@@ -185,13 +789,24 @@ async function fetchGitHubRepos() {
     const cacheKey = 'github_repos_v2_' + repoUrls.join(',');
     const cacheTTL = 5 * 60 * 1000;
 
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const minRepoShowcaseMs = prefersReducedMotion ? 0 : 420;
+    const fetchStartedAt = performance.now();
+
+    const finishWithDelay = async (repos) => {
+        const remaining = Math.max(0, minRepoShowcaseMs - (performance.now() - fetchStartedAt));
+        if (remaining > 0) await waitMs(remaining);
+        if (!document.body.contains(grid)) return;
+        renderRepoCards(grid, repos);
+    };
+
     try {
         try {
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) {
                 const { data, timestamp } = JSON.parse(cached);
                 if (Array.isArray(data) && data.length > 0 && (Date.now() - timestamp < cacheTTL)) {
-                    renderRepoCards(grid, data);
+                    await finishWithDelay(data);
                     return;
                 }
             }
@@ -225,7 +840,7 @@ async function fetchGitHubRepos() {
                 sessionStorage.setItem(cacheKey, JSON.stringify({ data: repos, timestamp: Date.now() }));
             } catch (_) {}
         }
-        renderRepoCards(grid, repos);
+        await finishWithDelay(repos);
     } catch (error) {
         console.error('Error fetching GitHub repos:', error);
         const fallbackRepos = repoUrls.map(url => {
@@ -240,7 +855,7 @@ async function fetchGitHubRepos() {
             };
         }).filter(Boolean);
 
-        renderRepoCards(grid, fallbackRepos);
+        await finishWithDelay(fallbackRepos);
     }
 }
 
@@ -274,7 +889,7 @@ function renderRepoCards(grid, repos) {
 
         html += `<a href="${escapeHTML(repo.html_url)}" target="_blank" rel="noopener noreferrer" class="repo-card${isLead ? ' repo-card--lead' : ''}" aria-label="${escapeHTML(repo.name)}: ${escapeHTML(repo.description || 'No description')}">`;
         html += `<div class="repo-card-media">`;
-        html += `<img src="${ogImage}" alt="Preview image for ${escapeHTML(repo.name)}" class="repo-card-image" loading="lazy" referrerpolicy="no-referrer">`;
+        html += `<img src="${ogImage}" alt="Preview image for ${escapeHTML(repo.name)}" class="repo-card-image" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
         html += `<div class="repo-card-fallback" aria-hidden="true"><span>${escapeHTML(repo.full_name)}</span></div>`;
         html += `</div>`;
         html += `<div class="repo-card-body">`;
@@ -302,7 +917,7 @@ function renderRepoCards(grid, repos) {
 }
 
 // Render page content
-async function renderPage(pageData) {
+async function renderPage(pageData, options = {}) {
     const mainContent = document.getElementById('main-content');
     let html = '';
 
@@ -327,6 +942,10 @@ async function renderPage(pageData) {
     }
 
     mainContent.innerHTML = html;
+
+    if (options.stagger) {
+        applyRouteStagger(mainContent);
+    }
 
     if (pageData.type === 'home') {
         fetchGitHubRepos();
@@ -370,7 +989,7 @@ async function renderHomePage(data) {
     html += '</div>';
     html += '</div>';
 
-    // Editorial Risograph Art Print Frame + Developer Portrait Inset
+    // Theme-Reactive Vector Blueprint Frame + Developer Portrait Inset
     html += '<div class="hero-visual">';
     html += '<div class="hero-artwork-frame" id="hero-artwork-frame">';
     html += '<span class="crop-mark crop-tl" aria-hidden="true"></span>';
@@ -378,11 +997,11 @@ async function renderHomePage(data) {
     html += '<span class="crop-mark crop-bl" aria-hidden="true"></span>';
     html += '<span class="crop-mark crop-br" aria-hidden="true"></span>';
     html += '<div class="hero-artwork-viewport">';
-    html += `<img src="${HERO_ARTWORK_PATH}" alt="Swiss modernist architectural print inspired by Linux systems and network topology" class="hero-artwork-img" referrerpolicy="no-referrer">`;
+    html += buildHeroArtworkSVG();
     html += '</div>';
     html += '<div class="hero-portrait-bar">';
     if (hero.image) {
-        html += `<img src="${escapeHTML(hero.image)}" alt="Portrait of ${escapeHTML(hero.name || 'the developer')}" class="hero-image" width="56" height="56">`;
+        html += `<img src="${escapeHTML(hero.image)}" alt="Portrait of ${escapeHTML(hero.name || 'the developer')}" class="hero-image" width="56" height="56" decoding="async">`;
     }
     html += '<div class="hero-portrait-caption">';
     html += `<span class="hero-portrait-name">${escapeHTML(hero.name || 'Uzair Shaikh')}</span>`;
@@ -393,7 +1012,10 @@ async function renderHomePage(data) {
     html += '</div>';
     html += '</section>';
 
-    // Editorial section divider marquee ribbon
+    // Sweet hidden screen-reader aside on Home
+    html += '<aside class="sr-only" aria-label="Hidden note from Uzair">A quiet note from Uzair: if you are listening to this page instead of looking at it, the artwork up here is a geometric map of glowing network nodes beneath a sun or moon that follows your local clock. Really glad you are here.</aside>';
+
+    // Editorial section divider marquee ribbon (purely decorative; silent for screen readers)
     const marqueeTopics = [
         'Cybersecurity',
         'Linux Systems',
@@ -419,8 +1041,11 @@ async function renderHomePage(data) {
         html += '<h2 class="section-title">Featured Repositories</h2>';
         html += '<a href="https://github.com/uzair777-dev" target="_blank" rel="noopener noreferrer" class="section-link">All on GitHub <span aria-hidden="true">↗</span></a>';
         html += '</div>';
+        const repoLoader = (window.PortfolioThemeEngine && typeof window.PortfolioThemeEngine.buildSolarLoaderMarkup === 'function')
+            ? window.PortfolioThemeEngine.buildSolarLoaderMarkup({ compact: true, label: '// fetching repositories...' })
+            : 'Loading repositories...';
         html += `<div class="repo-grid" id="repo-grid" data-repos='${JSON.stringify(data.github.repos)}'>`;
-        html += '<div class="repo-skeleton" aria-label="Loading repositories">Loading repositories...</div>';
+        html += `<div class="repo-skeleton" role="status" aria-live="polite" aria-label="Loading repositories">${repoLoader}</div>`;
         html += '</div>';
         html += '</section>';
     }
@@ -429,37 +1054,63 @@ async function renderHomePage(data) {
     return html;
 }
 
-// Subtle compositor-only 3D tilt on hero artwork frame (respects reduced motion)
+// Subtle RAF-throttled compositor-only 3D tilt on desktop fine-pointer devices
 function setupHeroArtworkTilt() {
     const frame = document.getElementById('hero-artwork-frame');
     if (!frame) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    let rafId = 0;
+    let nextX = 0;
+    let nextY = 0;
 
     frame.addEventListener('pointermove', (e) => {
         const rect = frame.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        frame.style.transform = `perspective(900px) rotateY(${(x * 5).toFixed(2)}deg) rotateX(${(-y * 5).toFixed(2)}deg)`;
-    });
+        nextX = (e.clientX - rect.left) / rect.width - 0.5;
+        nextY = (e.clientY - rect.top) / rect.height - 0.5;
+        if (!rafId) {
+            rafId = requestAnimationFrame(() => {
+                rafId = 0;
+                frame.style.transform = `perspective(900px) rotateY(${(nextX * 5).toFixed(2)}deg) rotateX(${(-nextY * 5).toFixed(2)}deg)`;
+            });
+        }
+    }, { passive: true });
 
     frame.addEventListener('pointerleave', () => {
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = 0;
+        }
         frame.style.transform = '';
-    });
+    }, { passive: true });
 }
 
-// Helper function to render SVG icons (with in-memory cache)
+// Helper function to render SVG icons (with in-memory cache + promise deduplication)
 async function renderSVGIcon(iconPath) {
     if (!iconPath || typeof iconPath !== 'string') return '';
 
     try {
         if (iconPath.startsWith('res/svg/') && iconPath.endsWith('.svg')) {
             if (svgCache[iconPath]) return svgCache[iconPath];
-            const response = await fetch(iconPath);
-            if (response.ok) {
-                const svgContent = await response.text();
-                svgCache[iconPath] = svgContent;
-                return svgContent;
-            }
+            if (svgPromises.has(iconPath)) return svgPromises.get(iconPath);
+
+            const req = fetch(iconPath)
+                .then(async (response) => {
+                    if (response.ok) {
+                        const svgContent = await response.text();
+                        svgCache[iconPath] = svgContent;
+                        return svgContent;
+                    }
+                    return iconPath;
+                })
+                .catch(() => iconPath)
+                .finally(() => {
+                    svgPromises.delete(iconPath);
+                });
+
+            svgPromises.set(iconPath, req);
+            return req;
         }
         return iconPath;
     } catch (error) {
@@ -490,14 +1141,14 @@ async function renderAboutPage(data) {
     html += `<h1 class="section-title section-title--xl">${escapeHTML(data.title || 'About')}</h1>`;
     html += '</div>';
 
-    // Editorial 2-column intro spread
+    // Editorial 2-column intro spread with theme-reactive vector schematic
     html += '<div class="about-spread">';
-    if (data.image) {
-        html += '<figure class="about-figure">';
-        html += `<img src="${escapeHTML(data.image)}" alt="Workspace and tools of Uzair Shaikh" class="about-image" width="600" height="450" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='res/img/guy.png';">`;
-        html += '<figcaption class="about-figcaption">Linux development · Cybersecurity · Open-source tooling</figcaption>';
-        html += '</figure>';
-    }
+    html += '<figure class="about-figure">';
+    html += '<div class="about-svg-viewport">';
+    html += buildAboutArtworkSVG();
+    html += '</div>';
+    html += '<figcaption class="about-figcaption">Linux development · Cybersecurity · Open-source tooling</figcaption>';
+    html += '</figure>';
 
     html += '<div class="about-narrative">';
     if (data.content) {
@@ -513,6 +1164,14 @@ async function renderAboutPage(data) {
     html += '</div>';
     html += '</div>';
 
+    // Parallelize all About SVG icon fetches up front
+    const featuredIcons = data.featured
+        ? await Promise.all(data.featured.map(item => item.icon ? renderSVGIcon(item.icon) : Promise.resolve('')))
+        : [];
+    const skillIcons = data.skills
+        ? await Promise.all(data.skills.map(skill => skill.icon ? renderSVGIcon(skill.icon) : Promise.resolve('')))
+        : [];
+
     // What I Bring — numbered editorial pillars
     if (data.featured && data.featured.length > 0) {
         html += '<div class="editorial-block">';
@@ -524,9 +1183,8 @@ async function renderAboutPage(data) {
             html += '<article class="pillar-card">';
             html += '<div class="pillar-top">';
             html += `<span class="editorial-index">${num}.</span>`;
-            if (item.icon) {
-                const iconContent = await renderSVGIcon(item.icon);
-                html += `<div class="svg-icon">${iconContent}</div>`;
+            if (featuredIcons[i]) {
+                html += `<div class="svg-icon">${featuredIcons[i]}</div>`;
             }
             html += '</div>';
             html += `<h3>${escapeHTML(item.title)}</h3>`;
@@ -554,13 +1212,12 @@ async function renderAboutPage(data) {
         html += '</div>';
 
         html += '<div class="skills-grid" id="skills-grid">';
-        for (const skill of data.skills) {
+        data.skills.forEach((skill, idx) => {
             const levelKey = (skill.level || '').toLowerCase();
             html += `<div class="skill-item" data-skill-level="${escapeHTML(levelKey)}">`;
             html += '<div class="skill-item-head">';
-            if (skill.icon) {
-                const iconContent = await renderSVGIcon(skill.icon);
-                html += `<div class="svg-icon">${iconContent}</div>`;
+            if (skillIcons[idx]) {
+                html += `<div class="svg-icon">${skillIcons[idx]}</div>`;
             }
             html += getSkillLevelBars(skill.level);
             html += '</div>';
@@ -569,11 +1226,12 @@ async function renderAboutPage(data) {
                 html += `<p class="skill-level-label">${escapeHTML(skill.level)}</p>`;
             }
             html += '</div>';
-        }
+        });
         html += '</div>';
         html += '</div>';
     }
 
+    html += '<aside class="sr-only" aria-label="Hidden footnote">Hidden footnote for sharp ears: behind all the cybersecurity and Linux talk is just someone who still gets genuinely happy when a bash script runs cleanly on the first try. Hope your day is being kind to you.</aside>';
     html += '</section>';
     html += '</div>';
     return html;
@@ -594,10 +1252,14 @@ function setupSkillFilters() {
                 b.setAttribute('aria-pressed', String(active));
             });
 
+            let visibleCount = 0;
             items.forEach(item => {
                 const match = filter === 'all' || item.dataset.skillLevel === filter;
                 item.style.display = match ? '' : 'none';
+                if (match) visibleCount += 1;
             });
+            const label = filter === 'all' ? 'all' : filter;
+            announceA11y(`Showing ${visibleCount} ${label} skills.`);
         });
     });
 }
@@ -606,9 +1268,21 @@ function setupSkillFilters() {
 function renderExperiencePage(data) {
     let html = '<div class="container page-enter">';
     html += '<section class="section">';
-    html += '<div class="page-masthead">';
+    html += '<div class="page-masthead page-masthead--illustrated">';
+    html += '<div class="page-masthead-copy">';
     html += '<p class="hero-kicker">Track Record · Education · Curriculum Vitae</p>';
     html += `<h1 class="section-title section-title--xl">${escapeHTML(data.title || 'Experience')}</h1>`;
+    html += '<p class="page-masthead-lead">Hands-on builds, security exploration, and academic milestones plotted chronologically.</p>';
+    html += '</div>';
+    html += '<div class="masthead-svg-frame">';
+    html += '<span class="crop-mark crop-tl" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-tr" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-bl" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-br" aria-hidden="true"></span>';
+    html += '<div class="masthead-svg-viewport">';
+    html += buildExperienceArtworkSVG();
+    html += '</div>';
+    html += '</div>';
     html += '</div>';
 
     // Resume dossier banner
@@ -647,6 +1321,7 @@ function renderExperiencePage(data) {
         html += '</div>';
     }
 
+    html += '<aside class="sr-only" aria-label="Hidden milestone whisper">Quiet aside between milestones: timelines make every journey look neat and straight, never showing the late nights, broken configs, and small victories in between. Keep going at your own pace.</aside>';
     html += '</section>';
     html += '</div>';
     return html;
@@ -714,9 +1389,21 @@ async function renderContactPage(data) {
 
     let html = '<div class="container page-enter">';
     html += '<section class="section">';
-    html += '<div class="page-masthead">';
+    html += '<div class="page-masthead page-masthead--illustrated">';
+    html += '<div class="page-masthead-copy">';
     html += '<p class="hero-kicker">Direct Channels · Collaboration</p>';
     html += `<h1 class="section-title section-title--xl">${escapeHTML(data.title || 'Contact')}</h1>`;
+    html += '<p class="page-masthead-lead">Open channels for Linux systems, security discussions, open-source collabs, or a quick hello.</p>';
+    html += '</div>';
+    html += '<div class="masthead-svg-frame">';
+    html += '<span class="crop-mark crop-tl" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-tr" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-bl" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-br" aria-hidden="true"></span>';
+    html += '<div class="masthead-svg-viewport">';
+    html += buildContactArtworkSVG();
+    html += '</div>';
+    html += '</div>';
     html += '</div>';
 
     html += '<div class="contact-layout">';
@@ -734,17 +1421,19 @@ async function renderContactPage(data) {
     html += '</div>';
 
     if (data.social && data.social.length > 0) {
+        const socialIcons = await Promise.all(
+            data.social.map(link => link.icon ? renderSVGIcon(link.icon) : Promise.resolve(''))
+        );
         html += '<div class="contact-channels">';
         html += '<h2 class="channels-heading">Elsewhere</h2>';
         html += '<div class="social-links social-links--left">';
-        for (const link of data.social) {
+        data.social.forEach((link, idx) => {
             const cleanUrl = String(link.url || '').replace(/^mailto:\s+/i, 'mailto:');
-            const iconContent = await renderSVGIcon(link.icon);
             html += `<a href="${escapeHTML(cleanUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(link.name)}" aria-label="Visit ${escapeHTML(link.name)}" class="channel-link">`;
-            html += `<span class="svg-icon">${iconContent}</span>`;
+            html += `<span class="svg-icon">${socialIcons[idx]}</span>`;
             html += `<span>${escapeHTML(link.name)}</span>`;
             html += '</a>';
-        }
+        });
         html += '</div>';
         html += '</div>';
     }
@@ -775,6 +1464,7 @@ async function renderContactPage(data) {
     html += '</div>';
 
     html += '</div>';
+    html += '<aside class="sr-only" aria-label="Hidden hello">A quiet note: whether you want to chat about Linux, security, accessibility, or just say hi, your message genuinely makes my day.</aside>';
     html += '</section>';
     html += '</div>';
     return html;
@@ -788,6 +1478,7 @@ function setupCopyEmailButtons() {
                 await navigator.clipboard.writeText(email);
                 const prev = btn.textContent;
                 btn.textContent = 'Copied to Clipboard';
+                announceA11y('Email address copied to clipboard.');
                 setTimeout(() => { btn.textContent = prev; }, 2000);
             } catch (_) {
                 btn.textContent = email;
@@ -800,9 +1491,21 @@ function setupCopyEmailButtons() {
 function renderResourcesPage(data) {
     let html = '<div class="container page-enter">';
     html += '<section class="section">';
-    html += '<div class="page-masthead">';
+    html += '<div class="page-masthead page-masthead--illustrated">';
+    html += '<div class="page-masthead-copy">';
     html += '<p class="hero-kicker">Academic Archive · Study Notes</p>';
     html += `<h1 class="section-title section-title--xl">${escapeHTML(data.title || 'Resources')}</h1>`;
+    html += '<p class="page-masthead-lead">Curated semester notes, lab guides, and reference folders kept clean and accessible.</p>';
+    html += '</div>';
+    html += '<div class="masthead-svg-frame">';
+    html += '<span class="crop-mark crop-tl" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-tr" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-bl" aria-hidden="true"></span>';
+    html += '<span class="crop-mark crop-br" aria-hidden="true"></span>';
+    html += '<div class="masthead-svg-viewport">';
+    html += buildResourcesArtworkSVG();
+    html += '</div>';
+    html += '</div>';
     html += '</div>';
 
     if (data.note1) {
@@ -839,6 +1542,7 @@ function renderResourcesPage(data) {
         html += `<p class="note-text">${escapeHTML(data.note2)}</p>`;
     }
 
+    html += '<aside class="sr-only" aria-label="Hidden study note">Tucked-away note: every folder here was kept because it rescued me when I was stuck. May it save you an afternoon too.</aside>';
     html += '</section>';
     html += '</div>';
     return html;
@@ -1098,38 +1802,52 @@ async function setupFooter() {
                 footerHTML += `<p class="footer-copyright">${escapeHTML(globalConfig.footer.copyright)}</p>`;
             }
             if (globalConfig.footer.links && globalConfig.footer.links.length > 0) {
+                const footerIcons = await Promise.all(
+                    globalConfig.footer.links.map(link => link.icon ? renderSVGIcon(link.icon) : Promise.resolve(''))
+                );
                 footerHTML += '<nav aria-label="Social media links"><div class="social-links footer-social">';
-                for (const link of globalConfig.footer.links) {
-                    const iconContent = await renderSVGIcon(link.icon);
-                    footerHTML += `<a href="${escapeHTML(link.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(link.name)}" aria-label="Visit ${escapeHTML(link.name)}" class="svg-icon">${iconContent}</a>`;
-                }
+                globalConfig.footer.links.forEach((link, idx) => {
+                    footerHTML += `<a href="${escapeHTML(link.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(link.name)}" aria-label="Visit ${escapeHTML(link.name)}" class="svg-icon">${footerIcons[idx]}</a>`;
+                });
                 footerHTML += '</div></nav>';
             }
             footerHTML += '</div>';
             if (globalConfig.footer.footerNote) {
                 footerHTML += `<div class="footer-note">${globalConfig.footer.footerNote}</div>`;
             }
+            // Sweet hidden pocket note exclusively discoverable via keyboard Tab or screen reader
+            footerHTML += `<button type="button" class="sr-only sr-only-focusable secret-a11y-egg" id="secret-a11y-egg">Psst — you found Uzair's hidden pocket note. Press Enter for a little kindness.</button>`;
             footerHTML += '</div>';
             footer.innerHTML = footerHTML;
+
+            const eggBtn = document.getElementById('secret-a11y-egg');
+            if (eggBtn) {
+                eggBtn.addEventListener('click', () => {
+                    const note = HIDDEN_POCKET_NOTES[pocketNoteIndex % HIDDEN_POCKET_NOTES.length];
+                    pocketNoteIndex += 1;
+                    eggBtn.textContent = note;
+                    announceA11y(note);
+                });
+            }
         }
     } catch (error) {
         console.error('Error setting up footer:', error);
     }
 }
 
-// Snappy, FOUC-free Preloader (resolves as soon as assets are ready)
+// Snappy, FOUC-free Preloader powered by time-synced custom solar loaders
 function showPreloader() {
     let preloader = document.getElementById('preloader');
     if (!preloader) {
         preloader = document.createElement('div');
         preloader.id = 'preloader';
         preloader.className = 'site-preloader';
-        preloader.innerHTML = `
-            <div class="preloader-inner">
-                <div class="preloader-spinner" aria-hidden="true"></div>
-                <span class="preloader-label">Loading portfolio</span>
-            </div>
-        `;
+        preloader.setAttribute('role', 'status');
+        preloader.setAttribute('aria-live', 'polite');
+        const loaderMarkup = (window.PortfolioThemeEngine && typeof window.PortfolioThemeEngine.buildSolarLoaderMarkup === 'function')
+            ? window.PortfolioThemeEngine.buildSolarLoaderMarkup()
+            : '<div class="solar-loader"><span class="solar-loader-label">// loading portfolio...</span></div>';
+        preloader.innerHTML = `<div class="preloader-inner">${loaderMarkup}</div>`;
         document.body.appendChild(preloader);
     }
     preloader.classList.remove('is-hidden');
@@ -1141,85 +1859,76 @@ function hidePreloader() {
         preloader.classList.add('is-hidden');
         setTimeout(() => {
             preloader.style.display = 'none';
-        }, 260);
+        }, 440);
     }
 }
 
-// Preload assets — fetches all JSONs, images, and SVGs into browser cache
-async function preloadAssets() {
-    try {
-        globalConfig = await loadJSON('data/global.json');
-        const assetsToPreload = [];
+// Idle background prefetcher (warms non-active routes after critical first paint)
+function scheduleBackgroundPrefetch(initialPage) {
+    const runPrefetch = () => {
+        const pageNames = (globalConfig.navigation?.menu?.map(m => m.page) || ['home', 'about', 'experience', 'contact', 'resources'])
+            .filter(p => p !== initialPage);
+        pageNames.forEach(p => prefetchPage(p));
+    };
 
-        if (globalConfig.footer?.links) {
-            globalConfig.footer.links.forEach(link => {
-                if (link.icon) assetsToPreload.push(link.icon);
-            });
-        }
-
-        const pageNames = globalConfig.navigation?.menu?.map(m => m.page) || ['home', 'about', 'experience', 'contact', 'resources'];
-
-        const pageResults = await Promise.allSettled(
-            pageNames.map(p => loadJSON(`data/pages/${p}.json`))
-        );
-
-        for (const result of pageResults) {
-            if (result.status !== 'fulfilled') continue;
-            const pd = result.value;
-            if (pd.hero?.image) assetsToPreload.push(pd.hero.image);
-            if (pd.image) assetsToPreload.push(pd.image);
-            if (pd.featured) pd.featured.forEach(i => { if (i.icon) assetsToPreload.push(i.icon); });
-            if (pd.skills) pd.skills.forEach(s => { if (s.icon) assetsToPreload.push(s.icon); });
-            if (pd.social) pd.social.forEach(l => { if (l.icon) assetsToPreload.push(l.icon); });
-            if (pd.work) pd.work.forEach(w => { if (w.image) assetsToPreload.push(w.image); });
-            if (pd.academic) pd.academic.forEach(a => { if (a.image) assetsToPreload.push(a.image); });
-        }
-
-        const unique = [...new Set(assetsToPreload)];
-        await Promise.allSettled(unique.map(async (url) => {
-            try {
-                const resp = await fetch(url);
-                if (resp.ok && url.endsWith('.svg')) {
-                    svgCache[url] = await resp.text();
-                }
-            } catch (_) {}
-        }));
-    } catch (error) {
-        console.warn('Asset preloading failed:', error);
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(runPrefetch, { timeout: 1200 });
+    } else {
+        setTimeout(runPrefetch, 350);
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize when DOM is loaded (hydrates critical assets + fonts cleanly during solar loader showcase)
 document.addEventListener('DOMContentLoaded', async () => {
     window.__preloaderStartTime = performance.now();
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (window.PortfolioThemeEngine) {
         drawerController = window.PortfolioThemeEngine.initDrawer();
     }
+    const solarWelcome = document.getElementById('a11y-solar-welcome');
+    if (solarWelcome) {
+        solarWelcome.textContent = getCurrentSolarMood().greeting;
+    }
     showPreloader();
 
+    const initialPage = getPageFromHash();
+
     try {
-        await preloadAssets();
+        // Hydrate global config + active route JSON + web fonts (bounded timeout so slow networks never stall)
+        const fontsReadyBounded = (document.fonts && document.fonts.ready)
+            ? Promise.race([document.fonts.ready, waitMs(550)])
+            : Promise.resolve();
+
+        const [cfg] = await Promise.all([
+            loadJSON('data/global.json'),
+            loadJSON(`data/pages/${initialPage}.json`),
+            fontsReadyBounded,
+        ]);
+        globalConfig = cfg;
         setupNavigation();
 
-        // Initial page from URL hash (#about, #experience, etc.)
-        const initialPage = getPageFromHash();
-        await loadPage(initialPage, { scrollToTop: false });
+        // Warm remaining routes in parallel during the intentional loader showcase window so SPA switches are instant
+        scheduleBackgroundPrefetch(initialPage);
+
+        // Render initial page + footer concurrently
+        await Promise.all([
+            loadPage(initialPage, { scrollToTop: false }),
+            setupFooter(),
+        ]);
 
         // Browser back / forward & hash deep-link support
         window.addEventListener('hashchange', () => {
             const target = getPageFromHash();
             if (target !== currentPage) {
-                loadPage(target, { scrollToTop: true });
+                loadPage(target, { scrollToTop: true, animate: true });
             }
         });
         window.addEventListener('popstate', () => {
             const target = getPageFromHash();
             if (target !== currentPage) {
-                loadPage(target, { scrollToTop: true });
+                loadPage(target, { scrollToTop: true, animate: true });
             }
         });
-
-        await setupFooter();
     } catch (error) {
         console.error('Error initializing app:', error);
         const mainContent = document.getElementById('main-content');
@@ -1227,11 +1936,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             mainContent.innerHTML = '<div class="container"><div class="loading"><p>Error loading content. Please check your data files.</p></div></div>';
         }
     } finally {
-        const minDuration = 280;
+        // Intentional showcase & slow-network hydration window (~720ms) so visitors enjoy the custom solar loader
+        // and slow-connection assets settle before first reveal (instant under reduced motion)
+        const minDuration = prefersReducedMotion ? 0 : 720;
         const elapsed = performance.now() - window.__preloaderStartTime;
         const remaining = Math.max(0, minDuration - elapsed);
         setTimeout(() => {
             hidePreloader();
+            if (!prefersReducedMotion) {
+                const mainContent = document.getElementById('main-content');
+                applyRouteStagger(mainContent);
+            }
         }, remaining);
     }
 });

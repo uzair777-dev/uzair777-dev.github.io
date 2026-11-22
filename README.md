@@ -12,6 +12,22 @@ I'll explain everything below if I don't get distracte- *Ooo a butterfly* 🦋 �
 
 ---------------------
 
+## Running Locally (Zero Build Step, Zero npm, Zero API Keys)
+
+This site keeps its flat static structure (`index.html`, `app.js`, `styles.css`, `theme-engine.js`, `data/`, `res/`, and `devlogs/` directly in the project root) — no `npm`, no bundler, no `.env` file, and no API keys are required.
+
+Unzip and serve the root folder with **any static file server** (needed only so browser `fetch()` can read `data/*.json` and `devlogs/logs.xml`):
+
+```bash
+# Python 3 (built into macOS/Linux/Windows)
+python3 -m http.server 8000
+# Then open http://localhost:8000
+```
+
+Or open the folder in VS Code and click **Go Live** (Live Server), or push directly to **GitHub Pages** / **Cloudflare Pages** with no build command and output directory `/`.
+
+---------------------
+
 ## Disclaimer
 
 I am not particularly a good web-dev. So the styling is very 💩.

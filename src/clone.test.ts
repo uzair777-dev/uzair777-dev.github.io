@@ -4,10 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const rootDir = process.cwd();
-const publicDir = path.join(rootDir, 'public');
+const siteRoot = rootDir;
 
 function readJson(relPath: string) {
-  const fullPath = path.join(publicDir, relPath);
+  const fullPath = path.join(siteRoot, relPath);
   return JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
 }
 
@@ -23,11 +23,15 @@ test('global.json and all navigation page JSON files exist and are valid', () =>
   }
 });
 
-test('contact.json mailto URL has no malformed leading space', () => {
+test('contact.json mailto URL has no malformed leading space and experience.json uses clear resume labels', () => {
   const contact = readJson('data/pages/contact.json');
   const emailEntry = contact.social.find((s: {name: string}) => s.name === 'Email');
   assert.ok(emailEntry, 'Expected Email social entry');
   assert.equal(emailEntry.url, 'mailto:uzairshaikhking777@gmail.com');
+
+  const experience = readJson('data/pages/experience.json');
+  assert.equal(experience.resume.insideText, 'Preview PDF');
+  assert.equal(experience.resume.outsideText, 'Want a formatted PDF of my Resume?');
 });
 
 test('all referenced local images, SVGs, resume, generated artwork, and glitch fonts exist', () => {
@@ -57,41 +61,62 @@ test('all referenced local images, SVGs, resume, generated artwork, and glitch f
   publicAssets.push(...fontFiles);
 
   for (const rel of publicAssets) {
-    const full = path.join(publicDir, rel);
+    const full = path.join(siteRoot, rel);
     assert.equal(fs.existsSync(full), true, `Missing asset in public/: ${rel}`);
   }
-
-  // Verify generated editorial images exist in src/assets/images
-  assert.equal(
-    fs.existsSync(path.join(rootDir, about.image.replace(/^\//, ''))),
-    true,
-    `Missing About image: ${about.image}`,
-  );
-  assert.equal(
-    fs.existsSync(path.join(rootDir, 'src/assets/images/hero_cyber_jade_artwork_1795271990034.jpg')),
-    true,
-    'Missing pastel cyber-jade hero artwork',
-  );
 });
 
-test('app.js avoids window.alert, invalid <center> nesting, and includes hash routing', () => {
-  const appSource = fs.readFileSync(path.join(publicDir, 'app.js'), 'utf-8');
+test('app.js avoids window.alert, invalid <center> nesting, uses theme-reactive SVGs, and includes silent a11y easter eggs', () => {
+  const appSource = fs.readFileSync(path.join(siteRoot, 'app.js'), 'utf-8');
   assert.equal(/\balert\s*\(/.test(appSource), false, 'app.js should not call window.alert()');
   assert.equal(appSource.includes('<center>'), false, 'app.js should not output invalid <center> tags');
   assert.ok(appSource.includes('hashchange'), 'app.js should listen to hashchange for SPA routing');
   assert.ok(appSource.includes('getPageFromHash'), 'app.js should resolve routes from location.hash');
+
+  // Theme-adaptive SVGs across Home, About, Experience, Contact, and Resources
+  assert.ok(appSource.includes('buildHeroArtworkSVG'), 'app.js must render theme-reactive SVG on Home');
+  assert.ok(appSource.includes('buildAboutArtworkSVG'), 'app.js must render theme-reactive SVG on About');
+  assert.ok(appSource.includes('buildExperienceArtworkSVG'), 'app.js must render theme-reactive SVG on Experience');
+  assert.ok(appSource.includes('buildContactArtworkSVG'), 'app.js must render theme-reactive SVG on Contact');
+  assert.ok(appSource.includes('buildResourcesArtworkSVG'), 'app.js must render theme-reactive SVG on Resources');
+  assert.ok(appSource.includes('REV · 2027'), 'About SVG should show REV · 2027');
+  assert.equal(appSource.includes('hero_cyber_jade_artwork'), false, 'app.js must not reference removed AI raster hero image');
+  assert.equal(appSource.includes('about_cyber_desk'), false, 'app.js must not reference removed AI raster about image');
+
+  // Performance: promise deduplication, non-blocking startup, hover/idle prefetch, portable solar loaders, pastel SPA route transitions
+  assert.ok(appSource.includes('jsonPromises'), 'app.js should deduplicate concurrent JSON fetches');
+  assert.ok(appSource.includes('svgPromises'), 'app.js should deduplicate concurrent SVG fetches');
+  assert.ok(appSource.includes('scheduleBackgroundPrefetch'), 'app.js should prefetch non-active routes after first paint');
+  assert.ok(appSource.includes('buildSolarLoaderMarkup'), 'app.js should use time-synced solar loaders');
+  assert.ok(appSource.includes('ensureRouteCurtain') && appSource.includes('applyRouteStagger'), 'app.js should drive pastel curtain route transitions with staggered card reveal');
+
+  // Silent accessibility & sweet hidden screen-reader easter eggs
+  assert.ok(appSource.includes('HIDDEN_POCKET_NOTES'), 'app.js must include hidden screen-reader pocket notes');
+  assert.ok(appSource.includes('secret-a11y-egg'), 'app.js must include focus-only easter egg button in footer');
+  assert.ok(appSource.includes('announceA11y'), 'app.js must announce route/action updates politely');
 });
 
-test('devlogs/index.js routes back to main portfolio sections via hash links and supports search', () => {
+test('copyright is updated to 2027 across portfolio and 404', () => {
+  const globalCfg = readJson('data/global.json');
+  const html404 = fs.readFileSync(path.join(rootDir, '404.html'), 'utf-8');
+  assert.ok(String(globalCfg.footer.copyright).includes('2027'), 'global.json copyright must be 2027');
+  assert.ok(html404.includes('2027'), '404.html copyright must be 2027');
+});
+
+test('devlogs/index.js routes back to main portfolio sections via hash links, uses solar loader, and avoids blocking on glitch fonts', () => {
   const devlogsJs = fs.readFileSync(path.join(rootDir, 'devlogs/index.js'), 'utf-8');
   assert.ok(devlogsJs.includes('/#${item.page}'), 'devlogs nav should link directly to /#page sections');
   assert.ok(devlogsJs.includes('devlog-search'), 'devlogs should include search input');
   assert.ok(devlogsJs.includes('reading-progress-bar'), 'devlogs reader should include reading progress bar');
   assert.ok(devlogsJs.includes('closeOverlay(false)'), 'hashchange should close overlay when hash is cleared');
+  assert.ok(devlogsJs.includes('mountSolarLoader'), 'devlogs should mount portable solar loader');
+  assert.equal(devlogsJs.includes('await loadGlitchFonts()'), false, 'devlogs must not block XML render on glitch fonts');
+  assert.equal(devlogsJs.includes('Math.max(0.08'), false, 'devlogs glitch speed must never exceed 3Hz seizure threshold');
+  assert.ok(devlogsJs.includes('Math.max(0.85'), 'devlogs glitch speed must stay calmly below 1.2Hz');
 });
 
 test('devlogs/logs.xml exists and contains valid feed items', () => {
-  const xmlPath = path.join(publicDir, 'devlogs/logs.xml');
+  const xmlPath = path.join(siteRoot, 'devlogs/logs.xml');
   assert.equal(fs.existsSync(xmlPath), true);
   const xml = fs.readFileSync(xmlPath, 'utf-8');
   assert.ok(xml.includes('<feed') && xml.includes('<channel>'));
@@ -99,16 +124,30 @@ test('devlogs/logs.xml exists and contains valid feed items', () => {
   assert.ok(itemMatches.length > 0, 'Expected at least one <item> in devlogs/logs.xml');
 });
 
-test('all multi-page HTML entry points use semantic button hamburgers, burger drawers, and editorial fonts', () => {
+test('all multi-page HTML entry points use semantic button hamburgers, burger drawers, decorative SVGs, preloads, and lean fonts', () => {
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
   const devlogsHtml = fs.readFileSync(path.join(rootDir, 'devlogs/index.html'), 'utf-8');
+  const html404 = fs.readFileSync(path.join(rootDir, '404.html'), 'utf-8');
   const editorHtml = fs.readFileSync(path.join(rootDir, 'devlogs/editor.html'), 'utf-8');
+
   assert.ok(indexHtml.includes('Bricolage+Grotesque'), 'index.html should load Bricolage Grotesque');
   assert.ok(devlogsHtml.includes('Bricolage+Grotesque'), 'devlogs/index.html should load Bricolage Grotesque');
   assert.ok(editorHtml.includes('Bricolage+Grotesque'), 'devlogs/editor.html should load Bricolage Grotesque');
+  assert.equal(indexHtml.includes('Instrument+Serif'), false, 'index.html should drop unused Instrument Serif font');
+  assert.equal(devlogsHtml.includes('Instrument+Serif'), false, 'devlogs/index.html should drop unused Instrument Serif font');
+  assert.equal(html404.includes('Instrument+Serif'), false, '404.html should drop unused Instrument Serif font');
+
+  assert.ok(indexHtml.includes('rel="preload" href="/data/global.json"'), 'index.html should preload global.json');
+  assert.ok(devlogsHtml.includes('rel="preload" href="/devlogs/logs.xml"'), 'devlogs/index.html should preload logs.xml');
+
+  assert.ok(devlogsHtml.includes('DEVLOGS.XML'), 'devlogs/index.html should render decorative theme-reactive SVG');
+  assert.ok(html404.includes('ROUTE.NULL'), '404.html should render decorative theme-reactive SVG');
+
   assert.ok(/<button[^>]*class="hamburger"/.test(devlogsHtml), 'devlogs hamburger must be a semantic <button>');
   assert.ok(indexHtml.includes('id="burger-drawer"'), 'index.html must include unified burger drawer');
   assert.ok(devlogsHtml.includes('id="burger-drawer"'), 'devlogs/index.html must include unified burger drawer');
+  assert.ok(indexHtml.includes('id="a11y-announcer"'), 'index.html must include polite ARIA live announcer');
+  assert.ok(devlogsHtml.includes('id="a11y-announcer"'), 'devlogs/index.html must include polite ARIA live announcer');
   assert.equal(indexHtml.includes('id="theme-toggle"'), false, 'index.html navbar must not have standalone theme toggle outside burger drawer');
   assert.equal(devlogsHtml.includes('id="theme-toggle"'), false, 'devlogs/index.html navbar must not have standalone theme toggle outside burger drawer');
   assert.equal(editorHtml.includes('--accent-gradient'), false, 'devlogs/editor.html must not reference removed --accent-gradient');
@@ -116,24 +155,35 @@ test('all multi-page HTML entry points use semantic button hamburgers, burger dr
   assert.ok(editorHtml.includes('[\\s\\S]*?'), 'devlogs/editor.html should support multi-line custom tags');
 });
 
-test('styles.css defines 4 pastel palettes, high-visibility dark borders, // heading prefixes, milestone timeline, and zero diagonal clipped shadows', () => {
-  const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf-8');
-  const devlogsCss = fs.readFileSync(path.join(publicDir, 'devlogs/styles.css'), 'utf-8');
-  const appSource = fs.readFileSync(path.join(publicDir, 'app.js'), 'utf-8');
+test('styles.css defines 4 solar palettes, vertical burger list, animated sky switch, GPU solar loaders, // prefixes, milestone timeline, and perf optimizations', () => {
+  const css = fs.readFileSync(path.join(siteRoot, 'styles.css'), 'utf-8');
+  const devlogsCss = fs.readFileSync(path.join(siteRoot, 'devlogs/styles.css'), 'utf-8');
+  const appSource = fs.readFileSync(path.join(siteRoot, 'app.js'), 'utf-8');
 
   assert.ok(css.includes('--accent-2:'), 'styles.css should define secondary pastel cyber accent (--accent-2)');
   assert.equal(css.includes('--border-color: #3a3833'), false, 'dark-mode border must not use low-visibility #3a3833');
-  assert.ok(css.includes('--border-color: #6f909c'), 'dark-mode border should use high-visibility pastel steel-mint #6f909c');
+  assert.equal(css.includes('background-attachment: fixed'), false, 'styles.css should avoid scroll-repainting background-attachment: fixed');
+  assert.equal(css.includes('content-visibility: auto'), false, 'styles.css must not use paint-clipping content-visibility: auto on extruded card grids');
+  assert.equal(devlogsCss.includes('content-visibility: auto'), false, 'devlogs/styles.css must not clip extruded card shadows with content-visibility: auto');
 
-  for (const palette of ['jade', 'glacier', 'matcha', 'wisteria']) {
-    assert.ok(css.includes(`:root[data-palette="${palette}"]`), `Missing :root-scoped light palette tokens for ${palette}`);
-    assert.ok(css.includes(`:root[data-theme="dark"][data-palette="${palette}"]`), `Missing :root-scoped dark palette tokens for ${palette}`);
+  for (const palette of ['dawn', 'noon', 'dusk', 'night']) {
+    assert.ok(css.includes(`:root[data-palette="${palette}"]`), `Missing :root-scoped light solar palette tokens for ${palette}`);
+    assert.ok(css.includes(`:root[data-theme="dark"][data-palette="${palette}"]`), `Missing :root-scoped dark solar palette tokens for ${palette}`);
   }
 
   // Zero clipped diagonal offset shadows
   assert.equal(/\d+px\s+\d+px\s+0px/.test(css), false, 'styles.css should not use diagonal offset shadows that clip corners');
   assert.equal(/\d+px\s+\d+px\s+0px/.test(devlogsCss), false, 'devlogs/styles.css should not use diagonal offset shadows that clip corners');
   assert.ok(css.includes('--btn-extrude:'), 'styles.css should define solid vertical button extrusion token');
+
+  // Burger menu nav is a vertical list (not a 2-col grid) + animated sky diorama toggle
+  const drawerListBlock = css.slice(css.indexOf('.drawer-nav-list {'), css.indexOf('.drawer-nav-list a {'));
+  assert.ok(drawerListBlock.includes('flex-direction: column'), '.drawer-nav-list should render as a vertical list');
+  assert.equal(drawerListBlock.includes('grid-template-columns'), false, '.drawer-nav-list must not be a 2-column grid');
+  assert.ok(css.includes('.sky-toggle') && css.includes('.sky-eclipse-cut') && css.includes('.sky-shooting-star'), 'styles.css should define animated sky diorama switch styles');
+
+  // Solar loader animations
+  assert.ok(css.includes('.solar-loader') && css.includes('@keyframes slDawnRise') && css.includes('@keyframes slEqBounce'), 'styles.css should define GPU animations for solar loaders');
 
   // Pastel // heading prefixes
   assert.ok(css.includes("content: '// '"), 'styles.css should render // prefixes on headings');
@@ -145,45 +195,136 @@ test('styles.css defines 4 pastel palettes, high-visibility dark borders, // hea
   assert.ok(appSource.includes('timeline-marker') && appSource.includes('timeline-dot'), 'app.js should emit timeline milestone nodes');
 });
 
-test('theme-engine.js client-device factor resolvers deterministically return valid pastel palettes', async () => {
+test('theme-engine.js resolves solar palettes, builds 4 custom solar loaders, and renders animated sky switch without palette pickers', async () => {
   const vm = await import('node:vm');
-  const engineCode = fs.readFileSync(path.join(publicDir, 'theme-engine.js'), 'utf-8');
-  const sandbox: Record<string, unknown> = { module: { exports: {} } };
+  const engineCode = fs.readFileSync(path.join(siteRoot, 'theme-engine.js'), 'utf-8');
+  const css = fs.readFileSync(path.join(siteRoot, 'styles.css'), 'utf-8');
+  const sandbox: Record<string, unknown> = { module: { exports: {} }, URL };
   sandbox.globalThis = sandbox;
   vm.runInNewContext(engineCode, sandbox);
   const api = (sandbox.module as { exports: Record<string, any> }).exports;
-  const validIds = new Set(api.PALETTES.map((p: { id: string }) => p.id));
+  const validIds = new Set(api.PALETTES);
 
   assert.equal(validIds.size, 4);
 
   // Solar clock across all 24 hours
   for (let h = 0; h < 24; h++) {
-    const res = api.resolvePaletteFromClock(h);
-    assert.ok(validIds.has(res.palette), `Clock hour ${h} returned invalid palette ${res.palette}`);
+    const palette = api.resolvePaletteFromClock(h);
+    assert.ok(validIds.has(palette), `Clock hour ${h} returned invalid palette ${palette}`);
   }
-  assert.equal(api.resolvePaletteFromClock(8).palette, 'matcha');
-  assert.equal(api.resolvePaletteFromClock(13).palette, 'glacier');
-  assert.equal(api.resolvePaletteFromClock(19).palette, 'jade');
-  assert.equal(api.resolvePaletteFromClock(2).palette, 'wisteria');
+  assert.equal(api.resolvePaletteFromClock(7), 'dawn');   // Sunrise
+  assert.equal(api.resolvePaletteFromClock(13), 'noon');  // Midday warm sunlight
+  assert.equal(api.resolvePaletteFromClock(18), 'dusk');  // Golden hour sunset
+  assert.equal(api.resolvePaletteFromClock(23), 'night'); // Late night moonlit
+  assert.equal(api.resolvePaletteFromClock(2), 'night');
 
-  // Battery state
-  assert.equal(api.resolvePaletteFromBattery(0.45, true).palette, 'jade');
-  assert.equal(api.resolvePaletteFromBattery(0.85, false).palette, 'glacier');
-  assert.equal(api.resolvePaletteFromBattery(0.5, false).palette, 'matcha');
-  assert.equal(api.resolvePaletteFromBattery(0.15, false).palette, 'wisteria');
+  // Sweet hidden greeting + distinct custom solar loader SVG exist for every solar phase
+  const seenSvgs = new Set<string>();
+  for (const phase of ['dawn', 'noon', 'dusk', 'night']) {
+    const meta = api.getSolarMeta(phase);
+    assert.ok(meta.greeting.length > 40, `Expected warm hidden greeting for ${phase}`);
+    const loaderMeta = api.getSolarLoaderMeta(phase);
+    assert.ok(loaderMeta.caption.startsWith('// '), `Expected // caption for ${phase} loader`);
+    const markup = api.buildSolarLoaderMarkup({ phase });
+    assert.ok(markup.includes(`data-solar-loader="${phase}"`), `Expected phase marker for ${phase}`);
+    assert.ok(markup.includes(`solar-loader-svg--${phase}`), `Expected distinct SVG class for ${phase}`);
+    seenSvgs.add(api.buildSolarLoaderSVG(phase));
+  }
+  assert.equal(seenSvgs.size, 4, 'All 4 solar phases must render distinct custom loader SVGs');
 
-  // CPU cores
-  assert.equal(api.resolvePaletteFromCores(4).palette, 'matcha');
-  assert.equal(api.resolvePaletteFromCores(8).palette, 'jade');
-  assert.equal(api.resolvePaletteFromCores(12).palette, 'glacier');
-  assert.equal(api.resolvePaletteFromCores(16).palette, 'wisteria');
+  // Ensure palette chooser & auto-theme sensor controls remain absent from drawer UI
+  assert.equal(engineCode.includes('palette-grid'), false, 'theme-engine.js must not render palette picker UI');
+  assert.equal(engineCode.includes('driver-grid'), false, 'theme-engine.js must not render auto-theme sensor UI');
+  assert.equal(engineCode.includes('Auto-Theme Sensor'), false, 'theme-engine.js must not include Auto-Theme Sensor label');
+  assert.equal(css.includes('.palette-grid'), false, 'styles.css must not keep dead .palette-grid rules');
+  assert.equal(css.includes('.driver-grid'), false, 'styles.css must not keep dead .driver-grid rules');
 
-  // Viewport width
-  assert.equal(api.resolvePaletteFromViewport(1440).palette, 'jade');
-  assert.equal(api.resolvePaletteFromViewport(1200).palette, 'glacier');
-  assert.equal(api.resolvePaletteFromViewport(820).palette, 'matcha');
-  assert.equal(api.resolvePaletteFromViewport(390).palette, 'wisteria');
+  // Animated sky diorama switch + glitch-free bi-directional pinhole iris zoom transition
+  assert.ok(engineCode.includes('role="switch"') && engineCode.includes('class="sky-toggle"'), 'Drawer must render animated sky diorama switch');
+  assert.ok(engineCode.includes('startViewTransition') && engineCode.includes('spawnIrisHaloRing'), 'theme-engine.js must drive pinhole iris zoom transition');
+  assert.ok(engineCode.includes("fill: 'both'"), 'Pinhole iris WAAPI animation must use fill:both to prevent Dark->Light final-frame flash');
+  assert.ok(engineCode.includes('theme-iris-freeze') && css.includes('html.theme-iris-freeze'), 'View Transition must freeze CSS color transitions during snapshot capture');
+  assert.ok(css.includes('::view-transition-new(root)') && css.includes('.theme-iris-ring'), 'styles.css must configure pinhole iris view-transition stacking and rim halo');
+  assert.ok(css.includes('view-transition-name: sky-celestial-orb') && css.includes('::view-transition-group(sky-celestial-orb)'), 'styles.css must glide Sun/Moon orb smoothly across the toggle during pinhole iris');
+  assert.ok(css.includes('.burger-drawer:not(.open) .sky-toggle *'), 'styles.css must pause sky diorama loops while burger drawer is closed');
+  assert.ok(css.includes('.site-preloader.is-hidden .solar-loader *'), 'styles.css must pause solar loader loops once preloader hides');
+
+  // Cross-page pastel curtain route label resolution & link interception eligibility
+  assert.equal(api.resolveCurtainLabel('/devlogs/'), 'DEVLOGS');
+  assert.equal(api.resolveCurtainLabel('/devlogs/index.html'), 'DEVLOGS');
+  assert.equal(api.resolveCurtainLabel('/devlogs/editor.html'), 'CUSTOM XML');
+  assert.equal(api.resolveCurtainLabel('/#about'), 'ABOUT');
+  assert.equal(api.resolveCurtainLabel('/#experience'), 'EXPERIENCE');
+  assert.equal(api.resolveCurtainLabel('/#contact'), 'CONTACT');
+  assert.equal(api.resolveCurtainLabel('/#resources'), 'RESOURCES');
+  assert.equal(api.resolveCurtainLabel('/'), 'HOME');
+
+  const rootLoc = { origin: 'https://uzair777-dev.github.io', pathname: '/', href: 'https://uzair777-dev.github.io/' };
+  const devlogsLoc = { origin: 'https://uzair777-dev.github.io', pathname: '/devlogs/', href: 'https://uzair777-dev.github.io/devlogs/' };
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '/devlogs/' }, rootLoc), true);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '/#about' }, devlogsLoc), true);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '/' }, devlogsLoc), true);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '/devlogs/editor.html' }, devlogsLoc), true);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '#about' }, rootLoc), false);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '/devlogs/' }, devlogsLoc), false);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: 'https://github.com/uzair777-dev' }, rootLoc), false);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: 'mailto:uzairshaikhking777@gmail.com' }, rootLoc), false);
+  assert.equal(api.shouldUseCrossPageCurtain({ href: '/devlogs/', target: '_blank' }, rootLoc), false);
 });
 
+test('devlogs cross-page curtain handoff, Custom XML labeling, and live editor glitch preview are wired cleanly', () => {
+  const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
+  const devlogsHtml = fs.readFileSync(path.join(rootDir, 'devlogs/index.html'), 'utf-8');
+  const editorHtml = fs.readFileSync(path.join(rootDir, 'devlogs/editor.html'), 'utf-8');
+  const devlogsJs = fs.readFileSync(path.join(rootDir, 'devlogs/index.js'), 'utf-8');
+  const appJs = fs.readFileSync(path.join(siteRoot, 'app.js'), 'utf-8');
+  const css = fs.readFileSync(path.join(siteRoot, 'styles.css'), 'utf-8');
 
+  // Cross-page handoff wiring across entry points
+  assert.ok(indexHtml.includes('portfolio_curtain_handoff'), 'index.html must detect incoming cross-page curtain handoff before first paint');
+  assert.ok(devlogsHtml.includes('portfolio_curtain_handoff'), 'devlogs/index.html must detect incoming cross-page curtain handoff before first paint');
+  assert.ok(editorHtml.includes('portfolio_curtain_handoff'), 'devlogs/editor.html must detect incoming cross-page curtain handoff before first paint');
+  assert.ok(appJs.includes('releaseIncomingCurtain'), 'app.js must release incoming curtain smoothly on arrival from devLOGS');
+  assert.ok(devlogsJs.includes('releaseIncomingCurtain'), 'devlogs/index.js must release incoming curtain smoothly on arrival from Portfolio');
+  assert.ok(css.includes('html[data-curtain-handoff]::before') && css.includes('.route-curtain.is-held'), 'styles.css must define zero-flash pre-paint veil and held curtain state');
+
+  // Custom XML branding & real animated glitch effect in editor preview
+  assert.ok(devlogsJs.includes('Custom XML Composer'), 'devlogs/index.js must label the composer as Custom XML Composer');
+  assert.ok(editorHtml.includes('Custom XML Composer') && editorHtml.includes('Custom XML Snippet') && editorHtml.includes('Valid Custom XML'), 'devlogs/editor.html must label Custom XML prominently');
+  assert.ok(editorHtml.includes('loadGlitchFonts') && editorHtml.includes('renderGlitchText') && editorHtml.includes('glitch-char') && editorHtml.includes('@keyframes glitchJitter'), 'devlogs/editor.html must load custom glitch fonts and animate .glitch-char in live preview');
+  assert.ok(editorHtml.includes('Math.max(0.85'), 'devlogs/editor.html glitch animation must stay safely below 3Hz photosensitive threshold');
+});
+
+test('project is standalone with zero Gemini API, env key, or platform runtime dependencies', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
+  const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+  assert.equal('@google/genai' in allDeps, false, 'package.json must not depend on @google/genai');
+  assert.equal('react' in allDeps, false, 'package.json must not carry unused React dependency');
+  assert.equal('express' in allDeps, false, 'package.json must not carry unused Express dependency');
+  assert.equal('dotenv' in allDeps, false, 'package.json must not carry unused dotenv dependency');
+  assert.equal(fs.existsSync(path.join(rootDir, '.env.example')), false, 'No .env.example asking for API keys should exist');
+  assert.equal(fs.existsSync(path.join(rootDir, 'public')), false, 'All static site files should live directly in project root (no public/ split)');
+
+  // Verify original uzair777-dev.github.io root structure
+  for (const rel of [
+    'index.html',
+    '404.html',
+    'app.js',
+    'styles.css',
+    'theme-engine.js',
+    'data/global.json',
+    'res/resume/resume.pdf',
+    'devlogs/index.html',
+    'devlogs/index.js',
+    'devlogs/parser.js',
+    'devlogs/styles.css',
+    'devlogs/logs.xml',
+    'devlogs/editor.html',
+  ]) {
+    assert.equal(fs.existsSync(path.join(rootDir, rel)), true, `Expected root-level static file: ${rel}`);
+  }
+
+  const viteCfg = fs.readFileSync(path.join(rootDir, 'vite.config.ts'), 'utf-8');
+  assert.equal(/aistudio|AI Studio|@vitejs\/plugin-react|@tailwindcss\/vite/i.test(viteCfg), false, 'vite.config.ts must be clean and platform-agnostic');
+});
 

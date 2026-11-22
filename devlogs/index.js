@@ -10,30 +10,56 @@ let currentPage = 1;
 let sortOrder = 'desc';
 let cachedGlobalConfig = null;
 const LOGS_PER_PAGE = 5;
-const glitchFonts = [];
+const GLITCH_FONT_NAMES = [
+    'glitch-font-0', 'glitch-font-1', 'glitch-font-2', 'glitch-font-3',
+    'glitch-font-4', 'glitch-font-5', 'glitch-font-6'
+];
 
 // ═══════════════════════════════════════════════
-//  Initialisation
+//  Initialisation (Non-blocking critical path)
 // ═══════════════════════════════════════════════
 async function init() {
     currentPage = 1;
+    const bootStartedAt = performance.now();
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const themeEngine = window.PortfolioThemeEngine || null;
+    const arrivedViaCurtain = !prefersReducedMotion && Boolean(themeEngine && typeof themeEngine.hasIncomingCurtainHandoff === 'function' && themeEngine.hasIncomingCurtainHandoff());
+
     try {
-        if (window.PortfolioThemeEngine) {
-            window.PortfolioThemeEngine.initDrawer();
+        if (themeEngine) {
+            themeEngine.initDrawer();
+            if (!arrivedViaCurtain && typeof themeEngine.mountSolarLoader === 'function') {
+                themeEngine.mountSolarLoader('#devlog-loader-slot', {
+                    label: '// syncing dev logs...'
+                });
+            }
         }
-        await setupNavigation();
 
         createOverlay();
-        await loadGlitchFonts();
 
-        const result = await loadXML('logs.xml');
+        // Load glitch fonts in background without blocking XML render
+        loadGlitchFonts().catch(() => {});
+
+        const fontsReadyBounded = (document.fonts && document.fonts.ready)
+            ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 450))])
+            : Promise.resolve();
+
+        // Fetch global navigation config, logs.xml, and web fonts in parallel
+        const [, result] = await Promise.all([
+            setupNavigation(),
+            loadXML('logs.xml'),
+            fontsReadyBounded,
+        ]);
+
         if (!result.success) {
+            if (arrivedViaCurtain && themeEngine) themeEngine.releaseIncomingCurtain({ minHoldMs: 0 });
             showError(`Error loading dev logs: ${result.error}`);
             return;
         }
 
         devLogs = result.data;
         if (devLogs.length === 0) {
+            if (arrivedViaCurtain && themeEngine) themeEngine.releaseIncomingCurtain({ minHoldMs: 0 });
             showError('No dev logs found');
             return;
         }
@@ -48,14 +74,38 @@ async function init() {
         setupControls();
         renderDevLogs();
 
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('devlog-list').style.display = 'flex';
+        if (!arrivedViaCurtain) {
+            // Intentional showcase & slow-network hydration floor on direct load so visitors can appreciate the solar loader
+            const minShowcaseMs = prefersReducedMotion ? 0 : 620;
+            const remaining = Math.max(0, minShowcaseMs - (performance.now() - bootStartedAt));
+            if (remaining > 0) {
+                await new Promise(r => setTimeout(r, remaining));
+            }
+        }
 
-        await setupFooter();
+        document.getElementById('loading').style.display = 'none';
+        const listEl = document.getElementById('devlog-list');
+        listEl.style.display = 'flex';
+
+        if (arrivedViaCurtain && themeEngine && typeof themeEngine.releaseIncomingCurtain === 'function') {
+            themeEngine.releaseIncomingCurtain({
+                minHoldMs: 260,
+                onReveal: () => {
+                    if (!prefersReducedMotion && typeof themeEngine.applyRouteStagger === 'function') {
+                        themeEngine.applyRouteStagger(document.body, '.devlog-hero-inner, .devlog-controls, .devlog-card');
+                    }
+                },
+            });
+        } else if (!prefersReducedMotion) {
+            listEl.classList.add('page-enter');
+        }
+
+        setupFooter();
 
         handleHashNavigation();
         window.addEventListener('hashchange', handleHashNavigation);
     } catch (error) {
+        if (arrivedViaCurtain && themeEngine) themeEngine.releaseIncomingCurtain({ minHoldMs: 0 });
         showError(`Unexpected error: ${error.message}`);
     }
 }
@@ -100,12 +150,14 @@ function processContent(content) {
         }).join('');
     });
 
-    // Multi-line & self-closing glitch
-    content = content.replace(/<glitch\s+intensity="(\d+)">([\s\S]*?)<\/glitch>/gi, (_m, int, txt) => {
-        return renderGlitchText(txt, Math.min(Math.max(parseInt(int, 10), 2), 10));
+    // Multi-line & self-closing glitch (supports explicit or default intensity)
+    content = content.replace(/<glitch(?:\s+intensity="(\d+)")?\s*>([\s\S]*?)<\/glitch>/gi, (_m, int, txt) => {
+        const level = int ? Math.min(Math.max(parseInt(int, 10), 2), 10) : 5;
+        return renderGlitchText(txt, level);
     });
-    content = content.replace(/<glitch\s+intensity="(\d+)"\s*\/>/gi, (_m, int) => {
-        return renderGlitchText('', Math.min(Math.max(parseInt(int, 10), 2), 10));
+    content = content.replace(/<glitch(?:\s+intensity="(\d+)")?\s*\/>/gi, (_m, int) => {
+        const level = int ? Math.min(Math.max(parseInt(int, 10), 2), 10) : 5;
+        return renderGlitchText('', level);
     });
 
     const tmp = document.createElement('div');
@@ -119,22 +171,20 @@ function renderGlitchText(text, intensity) {
         const len = Math.floor(Math.random() * 5) + 3;
         text = Array.from({ length: len }, () => pool[Math.floor(Math.random() * pool.length)]).join('');
     }
-    const speed = Math.max(0.08, 0.6 - intensity * 0.05);
+    // Photosensitive-safe period (>= 0.85s / < 1.2 Hz, strictly below 3 Hz WCAG threshold)
+    const speed = Math.max(0.85, 1.45 - intensity * 0.055);
     const spans = text.split('').map(ch => {
         if (/\s/.test(ch)) return ' ';
         const display = escapeHtml(pool[Math.floor(Math.random() * pool.length)]);
-        let fontCSS = '';
-        if (glitchFonts.length > 0) {
-            const font = glitchFonts[Math.floor(Math.random() * glitchFonts.length)];
-            fontCSS = `font-family:'${font}',monospace;`;
-        }
+        const font = GLITCH_FONT_NAMES[Math.floor(Math.random() * GLITCH_FONT_NAMES.length)];
+        const fontCSS = `font-family:'${font}',monospace;`;
         return `<span class="glitch-char" style="${fontCSS}--glitch-speed:${speed}s;">${display}</span>`;
     }).join('');
     return `<span class="glitch-container">${spans}</span>`;
 }
 
 // ═══════════════════════════════════════════════
-//  Font Loading
+//  Font Loading (Background swap — never blocks FCP)
 // ═══════════════════════════════════════════════
 const FONT_CACHE_NAME = 'devlogs-glitch-fonts-v1';
 
@@ -149,23 +199,16 @@ async function loadGlitchFonts() {
     let cache = null;
     try { cache = await caches.open(FONT_CACHE_NAME); } catch (_) {}
 
-    const results = await Promise.allSettled(files.map(async (file, i) => {
-        const name = `glitch-font-${i}`;
+    await Promise.allSettled(files.map(async (file, i) => {
+        const name = GLITCH_FONT_NAMES[i];
         if (cache) {
             const cached = await cache.match(file);
             if (!cached) await cache.add(file);
         }
-        const face = new FontFace(name, `url(${file})`);
+        const face = new FontFace(name, `url(${file})`, { display: 'swap' });
         await face.load();
         document.fonts.add(face);
-        return name;
     }));
-
-    for (const result of results) {
-        if (result.status === 'fulfilled') {
-            glitchFonts.push(result.value);
-        }
-    }
 }
 
 // ═══════════════════════════════════════════════
@@ -351,6 +394,12 @@ async function setupNavigation() {
         a.href = '/devlogs/';
         a.textContent = 'devLOGS';
         a.classList.add('active');
+        a.setAttribute('aria-current', 'page');
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeOverlay(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
         li.appendChild(a);
         ul.appendChild(li);
     };
@@ -397,7 +446,7 @@ function setupControls() {
     }
 
     html += `<button type="button" class="sort-btn" id="sort-btn" title="Toggle chronological order">Date <span class="sort-arrow">↓</span></button>`;
-    html += `<a href="/devlogs/editor.html" class="sort-btn">XML Composer ↗</a>`;
+    html += `<a href="/devlogs/editor.html" class="sort-btn" data-curtain-label="CUSTOM XML">Custom XML Composer ↗</a>`;
     html += '</div></div>';
     container.innerHTML = html;
 
@@ -520,15 +569,18 @@ async function setupFooter() {
         let html = '';
         if (cfg.footer.copyright) html += `<p>${cfg.footer.copyright}</p>`;
         if (cfg.footer.links?.length) {
-            html += '<div class="social-links">';
-            for (const link of cfg.footer.links) {
-                let icon = '';
+            const icons = await Promise.all(cfg.footer.links.map(async (link) => {
                 try {
                     const r = await fetch('/' + link.icon);
-                    if (r.ok) icon = await r.text();
-                } catch (_) {}
-                html += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" class="svg-icon">${icon}</a>`;
-            }
+                    return r.ok ? await r.text() : '';
+                } catch (_) {
+                    return '';
+                }
+            }));
+            html += '<div class="social-links">';
+            cfg.footer.links.forEach((link, idx) => {
+                html += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" class="svg-icon">${icons[idx]}</a>`;
+            });
             html += '</div>';
         }
         if (cfg.footer.footerNote) html += cfg.footer.footerNote;

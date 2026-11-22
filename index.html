@@ -30,22 +30,34 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, Instrument Serif, IBM Plex Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Preload critical portfolio data in parallel with styles & scripts -->
+    <link rel="preload" href="/data/global.json" as="fetch" crossorigin>
+    <link rel="preload" href="/data/pages/home.json" as="fetch" crossorigin>
+
+    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, IBM Plex Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Theme & Palette Inline Initialization (prevents FOUC) -->
+    <!-- Theme, Solar Palette & Cross-Page Curtain Handoff Inline Initialization (prevents FOUC) -->
     <script>
         (function() {
             try {
                 var saved = localStorage.getItem('theme');
                 var resolved = (saved === 'light' || saved === 'dark') ? saved :
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                var pal = localStorage.getItem('themeActivePalette') || localStorage.getItem('themePalette') || 'jade';
+                var h = new Date().getHours();
+                var pal = (h >= 5 && h <= 10) ? 'dawn' : (h >= 11 && h <= 16) ? 'noon' : (h >= 17 && h <= 20) ? 'dusk' : 'night';
                 document.documentElement.setAttribute('data-theme', resolved);
                 document.documentElement.setAttribute('data-palette', pal);
+                var rawHandoff = sessionStorage.getItem('portfolio_curtain_handoff');
+                if (rawHandoff && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+                    var parsed = JSON.parse(rawHandoff);
+                    if (parsed && parsed.label && (Date.now() - parsed.ts) < 4500) {
+                        document.documentElement.setAttribute('data-curtain-handoff', parsed.label);
+                    }
+                }
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'light');
-                document.documentElement.setAttribute('data-palette', 'jade');
+                document.documentElement.setAttribute('data-palette', 'dusk');
             }
         })();
     </script>
@@ -66,6 +78,8 @@
 <body>
     <!-- Skip to main content link for keyboard / screen reader users -->
     <a href="#main-content" class="sr-only sr-only-focusable" id="skip-link">Skip to main content</a>
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <p id="a11y-solar-welcome" class="sr-only"></p>
 
     <!-- Navigation -->
     <nav class="navbar" id="navbar" aria-label="Main navigation">
@@ -75,7 +89,7 @@
                 <!-- Navigation items will be dynamically loaded -->
             </ul>
             <div class="nav-actions">
-                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu and theme controls" aria-expanded="false" aria-controls="burger-drawer">
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="burger-drawer">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -84,18 +98,15 @@
         </div>
     </nav>
 
-    <!-- Unified Burger Menu Drawer (Mobile Navigation + Theme Studio) -->
+    <!-- Burger Menu Drawer (Navigation + Light/Dark Toggle) -->
     <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
-    <aside class="burger-drawer" id="burger-drawer" aria-label="Menu and theme controls" aria-hidden="true">
+    <aside class="burger-drawer" id="burger-drawer" aria-label="Navigation menu" aria-hidden="true">
         <div class="drawer-header">
-            <span class="drawer-title">Menu &amp; Theme</span>
+            <span class="drawer-title">Menu</span>
             <button type="button" class="drawer-close-btn" aria-label="Close menu">&times;</button>
         </div>
         <div class="drawer-body">
             <div class="drawer-nav-section">
-                <div class="drawer-section-header" style="margin-bottom: 0.6rem;">
-                    <span class="drawer-section-title">Navigate</span>
-                </div>
                 <ul class="drawer-nav-list" id="drawer-nav-list">
                     <!-- Synced from global.json -->
                 </ul>
@@ -105,7 +116,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content" id="main-content" role="main" aria-live="polite">
+    <main class="main-content" id="main-content" role="main" tabindex="-1">
         <!-- Content will be dynamically loaded here -->
     </main>
 
