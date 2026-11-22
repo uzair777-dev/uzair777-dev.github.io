@@ -60,6 +60,32 @@ Truthfully, I am too lazy to update stuff everytime it is done, so i made it thi
 
 ---------------------
 
+## Performance
+
+Built to stay fast even in worst-case network conditions (**Slow 3G · ~50 KB/s · 2,000 ms RTT · empty cache · cold load**) while keeping a zero-build static architecture.
+
+### Slow 3G Cold-Load Benchmarks
+
+| Metric | Before | After |
+| --- | --- | --- |
+| **Preloader / First Contentful Paint** | ~12,000 ms | **~2,212 ms** |
+| **Homepage Ready** | ~35,000 ms | **~5,863 ms** |
+| **Critical Initial Payload (gzipped)** | — | **~54 KB** |
+
+### Key Optimizations
+
+- **Packet-1 Preloader Paint**: Critical theme variables (all 4 solar phases in both Light and AMOLED `#000000` Dark) and the solar preloader layout/SVG are inlined directly in `<head>`, so the preloader paints immediately on the first HTML packet without waiting on external CSS or JS.
+- **Zero Render-Blocking Styles & Fonts**: `styles.css` and Google Fonts load asynchronously via `media="print" onload="this.media='all'"` (with `<noscript>` fallbacks), and font families are trimmed strictly to the weights actually used.
+- **Parallel Data Preloading**: `data/global.json` and `data/pages/home.json` are fetched with `<link rel="preload" as="fetch" fetchpriority="high">` in parallel with scripts, while third-party origins (`api.github.com`, `opengraph.githubassets.com`) use `dns-prefetch` so they don't compete for Slow-3G sockets at `t=0`.
+- **Deferred Heavy Assets & Compression**:
+  - `res/img/guy.png` compressed from **37 KB → 1.7 KB** and `res/img/clippy.png` from **1.1 MB → 103 KB**.
+  - Custom glitch `@font-face` files in `devlogs` are loaded on demand rather than blocking initial page render.
+- **Off-Main-Thread Parsing & GPU-Only Motion**:
+  - `devlogs/parser.js` parses `logs.xml` inside a **Web Worker** when supported.
+  - Animations stick to GPU-composited `transform` and `opacity`, pause automatically when hidden (closed mobile drawer or dismissed preloader), and respect `prefers-reduced-motion`.
+
+---------------------
+
 ## devLOGS (Blog)
 
 The blog section lives in `./devlogs/` and follows the same "nothing is hard-coded" philosophy as the rest of the site, except it uses **XML** instead of JSON.
