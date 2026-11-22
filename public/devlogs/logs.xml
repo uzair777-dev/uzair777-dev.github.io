@@ -193,7 +193,7 @@
         <timezone>IST</timezone>
       </pubDate>
     </item>
-        <item>
+    <item>
       <title>Fresh coat of paint</title>
       <id>5</id>
       <type>update</type>
@@ -230,18 +230,18 @@
         <li>Preloader / First Contentful Paint: ~12,000 ms → ~2,212 ms</li>
         <li>Homepage Ready: ~35,000 ms → ~5,863 ms</li>
         <li>Critical Initial Payload: trimmed to ~54 KB gzipped</li>
-        <li>Inlined critical solar theme tokens and preloader styles/SVG in <head> so the preloader paints on the very first packet.</li>
+        <li>Inlined critical solar theme tokens and preloader styles/SVG in &lt;head&gt; so the preloader paints on the very first packet.</li>
         <li>Made the main stylesheet and Google Fonts non-blocking (trimmed to essential weights only), preloaded core JSON data in parallel, deferred third-party GitHub origins via dns-prefetch, and avoided blocking on custom devLOGS glitch fonts.</li>
         <li>Compressed oversized images (guy.png from 37 KB → 1.7 KB; clippy.png from 1.1 MB → 103 KB).</li><br/>
-        2. Navigation, Dark Mode Toggle & Drawer Cleanup<br/>
-        <li>Fixed the duplicate × buttons: Removed the redundant close button inside the menu drawer so only the morphing navbar × controls closing it.</li>
-        <li>Desktop vs. Mobile controls: Hid the hamburger menu and drawer on desktop (> 768px) and placed a proportionally scaled Day/Night Sky Diorama switch directly in the navbar across the main portfolio, devLOGS, Custom XML Composer, and 404 pages. Kept the burger menu + full-size switch for mobile (≤ 768px).
+        2. Navigation, Dark Mode Toggle &amp; Drawer Cleanup<br/>
+        <li>Fixed the duplicate x buttons: Removed the redundant close button inside the menu drawer so only the morphing navbar x controls closing it.</li>
+        <li>Desktop vs. Mobile controls: Hid the hamburger menu and drawer on desktop (&gt; 768px) and placed a proportionally scaled Day/Night Sky Diorama switch directly in the navbar across the main portfolio, devLOGS, Custom XML Composer, and 404 pages. Kept the burger menu + full-size switch for mobile (≤ 768px).
         </li><br/><br/>
-        3. True AMOLED Dark Theme & Bi-Directional Pinhole Transition
+        3. True AMOLED Dark Theme &amp; Bi-Directional Pinhole Transition
         AMOLED Dark Mode: <br/>
         <li>Converted all four dark solar palettes (dawn, noon, dusk, night) to pure #000000 pitch-black backgrounds (including removing the dark-mode radial ambient wash that lifted black levels) paired with deep OLED-friendly elevated cards and solar-tinted borders.</li>
         <li>Pinhole Iris Animation: A beautiful animation to make transitioning betwwen dark and light mode feel natural</li><br/><br/>
-        4. devLOGS Reader & Documentation
+        4. devLOGS Reader &amp; Documentation
         <li>Fixed dark-mode contrast and typography on the Prev / Next entry buttons inside the devLOGS reader overlay.</li>
         <br/><br/>
         5. Overall
