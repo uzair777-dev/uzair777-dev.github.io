@@ -143,7 +143,11 @@ Clicking **Read More** opens a full-screen overlay. Direct link via hash: `/devl
 - [x] Add a Cloudflare proxy
 - [x] Add a blog
 
-[Backup link](https://uzair777-dev.github.io)
+## Mirrors and backup
+
+[Main and original](https://uzairshaikh.pages.dev)
+[Github pages mirror](https://uzair777-dev.github.io)
+[Google AI studio ](https://uzair777-dev.github.io)
 
 ## Credits
 
