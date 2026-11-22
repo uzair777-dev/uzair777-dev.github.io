@@ -23,8 +23,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Google Fonts — Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, Instrument Serif, IBM Plex Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/styles.css">
@@ -35,18 +35,23 @@
     <link rel="icon" type="image/svg+xml" href="/res/svg/bot.svg">
     <link rel="apple-touch-icon" href="/res/img/bot.png">
 
-    <!-- Theme Inline Initialization -->
+    <!-- Theme & Palette Inline Initialization -->
     <script>
         (function() {
             try {
-                var saved = localStorage.getItem('theme') ||
+                var saved = localStorage.getItem('theme');
+                var resolved = (saved === 'light' || saved === 'dark') ? saved :
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                document.documentElement.setAttribute('data-theme', saved);
+                var pal = localStorage.getItem('themeActivePalette') || localStorage.getItem('themePalette') || 'jade';
+                document.documentElement.setAttribute('data-theme', resolved);
+                document.documentElement.setAttribute('data-palette', pal);
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.setAttribute('data-palette', 'jade');
             }
         })();
     </script>
+    <script src="/theme-engine.js" defer></script>
 </head>
 <body>
     <!-- Skip to main content -->
@@ -60,8 +65,35 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/devlogs/">devLOGS</a></li>
             </ul>
+            <div class="nav-actions">
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu and theme controls" aria-expanded="false" aria-controls="burger-drawer">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
         </div>
     </nav>
+
+    <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
+    <aside class="burger-drawer" id="burger-drawer" aria-label="Menu and theme controls" aria-hidden="true">
+        <div class="drawer-header">
+            <span class="drawer-title">Menu &amp; Theme</span>
+            <button type="button" class="drawer-close-btn" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-nav-section">
+                <div class="drawer-section-header" style="margin-bottom: 0.6rem;">
+                    <span class="drawer-section-title">Navigate</span>
+                </div>
+                <ul class="drawer-nav-list">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/devlogs/">devLOGS</a></li>
+                </ul>
+            </div>
+            <div id="burger-drawer-theme"></div>
+        </div>
+    </aside>
 
     <!-- Main Content -->
     <main class="main-content" id="main-content" role="main">
@@ -87,7 +119,20 @@
         </div>
     </footer>
 
-    <!-- Cloudflare Web Analytics -->
-    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}'></script>
+    <!-- Cloudflare Web Analytics (loads on production origins only) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.PortfolioThemeEngine) {
+                window.PortfolioThemeEngine.initDrawer();
+            }
+        });
+        if (location.hostname === 'uzairshaikh.pages.dev' || location.hostname === 'uzair777-dev.github.io') {
+            var s = document.createElement('script');
+            s.defer = true;
+            s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+            s.setAttribute('data-cf-beacon', '{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}');
+            document.body.appendChild(s);
+        }
+    </script>
 </body>
 </html>

@@ -30,8 +30,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Google Fonts — Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, Instrument Serif, IBM Plex Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Theme & Palette Inline Initialization (prevents FOUC) -->
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('theme');
+                var resolved = (saved === 'light' || saved === 'dark') ? saved :
+                    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var pal = localStorage.getItem('themeActivePalette') || localStorage.getItem('themePalette') || 'jade';
+                document.documentElement.setAttribute('data-theme', resolved);
+                document.documentElement.setAttribute('data-palette', pal);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.documentElement.setAttribute('data-palette', 'jade');
+            }
+        })();
+    </script>
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/styles.css">
@@ -43,7 +60,8 @@
     <link rel="apple-touch-icon" href="/res/img/bot.png">
     
     <!-- Scripts -->
-    <script src="app.js" defer></script>
+    <script src="/theme-engine.js" defer></script>
+    <script src="/app.js" defer></script>
 </head>
 <body>
     <!-- Skip to main content link for keyboard / screen reader users -->
@@ -56,35 +74,35 @@
             <ul class="nav-menu" id="nav-menu">
                 <!-- Navigation items will be dynamically loaded -->
             </ul>
-            
-            <!-- Theme Toggle -->
-            <div class="theme-toggle" id="theme-toggle" role="group" aria-label="Theme selection">
-                <button class="theme-option" data-theme="light" aria-label="Switch to light mode" aria-pressed="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-                <button class="theme-option" data-theme="dark" aria-label="Switch to dark mode" aria-pressed="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
+            <div class="nav-actions">
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu and theme controls" aria-expanded="false" aria-controls="burger-drawer">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
             </div>
-            <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="nav-menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
         </div>
     </nav>
+
+    <!-- Unified Burger Menu Drawer (Mobile Navigation + Theme Studio) -->
+    <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
+    <aside class="burger-drawer" id="burger-drawer" aria-label="Menu and theme controls" aria-hidden="true">
+        <div class="drawer-header">
+            <span class="drawer-title">Menu &amp; Theme</span>
+            <button type="button" class="drawer-close-btn" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-nav-section">
+                <div class="drawer-section-header" style="margin-bottom: 0.6rem;">
+                    <span class="drawer-section-title">Navigate</span>
+                </div>
+                <ul class="drawer-nav-list" id="drawer-nav-list">
+                    <!-- Synced from global.json -->
+                </ul>
+            </div>
+            <div id="burger-drawer-theme"></div>
+        </div>
+    </aside>
 
     <!-- Main Content -->
     <main class="main-content" id="main-content" role="main" aria-live="polite">
@@ -96,6 +114,16 @@
         <!-- Footer content will be dynamically loaded -->
     </footer>
 
-    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}'></script><!-- End Cloudflare Web Analytics -->
+    <!-- Cloudflare Web Analytics (loads on production origins only) -->
+    <script>
+        if (location.hostname === 'uzairshaikh.pages.dev' || location.hostname === 'uzair777-dev.github.io') {
+            var s = document.createElement('script');
+            s.defer = true;
+            s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+            s.setAttribute('data-cf-beacon', '{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}');
+            document.body.appendChild(s);
+        }
+    </script>
+    <!-- End Cloudflare Web Analytics -->
 </body>
 </html>

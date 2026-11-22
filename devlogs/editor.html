@@ -3,641 +3,921 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="devLOGS XML Editor Utility for composing blog post entries.">
-    <meta name="robots" content="noindex, nofollow">
-    <title>devLOGS Editor — Uzair Shaikh</title>
+    <meta name="description" content="Editorial XML composer and live preview studio for Uzair Shaikh's devLOGS.">
+    <title>devLOGS — XML Composer</title>
+    <link rel="icon" type="image/png" href="/res/img/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('theme');
+                var resolved = (saved === 'light' || saved === 'dark') ? saved :
+                    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var pal = localStorage.getItem('themeActivePalette') || localStorage.getItem('themePalette') || 'jade';
+                document.documentElement.setAttribute('data-theme', resolved);
+                document.documentElement.setAttribute('data-palette', pal);
+            } catch (e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="/styles.css">
-    
-    <!-- Standardized Favicons -->
-    <link rel="icon" type="image/x-icon" href="/res/img/bot.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/res/img/bot.png">
-    <link rel="icon" type="image/svg+xml" href="/res/svg/bot.svg">
-    <link rel="apple-touch-icon" href="/res/img/bot.png">
+    <script src="/theme-engine.js" defer></script>
     <style>
-    /* ═══════════════════════════════════════════════
-       Editor — Self-contained styles
-       Inherits CSS variables from /styles.css
-       ═══════════════════════════════════════════════ */
+        /* ═══════════════════════════════════════════════════════════
+           devLOGS Editorial XML Composer
+           Archival Print Broadsheet (Light) / Obsidian Press (Dark)
+           ═══════════════════════════════════════════════════════════ */
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
 
-    body {
-        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-        background: var(--bg-color);
-        color: var(--text-color);
-        min-height: 100vh;
-        transition: background 0.3s ease, color 0.3s ease;
-    }
+        /* ── Top Bar ── */
+        .editor-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-light);
+            border-top: 2px solid transparent;
+            border-image: linear-gradient(90deg, var(--accent), var(--accent-2)) 1 0 0 0;
+            border-bottom: 1.5px solid var(--border-color);
+            padding: 0.75rem 1.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
 
-    /* ── Top Bar ── */
-    .editor-topbar {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 2rem;
-        background: var(--bg-light);
-        border-bottom: 2px solid var(--border-color);
-    }
+        .editor-brand {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.65rem;
+            text-decoration: none;
+            color: var(--ink);
+            white-space: nowrap;
+        }
 
-    .editor-topbar .logo {
-        font-size: 1.25rem;
-        font-weight: 800;
-        background: var(--accent-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
+        .editor-brand-mark {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--ink);
+        }
 
-    .editor-topbar .logo .badge {
-        font-size: 0.6rem;
-        padding: 0.15rem 0.5rem;
-        background: var(--accent-gradient);
-        color: white;
-        border-radius: 100px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        -webkit-text-fill-color: white;
-    }
+        .editor-brand-mark span {
+            color: var(--accent);
+        }
 
-    .topbar-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
+        .editor-brand-sep {
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
 
-    /* ── Theme Toggle (minimal) ── */
-    .theme-btn {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        cursor: pointer;
-        color: var(--text-color);
-        transition: all 0.2s ease;
-    }
+        .editor-brand-sub {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-light);
+        }
 
-    .theme-btn:hover {
-        background: var(--hover-color);
-        border-color: var(--primary-color);
-    }
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
 
-    .theme-btn svg {
-        width: 18px;
-        height: 18px;
-    }
+        .topbar-select-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
 
-    .theme-btn .icon-moon { display: none; }
-    [data-theme="dark"] .theme-btn .icon-sun { display: none; }
-    [data-theme="dark"] .theme-btn .icon-moon { display: block; }
+        .topbar-select-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
 
-    /* ── Layout ── */
-    .editor-layout {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        height: calc(100vh - 53px);
-        overflow: hidden;
-    }
+        .topbar-select {
+            padding: 0.42rem 0.65rem;
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-color);
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            max-width: 210px;
+        }
 
-    .editor-pane, .preview-pane {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
+        .topbar-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.44rem 0.85rem;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-color);
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 3px 0 0 var(--card-extrude), inset 0 1px 0 0 var(--surface-highlight);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.14s ease, border-color 0.14s ease;
+        }
 
-    .editor-pane {
-        border-right: 1px solid var(--border-color);
-    }
+        .topbar-link:hover {
+            background: var(--hover-color);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 0 0 var(--accent-extrude), inset 0 1px 0 0 var(--surface-highlight);
+        }
 
-    .pane-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 1.25rem;
-        background: var(--bg-light);
-        border-bottom: 1px solid var(--border-color);
-        flex-shrink: 0;
-    }
+        .topbar-link:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 0 var(--card-extrude);
+        }
 
-    .pane-title {
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-light);
-    }
+        /* ── Main Split Workspace ── */
+        @media (min-width: 961px) {
+            html,
+            body {
+                height: 100%;
+                overflow: hidden;
+            }
+        }
 
-    .pane-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1.5rem;
-    }
-
-    /* ── Form Fields ── */
-    .field-group {
-        margin-bottom: 1.25rem;
-    }
-
-    .field-group label {
-        display: block;
-        font-size: 0.78rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-light);
-        margin-bottom: 0.4rem;
-    }
-
-    .field-group label .req {
-        color: #ef4444;
-        margin-left: 0.15rem;
-    }
-
-    .field-group label .hint {
-        font-weight: 400;
-        text-transform: none;
-        letter-spacing: 0;
-        opacity: 0.7;
-        font-size: 0.75rem;
-    }
-
-    .field-group input,
-    .field-group select,
-    .field-group textarea {
-        width: 100%;
-        padding: 0.65rem 0.9rem;
-        background: var(--bg-color);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        font-size: 0.92rem;
-        font-family: inherit;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        outline: none;
-    }
-
-    .field-group input:focus,
-    .field-group select:focus,
-    .field-group textarea:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-    }
-
-    .field-group textarea {
-        resize: vertical;
-        min-height: 100px;
-        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
-        font-size: 0.85rem;
-        line-height: 1.6;
-    }
-
-    .field-group textarea.content-area {
-        min-height: 220px;
-    }
-
-    .field-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    .field-row-3 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 1rem;
-    }
-
-    /* ── Tag Insert Bar ── */
-    .tag-bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .tag-btn {
-        padding: 0.3rem 0.65rem;
-        font-size: 0.72rem;
-        font-weight: 600;
-        font-family: 'SF Mono', 'Fira Code', monospace;
-        background: var(--bg-light);
-        color: var(--text-light);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .tag-btn:hover {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        color: white;
-        border-color: transparent;
-        transform: translateY(-1px);
-    }
-
-    .tag-btn.custom {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-    }
-
-    .tag-btn.custom:hover {
-        color: white;
-    }
-
-    /* ── Action Buttons ── */
-    .actions {
-        display: flex;
-        gap: 0.75rem;
-        padding-top: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.65rem 1.4rem;
-        font-size: 0.88rem;
-        font-weight: 700;
-        border: 2px solid var(--border-color);
-        border-right-width: 4px;
-        border-bottom-width: 4px;
-        border-radius: var(--radius-sm, 6px);
-        cursor: pointer;
-        transition: transform 0.1s ease, border-width 0.1s ease;
-        font-family: inherit;
-    }
-
-    .btn-primary {
-        background: var(--accent-gradient);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        transform: translate(-2px, -2px);
-        border-right-width: 6px;
-        border-bottom-width: 6px;
-    }
-
-    .btn-primary:active {
-        transform: translate(2px, 2px);
-        border-right-width: 2px;
-        border-bottom-width: 2px;
-    }
-
-    .btn-secondary {
-        background: var(--bg-light);
-        color: var(--text-color);
-    }
-
-    .btn-secondary:hover {
-        background: var(--hover-color);
-        transform: translate(-2px, -2px);
-        border-right-width: 6px;
-        border-bottom-width: 6px;
-    }
-
-    .btn-secondary:active {
-        transform: translate(2px, 2px);
-        border-right-width: 2px;
-        border-bottom-width: 2px;
-    }
-
-    .btn-danger {
-        background: #fef2f2;
-        color: #b91c1c;
-        border-color: #b91c1c;
-    }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-        color: white;
-        transform: translate(-2px, -2px);
-        border-right-width: 6px;
-        border-bottom-width: 6px;
-    }
-
-    .btn-danger:active {
-        transform: translate(2px, 2px);
-        border-right-width: 2px;
-        border-bottom-width: 2px;
-    }
-
-    /* ── Preview ── */
-    .preview-card {
-        background: var(--bg-light);
-        border-radius: var(--radius-md, 8px);
-        padding: 1.75rem;
-        border: 2px solid var(--border-color);
-        box-shadow: var(--shadow);
-        margin-bottom: 1.5rem;
-    }
-
-    .preview-card .preview-heading {
-        font-size: 1.6rem;
-        font-weight: 800;
-        background: var(--accent-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 0 0 0.75rem;
-        line-height: 1.3;
-    }
-
-    .preview-card .preview-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .preview-card .preview-date {
-        font-size: 0.85rem;
-        color: var(--text-light);
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-    }
-
-    .preview-card .preview-date::before {
-        content: "";
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--primary-color);
-    }
-
-    .preview-card .preview-type-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 100px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        background: var(--bg-subtle);
-        color: var(--primary-color);
-        border: 1px solid var(--border-color);
-    }
-
-    .preview-card .preview-desc {
-        color: var(--text-light);
-        line-height: 1.7;
-        font-size: 0.95rem;
-        margin-bottom: 1rem;
-    }
-
-    .preview-card .preview-content {
-        line-height: 1.9;
-        font-size: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border-color);
-    }
-
-    /* Content styles matching overlay-body in devlogs/styles.css */
-    .preview-content img { max-width: 100%; height: auto; border-radius: 10px; margin: 1rem 0; display: block; }
-    .preview-content a { color: var(--primary-color); text-decoration: underline; font-weight: 500; }
-    .preview-content hr { border: none; height: 1px; background: linear-gradient(to right, transparent, var(--border-color), var(--primary-color), var(--border-color), transparent); margin: 2rem 0; }
-    .preview-content ul, .preview-content ol { padding-left: 1.5rem; margin: 0.75rem 0; }
-    .preview-content li { margin: 0.35rem 0; }
-    .preview-content ul li::marker { color: var(--primary-color); }
-    .preview-content blockquote { border-left: 3px solid var(--primary-color); margin: 1rem 0; padding: 0.75rem 1.25rem; background: var(--bg-subtle); border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-light); }
-    .preview-content code { background: var(--bg-subtle); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: 'SF Mono', 'Fira Code', monospace; border: 1px solid var(--border-color); }
-    .preview-content br { display: block; content: ""; margin-top: 0.5rem; }
-    .preview-content p { margin: 0.75rem 0; }
-
-    /* Censor styles */
-    .censor-text { letter-spacing: 0; user-select: none; }
-
-    /* ── XML Output ── */
-    .xml-output-section {
-        margin-top: 1.5rem;
-    }
-
-    .xml-output-section .pane-title {
-        margin-bottom: 0.75rem;
-    }
-
-    .xml-output {
-        background: var(--bg-color);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1rem;
-        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
-        line-height: 1.7;
-        white-space: pre-wrap;
-        word-break: break-word;
-        color: var(--text-color);
-        max-height: 350px;
-        overflow-y: auto;
-        position: relative;
-    }
-
-    /* ── Toast Notification ── */
-    .toast {
-        position: fixed;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%) translateY(80px);
-        background: var(--bg-light);
-        color: var(--text-color);
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        font-size: 0.9rem;
-        font-weight: 500;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        z-index: 10000;
-        opacity: 0;
-        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .toast.show {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-    }
-
-    .toast .toast-icon {
-        font-size: 1.1rem;
-    }
-
-    /* ── Empty Preview ── */
-    .preview-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        color: var(--text-light);
-        opacity: 0.5;
-        gap: 1rem;
-        text-align: center;
-        padding: 2rem;
-    }
-
-    .preview-empty svg {
-        width: 64px;
-        height: 64px;
-        opacity: 0.4;
-    }
-
-    .preview-empty p {
-        font-size: 0.95rem;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 900px) {
         .editor-layout {
-            grid-template-columns: 1fr;
-            height: auto;
-            overflow: visible;
+            display: grid;
+            grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .editor-pane,
+        .preview-pane {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .editor-pane {
-            border-right: none;
-            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-light);
+            border-right: 1.5px solid var(--border-color);
+        }
+
+        .preview-pane {
+            background: var(--bg-color);
+        }
+
+        .pane-header {
+            padding: 0.85rem 1.75rem;
+            border-bottom: 1px solid var(--border-hairline);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-shrink: 0;
+            background: var(--bg-light);
+        }
+
+        .preview-pane .pane-header {
+            background: var(--bg-subtle);
+        }
+
+        .pane-title {
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            color: var(--text-light);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .pane-title-index {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .pane-title-index::before {
+            content: '// ';
+            content: '// ' / '';
+            color: var(--accent-2);
+        }
+
+        .pane-meta {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .pane-header-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .pane-body {
-            overflow-y: visible;
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1.75rem 2.25rem;
         }
 
-        .field-row, .field-row-3 {
-            grid-template-columns: 1fr;
+        /* ── Form Controls ── */
+        .field-group {
+            margin-bottom: 1.15rem;
         }
-    }
 
-    @media (max-width: 480px) {
-        .editor-topbar {
-            padding: 0.5rem 1rem;
+        .field-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+            gap: 1rem;
         }
-        .pane-body {
-            padding: 1rem;
+
+        .field-row-3 {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr 0.85fr;
+            gap: 0.9rem;
         }
-    }
+
+        .field-group label {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-color);
+            margin-bottom: 0.42rem;
+        }
+
+        .field-group label .req {
+            color: var(--accent);
+        }
+
+        .field-group label .hint {
+            font-family: var(--font-body);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        .field-group input,
+        .field-group textarea,
+        .field-group select {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            font-size: 0.94rem;
+            line-height: 1.45;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        }
+
+        [data-theme="dark"] .field-group input,
+        [data-theme="dark"] .field-group textarea,
+        [data-theme="dark"] .field-group select {
+            color-scheme: dark;
+        }
+
+        .field-group input::placeholder,
+        .field-group textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.85;
+        }
+
+        .field-group input:focus,
+        .field-group textarea:focus,
+        .field-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+            background: var(--bg-light);
+        }
+
+        .field-group textarea {
+            resize: vertical;
+            min-height: 76px;
+        }
+
+        .field-group textarea.content-area {
+            min-height: 230px;
+            font-family: var(--font-mono);
+            font-size: 0.84rem;
+            line-height: 1.65;
+        }
+
+        /* ── Tag Insert Bar ── */
+        .tag-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+            padding: 0.45rem;
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-color);
+            border-bottom: none;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .tag-bar + textarea.content-area {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        .tag-btn {
+            padding: 0.26rem 0.44rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: var(--bg-light);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+        }
+
+        .tag-btn:hover {
+            background: var(--ink);
+            color: var(--bg-light);
+            transform: translateY(-1px);
+        }
+
+        .tag-btn.custom {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .tag-btn.custom:hover {
+            background: var(--accent);
+            color: var(--accent-ink);
+        }
+
+        /* ── Action Buttons ── */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.62rem 1.15rem;
+            font-family: var(--font-body);
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 0 0 var(--card-extrude), inset 0 1px 0 0 var(--surface-highlight);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 0 0 var(--card-extrude), inset 0 1px 0 0 var(--surface-highlight);
+        }
+
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 0 var(--card-extrude);
+        }
+
+        .btn-sm {
+            padding: 0.36rem 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 3px 0 0 var(--card-extrude);
+        }
+
+        .btn-sm:hover {
+            box-shadow: 0 4px 0 0 var(--accent-extrude);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-ink);
+            border-color: var(--btn-extrude);
+            box-shadow: 0 4px 0 0 var(--btn-extrude), inset 0 1px 0 0 var(--surface-highlight);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 5px 0 0 var(--btn-extrude), inset 0 1px 0 0 var(--surface-highlight);
+        }
+
+        .btn-primary:active {
+            box-shadow: 0 1px 0 0 var(--btn-extrude);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--hover-color);
+            border-color: var(--accent);
+            box-shadow: 0 5px 0 0 var(--accent-extrude);
+        }
+
+        .btn-danger {
+            background: var(--bg-light);
+            color: #c83363;
+            border-color: #c83363;
+            box-shadow: 0 4px 0 0 #942347;
+        }
+
+        [data-theme="dark"] .btn-danger {
+            color: #ff8aa8;
+            border-color: #ff8aa8;
+            box-shadow: 0 4px 0 0 #a34d65;
+        }
+
+        .btn-danger:hover {
+            background: #c83363;
+            color: #ffffff;
+            border-color: #942347;
+            box-shadow: 0 5px 0 0 #942347;
+        }
+
+        [data-theme="dark"] .btn-danger:hover {
+            background: #ff8aa8;
+            color: #11121e;
+            border-color: #a34d65;
+            box-shadow: 0 5px 0 0 #a34d65;
+        }
+
+        /* ── Live Preview Article (Matches /devlogs/ Reader) ── */
+        .preview-card {
+            position: relative;
+            background: var(--bg-light);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            padding: 2rem 2.1rem;
+            margin-bottom: 1.75rem;
+            overflow: hidden;
+        }
+
+        .preview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 38%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        }
+
+        .preview-kicker {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-light);
+            margin-bottom: 0.85rem;
+        }
+
+        .preview-kicker-id {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .preview-kicker-sep {
+            color: var(--text-muted);
+        }
+
+        .preview-heading {
+            font-family: var(--font-display);
+            font-size: clamp(1.55rem, 2.3vw, 2.05rem);
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            line-height: 1.15;
+            color: var(--ink);
+            margin: 0 0 0.85rem;
+        }
+
+        .preview-desc {
+            font-size: 1.02rem;
+            line-height: 1.65;
+            color: var(--text-light);
+            margin: 0 0 1.25rem;
+        }
+
+        .preview-content {
+            font-size: 0.98rem;
+            line-height: 1.82;
+            color: var(--text-color);
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-hairline);
+            word-break: break-word;
+        }
+
+        .preview-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-hairline);
+            margin: 1.1rem 0;
+            display: block;
+        }
+
+        .preview-content a {
+            color: var(--accent);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            font-weight: 600;
+        }
+
+        .preview-content hr {
+            border: none;
+            height: 1px;
+            background: var(--border-hairline);
+            margin: 1.75rem 0;
+        }
+
+        .preview-content ul,
+        .preview-content ol {
+            padding-left: 1.45rem;
+            margin: 0.8rem 0;
+        }
+
+        .preview-content li {
+            margin: 0.35rem 0;
+        }
+
+        .preview-content ul li::marker {
+            color: var(--accent);
+        }
+
+        .preview-content blockquote {
+            margin: 1.15rem 0;
+            padding: 0.85rem 1.25rem;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-hairline);
+            border-radius: var(--radius-sm);
+            font-style: italic;
+            color: var(--text-light);
+        }
+
+        .preview-content code {
+            background: var(--bg-subtle);
+            padding: 0.14rem 0.42rem;
+            border-radius: 3px;
+            font-size: 0.86em;
+            font-family: var(--font-mono);
+            border: 1px solid var(--border-hairline);
+        }
+
+        .preview-content p {
+            margin: 0.75rem 0;
+        }
+
+        .preview-content p:first-child {
+            margin-top: 0;
+        }
+
+        .preview-content br {
+            display: block;
+            content: "";
+            margin-top: 0.45rem;
+        }
+
+        .censor-text {
+            letter-spacing: 0;
+            user-select: none;
+            color: var(--ink);
+        }
+
+        .glitch-preview {
+            display: inline-block;
+            font-family: var(--font-mono);
+            letter-spacing: 0.14em;
+            color: var(--accent);
+            background: var(--bg-subtle);
+            padding: 0 0.25rem;
+            border-radius: 2px;
+        }
+
+        /* ── XML Output Panel ── */
+        .xml-output-section {
+            margin-top: 1.25rem;
+        }
+
+        .xml-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .xml-status {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-light);
+        }
+
+        .xml-status.is-valid {
+            color: var(--accent-2);
+        }
+
+        .xml-status.is-invalid {
+            color: var(--accent);
+        }
+
+        .xml-output {
+            background: var(--bg-light);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-color);
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        /* ── Empty Preview ── */
+        .preview-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 340px;
+            border: 1.5px dashed var(--border-hairline);
+            border-radius: var(--radius-md);
+            background: var(--bg-light);
+            color: var(--text-muted);
+            gap: 0.85rem;
+            text-align: center;
+            padding: 2.5rem;
+        }
+
+        .preview-empty svg {
+            width: 44px;
+            height: 44px;
+            color: var(--text-muted);
+            opacity: 0.65;
+        }
+
+        .preview-empty p {
+            font-size: 0.94rem;
+            color: var(--text-light);
+            max-width: 300px;
+        }
+
+        /* ── Toast Notification ── */
+        .toast {
+            position: fixed;
+            bottom: 1.75rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(72px);
+            background: var(--ink);
+            color: var(--bg-light);
+            padding: 0.72rem 1.25rem;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border-color);
+            box-shadow: var(--shadow);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+            pointer-events: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            display: inline-flex;
+            align-items: center;
+            color: var(--accent);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 960px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: auto;
+                overflow: visible;
+            }
+
+            .editor-pane {
+                border-right: none;
+                border-bottom: 1.5px solid var(--border-color);
+            }
+
+            .editor-pane,
+            .preview-pane,
+            .pane-body {
+                overflow: visible;
+            }
+
+            .field-row,
+            .field-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .editor-topbar {
+                padding: 0.65rem 1rem;
+            }
+
+            .pane-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .pane-body {
+                padding: 1.15rem 1rem 1.75rem;
+            }
+
+            .preview-card {
+                padding: 1.35rem 1.25rem;
+            }
+
+            .topbar-select-label {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Top Bar -->
-    <div class="editor-topbar">
-        <span class="logo">
-            devLOGS <span class="badge">Editor</span>
-        </span>
+    <header class="editor-topbar">
+        <a href="/devlogs/" class="editor-brand" aria-label="Return to devLOGS">
+            <span class="editor-brand-mark">dev<span>LOGS</span></span>
+            <span class="editor-brand-sep" aria-hidden="true">/</span>
+            <span class="editor-brand-sub">XML Composer</span>
+        </a>
+
         <div class="topbar-actions">
-            <button class="theme-btn" id="theme-btn" aria-label="Toggle theme">
-                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
+            <div class="topbar-select-wrap">
+                <label class="topbar-select-label" for="entry-loader">Load Entry</label>
+                <select id="entry-loader" class="topbar-select" aria-label="Load existing entry from logs.xml">
+                    <option value="">New Draft</option>
+                </select>
+            </div>
+            <a href="/devlogs/" class="topbar-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back to devLOGS
+            </a>
+            <button type="button" class="hamburger" id="hamburger" aria-label="Open menu and theme controls" aria-expanded="false" aria-controls="burger-drawer">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
         </div>
-    </div>
+    </header>
 
-    <!-- Main Layout -->
-    <div class="editor-layout">
+    <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
+    <aside class="burger-drawer" id="burger-drawer" aria-label="Theme controls" aria-hidden="true">
+        <div class="drawer-header">
+            <span class="drawer-title">Menu &amp; Theme</span>
+            <button type="button" class="drawer-close-btn" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div id="burger-drawer-theme"></div>
+        </div>
+    </aside>
 
-        <!-- ═══ Editor Pane ═══ -->
-        <div class="editor-pane">
+    <main class="editor-layout">
+
+        <!-- Compose Pane -->
+        <section class="editor-pane" aria-label="Compose devlog entry">
             <div class="pane-header">
-                <span class="pane-title">✏️ Compose</span>
+                <span class="pane-title"><span class="pane-title-index">01</span> Compose</span>
+                <span class="pane-meta" id="compose-stats">0 words · 1 min read</span>
             </div>
             <div class="pane-body">
 
-                <!-- Title -->
                 <div class="field-group">
-                    <label for="field-title">Title <span class="req">*</span></label>
-                    <input type="text" id="field-title" placeholder="e.g. My dev logs">
+                    <label for="field-title"><span>Title <span class="req">*</span></span><span class="hint">Card &amp; feed title</span></label>
+                    <input type="text" id="field-title" placeholder="e.g. Shipping v2 of the portfolio architecture">
                 </div>
 
-                <!-- ID & Type -->
                 <div class="field-row">
                     <div class="field-group">
-                        <label for="field-id">ID <span class="req">*</span> <span class="hint">(unique number)</span></label>
-                        <input type="number" id="field-id" placeholder="e.g. 4" min="1">
+                        <label for="field-id"><span>ID <span class="req">*</span></span><span class="hint">Auto-incremented</span></label>
+                        <input type="number" id="field-id" placeholder="e.g. 5" min="1">
                     </div>
                     <div class="field-group">
-                        <label for="field-type">Type <span class="hint">(optional category)</span></label>
-                        <input type="text" id="field-type" placeholder="e.g. update, tech">
+                        <label for="field-type"><span>Type</span><span class="hint">Optional category</span></label>
+                        <input type="text" id="field-type" placeholder="e.g. update, engineering, note">
                     </div>
                 </div>
 
-                <!-- Heading -->
                 <div class="field-group">
-                    <label for="field-heading">Heading <span class="hint">(displayed in overlay)</span></label>
-                    <input type="text" id="field-heading" placeholder="e.g. Example heading, idk">
+                    <label for="field-heading"><span>Heading</span><span class="hint">Displayed inside reader overlay</span></label>
+                    <input type="text" id="field-heading" placeholder="Optional display headline (defaults to Title)">
                 </div>
 
-                <!-- Description -->
                 <div class="field-group">
-                    <label for="field-desc">Description <span class="hint">(short, single line — wrapped in CDATA)</span></label>
-                    <textarea id="field-desc" rows="2" placeholder="A brief summary shown on the card..."></textarea>
+                    <label for="field-desc"><span>Description</span><span class="hint">Card excerpt (CDATA-escaped)</span></label>
+                    <textarea id="field-desc" rows="2" placeholder="A concise summary shown on the archive card..."></textarea>
                 </div>
 
-                <!-- Content -->
                 <div class="field-group">
-                    <label for="field-content">Content <span class="hint">(HTML + custom tags allowed)</span></label>
-                    <div class="tag-bar" id="tag-bar">
-                        <button class="tag-btn" data-tag="b" title="Bold">B</button>
-                        <button class="tag-btn" data-tag="i" title="Italic">I</button>
-                        <button class="tag-btn" data-tag="u" title="Underline">U</button>
-                        <button class="tag-btn" data-tag="a" data-attrs=' href="" target="_blank"' title="Link">a</button>
-                        <button class="tag-btn" data-tag="br" data-void="true" title="Line break">br</button>
-                        <button class="tag-btn" data-tag="hr" data-void="true" title="Horizontal rule">hr</button>
-                        <button class="tag-btn" data-tag="p" title="Paragraph">p</button>
-                        <button class="tag-btn" data-tag="blockquote" title="Blockquote">quote</button>
-                        <button class="tag-btn" data-tag="code" title="Inline code">code</button>
-                        <button class="tag-btn" data-tag="ul" title="Unordered list">ul</button>
-                        <button class="tag-btn" data-tag="li" title="List item">li</button>
-                        <button class="tag-btn" data-tag="img" data-void="true" data-attrs=' src="" alt=""' title="Image">img</button>
-                        <button class="tag-btn custom" data-tag="censor" title="Full censor — replaces every char with █">censor</button>
-                        <button class="tag-btn custom" data-tag="PCensor" title="Partial censor — first + second-to-last char visible">PCensor</button>
-                        <button class="tag-btn custom" data-tag="glitch" data-attrs=' intensity="5"' title="Glitch text">glitch</button>
+                    <label for="field-content"><span>Content</span><span class="hint">HTML &amp; custom tags supported</span></label>
+                    <div class="tag-bar" id="tag-bar" role="toolbar" aria-label="Insert markup tags">
+                        <button type="button" class="tag-btn" data-tag="b" title="Bold">B</button>
+                        <button type="button" class="tag-btn" data-tag="i" title="Italic">I</button>
+                        <button type="button" class="tag-btn" data-tag="u" title="Underline">U</button>
+                        <button type="button" class="tag-btn" data-tag="a" data-attrs=' href="" target="_blank" rel="noopener noreferrer"' title="Link">a</button>
+                        <button type="button" class="tag-btn" data-tag="br" data-void="true" title="Line break">br</button>
+                        <button type="button" class="tag-btn" data-tag="hr" data-void="true" title="Horizontal rule">hr</button>
+                        <button type="button" class="tag-btn" data-tag="p" title="Paragraph">p</button>
+                        <button type="button" class="tag-btn" data-tag="blockquote" title="Blockquote">quote</button>
+                        <button type="button" class="tag-btn" data-tag="code" title="Inline code">code</button>
+                        <button type="button" class="tag-btn" data-tag="ul" title="Unordered list">ul</button>
+                        <button type="button" class="tag-btn" data-tag="li" title="List item">li</button>
+                        <button type="button" class="tag-btn" data-tag="img" data-void="true" data-attrs=' src="" alt=""' title="Image">img</button>
+                        <button type="button" class="tag-btn custom" data-tag="censor" title="Full censor — replaces each character with a block">censor</button>
+                        <button type="button" class="tag-btn custom" data-tag="PCensor" title="Partial censor — keeps first and second-to-last characters">PCensor</button>
+                        <button type="button" class="tag-btn custom" data-tag="glitch" data-attrs=' intensity="5"' title="Glitch text effect">glitch</button>
                     </div>
-                    <textarea id="field-content" class="content-area" placeholder="Write your content here...&#10;Supports HTML tags, <br/>, <hr/>, <img>, etc.&#10;Custom: <censor>, <PCensor>, <glitch intensity=&quot;5&quot;>"></textarea>
+                    <textarea id="field-content" class="content-area" placeholder="Write your devlog body here...&#10;Supports HTML tags (&lt;p&gt;, &lt;code&gt;, &lt;blockquote&gt;, &lt;img/&gt;) and custom tags:&#10;&lt;censor&gt;redacted&lt;/censor&gt;, &lt;PCensor&gt;secret&lt;/PCensor&gt;, &lt;glitch intensity=&quot;5&quot;&gt;signal&lt;/glitch&gt;"></textarea>
                 </div>
 
-                <!-- Pub Date -->
                 <div class="field-row-3">
                     <div class="field-group">
-                        <label for="field-date">Date</label>
+                        <label for="field-date"><span>Date</span></label>
                         <input type="date" id="field-date">
                     </div>
                     <div class="field-group">
-                        <label for="field-time">Time</label>
+                        <label for="field-time"><span>Time</span></label>
                         <input type="time" id="field-time">
                     </div>
                     <div class="field-group">
-                        <label for="field-tz">Timezone</label>
+                        <label for="field-tz"><span>Timezone</span></label>
                         <select id="field-tz">
                             <option value="IST" selected>IST</option>
                             <option value="UTC">UTC</option>
@@ -650,436 +930,559 @@
                     </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="actions">
-                    <button class="btn btn-primary" id="btn-copy-xml">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <button type="button" class="btn btn-primary" id="btn-copy-xml">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         Copy XML
                     </button>
-                    <button class="btn btn-secondary" id="btn-now">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <button type="button" class="btn btn-secondary" id="btn-download-xml">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Download .xml
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-now">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         Set Now
                     </button>
-                    <button class="btn btn-danger" id="btn-clear">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <button type="button" class="btn btn-danger" id="btn-clear">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         Clear
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- ═══ Preview Pane ═══ -->
-        <div class="preview-pane">
+        <!-- Preview & XML Output Pane -->
+        <section class="preview-pane" aria-label="Live preview and XML output">
             <div class="pane-header">
-                <span class="pane-title">👁️ Live Preview</span>
-                <button class="btn btn-secondary" id="btn-copy-xml-2" style="padding: 0.4rem 0.9rem; font-size: 0.78rem;">Copy XML</button>
+                <span class="pane-title"><span class="pane-title-index">02</span> Live Preview</span>
+                <div class="pane-header-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-xml-2">Copy XML</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-download-xml-2">Download</button>
+                </div>
             </div>
             <div class="pane-body" id="preview-body">
                 <div class="preview-empty" id="preview-empty">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
-                    <p>Start typing to see your devlog preview here</p>
+                    <p>Start composing on the left to inspect the editorial reader layout and XML snippet.</p>
                 </div>
                 <div id="preview-card-container" style="display:none;"></div>
 
-                <!-- XML Output -->
                 <div class="xml-output-section" id="xml-output-section" style="display:none;">
-                    <span class="pane-title">📋 XML Output (copy this into logs.xml)</span>
+                    <div class="xml-header">
+                        <span class="pane-title"><span class="pane-title-index">03</span> XML Snippet (insert into logs.xml)</span>
+                        <span class="xml-status" id="xml-status">Valid XML</span>
+                    </div>
                     <pre class="xml-output" id="xml-output"></pre>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Toast -->
-    <div class="toast" id="toast">
-        <span class="toast-icon">✅</span>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+        <span class="toast-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </span>
         <span class="toast-text"></span>
     </div>
 
     <script>
-    // ═══════════════════════════════════════════════
-    //  Editor Logic
-    // ═══════════════════════════════════════════════
+    (function() {
+        const STORAGE_KEY = 'devlogs_editor_draft';
+        let toastTimer = null;
+        let existingEntries = [];
 
-    const STORAGE_KEY = 'devlogs_editor_draft';
-
-    // ── Theme ──
-    (function initTheme() {
-        const saved = localStorage.getItem('theme') ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', saved);
-    })();
-
-    document.getElementById('theme-btn').addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-    });
-
-    // ── Elements ──
-    const fields = {
-        title:   document.getElementById('field-title'),
-        id:      document.getElementById('field-id'),
-        type:    document.getElementById('field-type'),
-        heading: document.getElementById('field-heading'),
-        desc:    document.getElementById('field-desc'),
-        content: document.getElementById('field-content'),
-        date:    document.getElementById('field-date'),
-        time:    document.getElementById('field-time'),
-        tz:      document.getElementById('field-tz'),
-    };
-
-    const previewBody       = document.getElementById('preview-body');
-    const previewEmpty      = document.getElementById('preview-empty');
-    const previewContainer  = document.getElementById('preview-card-container');
-    const xmlSection        = document.getElementById('xml-output-section');
-    const xmlOutput         = document.getElementById('xml-output');
-
-    // ── Local Storage Caching ──
-    function saveDraft() {
-        try {
-            const data = {};
-            Object.keys(fields).forEach(key => {
-                if (fields[key]) {
-                    data[key] = fields[key].value;
-                }
-            });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (e) {
-            console.error('Failed to save draft to localStorage:', e);
-        }
-    }
-
-    function loadDraft() {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (!saved) return false;
-            const data = JSON.parse(saved);
-            let hasValue = false;
-            Object.keys(fields).forEach(key => {
-                if (data[key] !== undefined && fields[key]) {
-                    fields[key].value = data[key];
-                    if (data[key]) hasValue = true;
-                }
-            });
-            return hasValue;
-        } catch (e) {
-            console.error('Failed to load draft from localStorage:', e);
-            return false;
-        }
-    }
-
-    function clearDraftStorage() {
-        try {
-            localStorage.removeItem(STORAGE_KEY);
-        } catch (e) {
-            console.error('Failed to clear draft from localStorage:', e);
-        }
-    }
-
-    // ── Tag Insertion ──
-    document.getElementById('tag-bar').addEventListener('click', e => {
-        const btn = e.target.closest('.tag-btn');
-        if (!btn) return;
-
-        const tag   = btn.dataset.tag;
-        const attrs = btn.dataset.attrs || '';
-        const isVoid = btn.dataset.void === 'true';
-        const ta    = fields.content;
-        const start = ta.selectionStart;
-        const end   = ta.selectionEnd;
-        const selected = ta.value.substring(start, end);
-
-        let insert;
-        if (isVoid) {
-            insert = `<${tag}${attrs}/>`;
-        } else {
-            insert = `<${tag}${attrs}>${selected}</${tag}>`;
-        }
-
-        ta.setRangeText(insert, start, end, 'end');
-        ta.focus();
-        updatePreview();
-    });
-
-    // ── Live Preview on any input ──
-    Object.values(fields).forEach(el => {
-        el.addEventListener('input', updatePreview);
-        el.addEventListener('change', updatePreview);
-    });
-
-    function updatePreview() {
-        const title   = fields.title.value.trim();
-        const id      = fields.id.value.trim();
-        const type    = fields.type.value.trim();
-        const heading = fields.heading.value.trim();
-        const desc    = fields.desc.value.trim();
-        const content = fields.content.value;
-        const tz      = fields.tz.value;
-
-        // Auto-save draft to local storage whenever inputs change
-        saveDraft();
-
-        const hasAnything = title || id || heading || desc || content;
-
-        if (!hasAnything) {
-            previewEmpty.style.display = 'flex';
-            previewContainer.style.display = 'none';
-            xmlSection.style.display = 'none';
-            return;
-        }
-
-        previewEmpty.style.display = 'none';
-        previewContainer.style.display = 'block';
-        xmlSection.style.display = 'block';
-
-        // Build unix timestamp
-        const ts = getUnixTimestamp();
-        const formattedDate = ts ? formatDate(ts) : 'No date set';
-
-        // Process content for preview (mimic processContent from index.js)
-        const processedContent = processContentPreview(content);
-
-        // Render preview card
-        previewContainer.innerHTML = `
-            <div class="preview-card">
-                <h2 class="preview-heading">${escHtml(heading || title || 'Untitled')}</h2>
-                <div class="preview-meta">
-                    <span class="preview-date">${formattedDate}${tz ? ` (${tz})` : ''}</span>
-                    ${type ? `<span class="preview-type-badge">${escHtml(type)}</span>` : ''}
-                </div>
-                ${desc ? `<p class="preview-desc">${escHtml(desc)}</p>` : ''}
-                ${processedContent ? `<div class="preview-content">${processedContent}</div>` : ''}
-            </div>
-        `;
-
-        // Render XML output
-        xmlOutput.textContent = generateXML();
-    }
-
-    // ── Content Processing (mirrors index.js processContent) ──
-    function processContentPreview(content) {
-        if (!content.trim()) return '';
-
-        // Normalise void tags
-        content = content.replace(/<(img|input|source|embed|area|col|track)\s+([^>]*?)\/>/gi, '<$1 $2>');
-        content = content.replace(/<(br|hr|wbr)\s*\/>/gi, '<$1>');
-
-        // Full censor
-        content = content.replace(/<censor>(.*?)<\/censor>/gi, (_m, p1) =>
-            `<span class="censor-text">${'█'.repeat(p1.length)}</span>`
-        );
-
-        // Partial censor
-        content = content.replace(/<PCensor>(.*?)<\/PCensor>/gi, (_m, p1) => {
-            return p1.split(' ').map(word => {
-                if (word.length <= 2) return word;
-                if (word.length === 3) return word[0] + '*' + word[2];
-                const secondToLast = word.length - 2;
-                return word.split('').map((ch, i) => {
-                    if (i === 0 || i === secondToLast) return ch;
-                    return '*';
-                }).join('');
-            }).join(' ');
-        });
-
-        // Glitch (simplified — no custom fonts in editor)
-        const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-        content = content.replace(/<glitch\s+intensity="(\d+)">(.*?)<\/glitch>/gi, (_m, int, txt) => {
-            const chars = txt || Array.from({length: Math.floor(Math.random() * 5) + 3}, () => pool[Math.floor(Math.random() * pool.length)]).join('');
-            const speed = Math.max(0.08, 0.6 - parseInt(int) * 0.05);
-            return `<span style="opacity:0.6;font-family:monospace;letter-spacing:2px;" title="[glitch effect]">${chars.split('').map(c => c === ' ' ? ' ' : pool[Math.floor(Math.random() * pool.length)]).join('')}</span>`;
-        });
-        content = content.replace(/<glitch\s+intensity="(\d+)"\s*\/>/gi, (_m, int) => {
-            const len = Math.floor(Math.random() * 5) + 3;
-            const chars = Array.from({length: len}, () => pool[Math.floor(Math.random() * pool.length)]).join('');
-            return `<span style="opacity:0.6;font-family:monospace;letter-spacing:2px;" title="[glitch effect]">${chars}</span>`;
-        });
-
-        // Sanitise through a temp element
-        const tmp = document.createElement('div');
-        tmp.innerHTML = content;
-        return tmp.innerHTML;
-    }
-
-    // ── Generate XML ──
-    function generateXML() {
-        const title   = fields.title.value.trim() || '';
-        const id      = fields.id.value.trim() || '';
-        const type    = fields.type.value.trim();
-        const heading = fields.heading.value.trim();
-        const desc    = fields.desc.value.trim();
-        const content = fields.content.value;
-        const tz      = fields.tz.value;
-        const ts      = getUnixTimestamp();
-
-        // Build the <item> XML block
-        let xml = `    <item>\n`;
-        xml += `      <title>${escXml(title)}</title>\n`;
-        xml += `      <id>${escXml(id)}</id>\n`;
-        xml += `      <type>${escXml(type)}</type>\n`;
-        xml += `      <heading>${escXml(heading)}</heading>\n`;
-        xml += `      <description><![CDATA[${desc}]]></description>\n`;
-        xml += `      <content>\n`;
-        // Indent each line of content
-        const contentLines = content.split('\n');
-        contentLines.forEach(line => {
-            xml += `        ${line}\n`;
-        });
-        xml += `      </content>\n`;
-        xml += `      <pubDate>\n`;
-        xml += `        <date>${ts || ''}</date>\n`;
-        xml += `        <timezone>${escXml(tz)}</timezone>\n`;
-        xml += `      </pubDate>\n`;
-        xml += `    </item>`;
-
-        return xml;
-    }
-
-    // ── Get unix timestamp from date/time fields ──
-    function getUnixTimestamp() {
-        const dateVal = fields.date.value;
-        const timeVal = fields.time.value || '00:00';
-        if (!dateVal) return '';
-
-        const dt = new Date(`${dateVal}T${timeVal}:00`);
-        return Math.floor(dt.getTime() / 1000);
-    }
-
-    // ── Format date (mirrors index.js) ──
-    function formatDate(ts) {
-        if (!ts) return 'Unknown date';
-        return new Date(parseInt(ts) * 1000).toLocaleDateString('en-US', {
-            year: 'numeric', month: 'long', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
-    }
-
-    // ── Set Now ──
-    function setNow() {
-        const now = new Date();
-        const pad = n => String(n).padStart(2, '0');
-        fields.date.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-        fields.time.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-        updatePreview();
-    }
-
-    // ── Copy XML ──
-    async function copyXML() {
-        const title = fields.title.value.trim();
-        const id    = fields.id.value.trim();
-
-        if (!title || !id) {
-            showToast('⚠️', 'Title and ID are required');
-            return;
-        }
-
-        const xml = generateXML();
-        try {
-            await navigator.clipboard.writeText(xml);
-            showToast('✅', 'XML copied to clipboard!');
-        } catch {
-            // Fallback
-            const ta = document.createElement('textarea');
-            ta.value = xml;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            showToast('✅', 'XML copied to clipboard!');
-        }
-    }
-
-    // ── Auto-Detect Next ID from logs.xml ──
-    async function autoSetNextId(force = false) {
-        try {
-            const resp = await fetch('logs.xml');
-            if (!resp.ok) return;
-            const xmlText = await resp.text();
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
-            const idNodes = xmlDoc.querySelectorAll('item > id');
-            let maxId = 0;
-            idNodes.forEach(node => {
-                const val = parseInt(node.textContent.trim(), 10);
-                if (!isNaN(val) && val > maxId) {
-                    maxId = val;
-                }
-            });
-            const nextId = maxId + 1;
-            if (force || !fields.id.value) {
-                fields.id.value = nextId;
-                updatePreview();
+        // ── Unified Burger Drawer Theme Engine ──
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.PortfolioThemeEngine) {
+                window.PortfolioThemeEngine.initDrawer();
             }
-        } catch (e) {
-            console.error('Failed to auto-detect next ID from logs.xml:', e);
-        }
-    }
+        });
 
-    // ── Clear all fields ──
-    async function clearAll() {
+        // ── Elements ──
+        const fields = {
+            title:   document.getElementById('field-title'),
+            id:      document.getElementById('field-id'),
+            type:    document.getElementById('field-type'),
+            heading: document.getElementById('field-heading'),
+            desc:    document.getElementById('field-desc'),
+            content: document.getElementById('field-content'),
+            date:    document.getElementById('field-date'),
+            time:    document.getElementById('field-time'),
+            tz:      document.getElementById('field-tz'),
+        };
+
+        const previewEmpty     = document.getElementById('preview-empty');
+        const previewContainer = document.getElementById('preview-card-container');
+        const xmlSection       = document.getElementById('xml-output-section');
+        const xmlOutput        = document.getElementById('xml-output');
+        const xmlStatus        = document.getElementById('xml-status');
+        const composeStats     = document.getElementById('compose-stats');
+        const entryLoader      = document.getElementById('entry-loader');
+
+        // ── Local Storage Draft Persistence ──
+        function saveDraft() {
+            try {
+                const data = {};
+                Object.keys(fields).forEach(key => {
+                    if (fields[key]) data[key] = fields[key].value;
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.error('Failed to save draft:', e);
+            }
+        }
+
+        function loadDraft() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return false;
+                const data = JSON.parse(saved);
+                let hasUserText = false;
+                Object.keys(fields).forEach(key => {
+                    if (data[key] !== undefined && fields[key]) {
+                        fields[key].value = data[key];
+                        if ((key === 'title' || key === 'heading' || key === 'desc' || key === 'content') && data[key].trim()) {
+                            hasUserText = true;
+                        }
+                    }
+                });
+                return hasUserText;
+            } catch (e) {
+                console.error('Failed to load draft:', e);
+                return false;
+            }
+        }
+
+        function clearDraftStorage() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                console.error('Failed to clear draft:', e);
+            }
+        }
+
+        // ── Tag Insertion Toolbar ──
+        document.getElementById('tag-bar').addEventListener('click', e => {
+            const btn = e.target.closest('.tag-btn');
+            if (!btn) return;
+
+            const tag = btn.dataset.tag;
+            const attrs = btn.dataset.attrs || '';
+            const isVoid = btn.dataset.void === 'true';
+            const ta = fields.content;
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const selected = ta.value.substring(start, end);
+
+            const insert = isVoid ? `<${tag}${attrs}/>` : `<${tag}${attrs}>${selected}</${tag}>`;
+            ta.setRangeText(insert, start, end, 'end');
+            if (!isVoid && !selected) {
+                const cursorPos = start + `<${tag}${attrs}>`.length;
+                ta.setSelectionRange(cursorPos, cursorPos);
+            }
+            ta.focus();
+            updatePreview();
+        });
+
+        // ── Live Preview & Stats ──
         Object.values(fields).forEach(el => {
-            if (el.tagName === 'SELECT') {
-                el.selectedIndex = 0;
-            } else {
-                el.value = '';
-            }
+            el.addEventListener('input', updatePreview);
+            el.addEventListener('change', updatePreview);
         });
-        clearDraftStorage();
-        setNow();
-        await autoSetNextId(true);
-        updatePreview();
-        showToast('🗑️', 'Fields & cached draft cleared');
-    }
 
-    // ── Toast ──
-    function showToast(icon, message) {
-        const toast = document.getElementById('toast');
-        toast.querySelector('.toast-icon').textContent = icon;
-        toast.querySelector('.toast-text').textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
-    }
-
-    // ── Escape helpers ──
-    function escHtml(str) {
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
-    }
-
-    function escXml(str) {
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
-    }
-
-    // ── Button Events ──
-    document.getElementById('btn-copy-xml').addEventListener('click', copyXML);
-    document.getElementById('btn-copy-xml-2').addEventListener('click', copyXML);
-    document.getElementById('btn-now').addEventListener('click', setNow);
-    document.getElementById('btn-clear').addEventListener('click', clearAll);
-
-    // ── Initialize Editor & Load Cached Draft ──
-    async function initEditor() {
-        const restored = loadDraft();
-        if (!restored) {
-            setNow();
-        } else {
-            showToast('💾', 'Restored draft from local cache');
+        function countWords(text) {
+            const plain = (text || '').replace(/<[^>]+>/g, ' ').trim();
+            if (!plain) return 0;
+            return plain.split(/\s+/).filter(Boolean).length;
         }
-        await autoSetNextId();
-        updatePreview();
-    }
 
-    initEditor();
+        function updatePreview() {
+            const title   = fields.title.value.trim();
+            const id      = fields.id.value.trim();
+            const type    = fields.type.value.trim();
+            const heading = fields.heading.value.trim();
+            const desc    = fields.desc.value.trim();
+            const content = fields.content.value;
+            const tz      = fields.tz.value;
+
+            saveDraft();
+
+            const words = countWords(`${desc} ${content}`);
+            const readMins = Math.max(1, Math.round(words / 200));
+            composeStats.textContent = `${words} ${words === 1 ? 'word' : 'words'} · ${readMins} min read`;
+
+            const hasAnything = title || id || heading || desc || content.trim();
+            if (!hasAnything) {
+                previewEmpty.style.display = 'flex';
+                previewContainer.style.display = 'none';
+                xmlSection.style.display = 'none';
+                return;
+            }
+
+            previewEmpty.style.display = 'none';
+            previewContainer.style.display = 'block';
+            xmlSection.style.display = 'block';
+
+            const ts = getUnixTimestamp();
+            const formattedDate = ts ? formatDate(ts) : 'Draft Date';
+            const processedContent = processContentPreview(content);
+            const entryNum = id ? `ENTRY #${String(id).padStart(2, '0')}` : 'DRAFT';
+
+            const metaParts = [
+                `<span class="preview-kicker-id">${escHtml(entryNum)}</span>`,
+                `<span>${escHtml(formattedDate)}${tz ? ` (${escHtml(tz)})` : ''}</span>`,
+                `<span>${readMins} min read</span>`
+            ];
+            if (type) {
+                metaParts.push(`<span>${escHtml(type)}</span>`);
+            }
+
+            previewContainer.innerHTML = `
+                <article class="preview-card">
+                    <div class="preview-kicker">
+                        ${metaParts.join('<span class="preview-kicker-sep" aria-hidden="true">·</span>')}
+                    </div>
+                    <h2 class="preview-heading">${escHtml(heading || title || 'Untitled Entry')}</h2>
+                    ${desc ? `<p class="preview-desc">${escHtml(desc)}</p>` : ''}
+                    ${processedContent ? `<div class="preview-content">${processedContent}</div>` : ''}
+                </article>
+            `;
+
+            const xml = generateXML();
+            xmlOutput.textContent = xml;
+            validateXmlSnippet(xml);
+        }
+
+        function validateXmlSnippet(xml) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(`<root>${xml}</root>`, 'application/xml');
+                const parseErr = doc.querySelector('parsererror');
+                if (parseErr) {
+                    xmlStatus.textContent = 'Check HTML/XML tag nesting';
+                    xmlStatus.className = 'xml-status is-invalid';
+                } else {
+                    xmlStatus.textContent = 'Valid XML';
+                    xmlStatus.className = 'xml-status is-valid';
+                }
+            } catch {
+                xmlStatus.textContent = 'XML Ready';
+                xmlStatus.className = 'xml-status';
+            }
+        }
+
+        // ── Content Processing (mirrors /devlogs/index.js) ──
+        function processContentPreview(content) {
+            if (!content.trim()) return '';
+
+            content = content.replace(/<(img|input|source|embed|area|col|track)\s+([^>]*?)\/>/gi, '<$1 $2>');
+            content = content.replace(/<(br|hr|wbr)\s*\/>/gi, '<$1>');
+
+            // Multi-line full censor
+            content = content.replace(/<censor>([\s\S]*?)<\/censor>/gi, (_m, p1) =>
+                `<span class="censor-text" aria-label="Redacted text">${'█'.repeat(p1.replace(/\s+/g, ' ').length)}</span>`
+            );
+
+            // Multi-line partial censor
+            content = content.replace(/<PCensor>([\s\S]*?)<\/PCensor>/gi, (_m, p1) => {
+                return p1.split(/(\s+)/).map(token => {
+                    if (/^\s+$/.test(token) || token.length <= 2) return token;
+                    if (token.length === 3) return token[0] + '*' + token[2];
+                    const secondToLast = token.length - 2;
+                    return token.split('').map((ch, i) => (i === 0 || i === secondToLast) ? ch : '*').join('');
+                }).join('');
+            });
+
+            // Multi-line & self-closing glitch (HTML-escaped output)
+            const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^*';
+            content = content.replace(/<glitch\s+intensity="(\d+)">([\s\S]*?)<\/glitch>/gi, (_m, _int, txt) => {
+                const source = txt || Array.from({ length: Math.floor(Math.random() * 5) + 3 }, () => pool[Math.floor(Math.random() * pool.length)]).join('');
+                const rendered = source.split('').map(c => /\s/.test(c) ? c : pool[Math.floor(Math.random() * pool.length)]).join('');
+                return `<span class="glitch-preview" title="Glitch effect preview">${escHtml(rendered)}</span>`;
+            });
+            content = content.replace(/<glitch\s+intensity="(\d+)"\s*\/>/gi, () => {
+                const len = Math.floor(Math.random() * 5) + 3;
+                const rendered = Array.from({ length: len }, () => pool[Math.floor(Math.random() * pool.length)]).join('');
+                return `<span class="glitch-preview" title="Glitch effect preview">${escHtml(rendered)}</span>`;
+            });
+
+            // Strip script tags & inline event handlers in preview
+            const tmp = document.createElement('div');
+            tmp.innerHTML = content;
+            tmp.querySelectorAll('script, iframe, object, embed').forEach(node => node.remove());
+            tmp.querySelectorAll('*').forEach(el => {
+                Array.from(el.attributes).forEach(attr => {
+                    if (attr.name.toLowerCase().startsWith('on')) {
+                        el.removeAttribute(attr.name);
+                    }
+                });
+            });
+            return tmp.innerHTML;
+        }
+
+        // ── Generate XML ──
+        function escapeCdata(str) {
+            return str.replace(/]]>/g, ']]]]><![CDATA[>');
+        }
+
+        function generateXML() {
+            const title   = fields.title.value.trim() || '';
+            const id      = fields.id.value.trim() || '';
+            const type    = fields.type.value.trim();
+            const heading = fields.heading.value.trim();
+            const desc    = fields.desc.value.trim();
+            const content = fields.content.value;
+            const tz      = fields.tz.value;
+            const ts      = getUnixTimestamp();
+
+            let xml = `    <item>\n`;
+            xml += `      <title>${escXml(title)}</title>\n`;
+            xml += `      <id>${escXml(id)}</id>\n`;
+            xml += `      <type>${escXml(type)}</type>\n`;
+            xml += `      <heading>${escXml(heading)}</heading>\n`;
+            xml += `      <description><![CDATA[${escapeCdata(desc)}]]></description>\n`;
+            xml += `      <content>\n`;
+            content.split('\n').forEach(line => {
+                xml += `        ${line}\n`;
+            });
+            xml += `      </content>\n`;
+            xml += `      <pubDate>\n`;
+            xml += `        <date>${ts || ''}</date>\n`;
+            xml += `        <timezone>${escXml(tz)}</timezone>\n`;
+            xml += `      </pubDate>\n`;
+            xml += `    </item>`;
+
+            return xml;
+        }
+
+        function getUnixTimestamp() {
+            const dateVal = fields.date.value;
+            const timeVal = fields.time.value || '00:00';
+            if (!dateVal) return '';
+            const dt = new Date(`${dateVal}T${timeVal}:00`);
+            const ms = dt.getTime();
+            return Number.isNaN(ms) ? '' : Math.floor(ms / 1000);
+        }
+
+        function formatDate(ts) {
+            if (!ts) return 'Unknown date';
+            return new Date(parseInt(ts, 10) * 1000).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function setNow() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            fields.date.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+            fields.time.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            updatePreview();
+        }
+
+        function setTimestampFields(unixSec, tz) {
+            if (unixSec) {
+                const d = new Date(parseInt(unixSec, 10) * 1000);
+                if (!Number.isNaN(d.getTime())) {
+                    const pad = n => String(n).padStart(2, '0');
+                    fields.date.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+                    fields.time.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+            }
+            if (tz && Array.from(fields.tz.options).some(opt => opt.value === tz)) {
+                fields.tz.value = tz;
+            }
+        }
+
+        // ── Copy & Download XML ──
+        async function copyXML() {
+            const title = fields.title.value.trim();
+            const id = fields.id.value.trim();
+            if (!title || !id) {
+                showToast('Title and ID are required before copying XML');
+                return;
+            }
+            const xml = generateXML();
+            try {
+                await navigator.clipboard.writeText(xml);
+                showToast('XML snippet copied to clipboard');
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = xml;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('XML snippet copied to clipboard');
+            }
+        }
+
+        function downloadXML() {
+            const title = fields.title.value.trim();
+            const id = fields.id.value.trim();
+            if (!title || !id) {
+                showToast('Title and ID are required before downloading');
+                return;
+            }
+            const xml = generateXML() + '\n';
+            const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `devlog-entry-${id}.xml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded devlog-entry-${id}.xml`);
+        }
+
+        // ── Load logs.xml for Next ID & Entry Picker ──
+        async function loadLogsCatalog(forceNextId = false) {
+            try {
+                const resp = await fetch('logs.xml');
+                if (!resp.ok) return;
+                const xmlText = await resp.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+                const items = Array.from(xmlDoc.querySelectorAll('item'));
+                const serializer = new XMLSerializer();
+
+                let maxId = 0;
+                existingEntries = items.map(item => {
+                    const idStr = item.querySelector('id')?.textContent?.trim() || '';
+                    const num = parseInt(idStr, 10);
+                    if (!Number.isNaN(num) && num > maxId) maxId = num;
+
+                    const contentEl = item.querySelector('content');
+                    let rawContent = '';
+                    if (contentEl) {
+                        rawContent = Array.from(contentEl.childNodes)
+                            .map(node => node.nodeType === Node.TEXT_NODE ? node.textContent : serializer.serializeToString(node))
+                            .join('')
+                            .replace(/ xmlns="[^"]*"/g, '')
+                            .trim();
+                    }
+
+                    return {
+                        id: idStr,
+                        title: item.querySelector('title')?.textContent?.trim() || 'Untitled',
+                        type: item.querySelector('type')?.textContent?.trim() || '',
+                        heading: item.querySelector('heading')?.textContent?.trim() || '',
+                        desc: item.querySelector('description')?.textContent?.trim() || '',
+                        content: rawContent,
+                        date: item.querySelector('pubDate > date')?.textContent?.trim() || '',
+                        tz: item.querySelector('pubDate > timezone')?.textContent?.trim() || 'IST'
+                    };
+                });
+
+                // Populate entry loader select once
+                entryLoader.innerHTML = '<option value="">New Draft</option>';
+                existingEntries.forEach(entry => {
+                    const opt = document.createElement('option');
+                    opt.value = entry.id;
+                    opt.textContent = `#${entry.id} — ${entry.title}`;
+                    entryLoader.appendChild(opt);
+                });
+
+                const nextId = maxId + 1;
+                if (forceNextId || !fields.id.value) {
+                    fields.id.value = nextId;
+                    updatePreview();
+                }
+            } catch (e) {
+                console.error('Failed to read logs.xml:', e);
+            }
+        }
+
+        entryLoader.addEventListener('change', () => {
+            const selectedId = entryLoader.value;
+            if (!selectedId) {
+                clearAll(false);
+                return;
+            }
+            const entry = existingEntries.find(e => e.id === selectedId);
+            if (!entry) return;
+            fields.title.value = entry.title;
+            fields.id.value = entry.id;
+            fields.type.value = entry.type;
+            fields.heading.value = entry.heading;
+            fields.desc.value = entry.desc;
+            fields.content.value = entry.content;
+            setTimestampFields(entry.date, entry.tz);
+            updatePreview();
+            showToast(`Loaded entry #${entry.id} into composer`);
+        });
+
+        async function clearAll(notify = true) {
+            Object.values(fields).forEach(el => {
+                if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                else el.value = '';
+            });
+            entryLoader.value = '';
+            clearDraftStorage();
+            setNow();
+            await loadLogsCatalog(true);
+            updatePreview();
+            if (notify) showToast('Draft cleared and ID reset');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.querySelector('.toast-text').textContent = message;
+            toast.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+                toastTimer = null;
+            }, 2600);
+        }
+
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function escXml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        }
+
+        // ── Wire Events ──
+        document.getElementById('btn-copy-xml').addEventListener('click', copyXML);
+        document.getElementById('btn-copy-xml-2').addEventListener('click', copyXML);
+        document.getElementById('btn-download-xml').addEventListener('click', downloadXML);
+        document.getElementById('btn-download-xml-2').addEventListener('click', downloadXML);
+        document.getElementById('btn-now').addEventListener('click', setNow);
+        document.getElementById('btn-clear').addEventListener('click', () => clearAll(true));
+
+        async function initEditor() {
+            const restored = loadDraft();
+            if (!restored) {
+                setNow();
+            } else {
+                showToast('Restored draft from local cache');
+            }
+            await loadLogsCatalog(false);
+            updatePreview();
+        }
+
+        initEditor();
+    })();
     </script>
 </body>
 </html>

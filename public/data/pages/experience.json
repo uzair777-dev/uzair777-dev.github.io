@@ -1,0 +1,74 @@
+{
+  "type": "experience",
+  "title": "Experience",
+  "resume": {
+    "link": "/res/resume/resume.pdf",
+    "insideText": "Click here",
+    "outsideText" : "Want a formatted pdf of my Resume?"
+  
+  },
+  "work": [
+    {
+      "title": "Looking for Work",
+      "company": "Available for new opportunities",
+      "duration": "Currently",
+      "location": "Remote / On-site / Hybrid",
+      "description": [
+        "Actively seeking roles in cybersecurity, Linux development, and cloud management",
+        "Open to collaborating on security assessments, infrastructure hardening, and automation projects",
+        "Ready to contribute immediately and adapt to team workflows"
+      ],
+      "technologies": ["Linux", "Bash", "Python", "Cloud", "Security"]
+    },
+    {
+      "title": "Back-up engineer",
+      "company": "Locuz technology",
+      "duration": "November 2025 - December 2025",
+      "location": "Mumbai, Maharashtra, India",
+      "description": [
+        "Served as a backup Engineer,providing secondary support for technical operations amd issue resolution",
+        "Assisted in Systen maintainance, troubleshooting and operational support as required",
+        "Stepped in to handle technical tasks and incident management when primary engineers weren't avaliable",
+        "Worked at technical spaces of organisation like Motilal Oswal Financial Service Limited"
+      ],
+      "technologies": ["React", "Node.js", "AWS", "Docker", "PostgreSQL", "TypeScript"]
+    }
+  ],
+  "academic": [
+    {
+      "title": "Under graduate Degree in Computer Science and Engineering",
+      "institution": "Mumbai University",
+      "duration": "2024 - Present",
+      "location": "Mumbai",
+      "description": [
+        "Yet to be Graduated",
+        "Major In Cybersecurity, IOT, Block Chain",
+        "Senior project: Yet to Develop"
+      ],
+      "technologies": ["Python", "Bash", "Linux", "Git", "Networking"]
+    },
+    {
+      "title": "Diploma in Computer Engineering",
+      "institution": "Vidyalankar Polytechnic",
+      "duration": "2021 - 2024",
+      "location": "Vadala, Mumbai",
+      "description": [
+        "Graduated with honors (73%)",
+        "Relevant coursework: Data Structures, Algorithms, Database Systems, Software Engineering",
+        "Senior project: Developed a Website that display information using python within the browser (M2ADB)"
+      ],
+      "technologies": ["Java", "Python", "Bash", "C++"]
+    },
+    {
+      "title": "Standard 10th",
+      "institution": "Saeeda M. S. Naik Highschool",
+      "duration": "2020 -2021 Batch",
+      "location": "Ratnagiri, Maharashtra, India",
+      "description": [
+        "Passed With Total Percentage of 85%"
+      ],
+      "technologies": ["Maths","Languages (English, Marathi, Hindi)","Biology","Physics", "Chemistry","History", "Geography"]
+    }
+  ]
+}
+

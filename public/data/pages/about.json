@@ -1,0 +1,90 @@
+{
+  "type": "about",
+  "title": "About Me",
+  "image": "/src/assets/images/about_cyber_desk_1795272517815.jpg",
+  "content": [
+    "Hello! I'm a passionate Linux developer with a heart to learn stuff. I love turning complex problems into simple, beautiful, and intuitive solutions. I'm a quick learner and I'm always looking for new challenges and opportunities to grow.",
+    "My journey in cybersecurity related stuff started during my computer science studies, where I discovered my passion for creating digital experiences that make a difference. Since then, I've worked with various technologies and frameworks, always staying up-to-date with the latest industry trends.",
+    "When I'm not coding, you can find me contributing to open-source projects, reading technical blogs, or exploring new technologies. I believe in continuous learning and sharing knowledge with the developer community."
+  ],
+  "featured": [
+    {
+      "title": "Flexibility",
+      "description": "Adapting to new challenges and environments, quickly.",
+      "icon": "res/svg/flexible.svg"
+    },
+    {
+      "title": "Learning",
+      "description": "Always eager to learn new things and improve myself.",
+      "icon": "res/svg/brain.svg"
+    },
+    {
+      "title": "Critical out-of-the-box thinking",
+      "description": "Thinking critically and out-of-the-box to solve problems.",
+      "icon": "res/svg/think.svg"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Python",
+      "level": "Advanced",
+      "icon": "res/svg/python.svg"
+    },
+    {
+      "name": "Linux",
+      "level": "Advanced",
+      "icon": "res/svg/linux.svg"
+    },
+    {
+      "name": "Github",
+      "level": "Advanced",
+      "icon": "res/svg/github.svg"
+    },
+    {
+      "name": "Bash",
+      "level": "Advanced",
+      "icon": "res/svg/bash.svg"
+    },
+    {
+      "name": "Git",
+      "level": "Advanced",
+      "icon": "res/svg/git.svg"
+    },
+    {
+      "name": "SQL",
+      "level": "Intermediate",
+      "icon": "res/svg/sql.svg"
+    },
+    
+    {
+      "name": "AWS",
+      "level": "Intermediate",
+      "icon": "res/svg/aws.svg"
+    },
+    {
+      "name": "Windows",
+      "level": "Intermediate",
+      "icon": "res/svg/windows.svg"
+    },
+    {
+      "name": "Networking",
+      "level": "Advanced",
+      "icon": "res/svg/network.svg"
+    },
+    {
+      "name": "NodeJS",
+      "level": "Basic",
+      "icon": "res/svg/node-js.svg"
+    },
+    {
+      "name": "Docker",
+      "level": "Basic",
+      "icon": "res/svg/docker.svg"
+    },
+    {
+      "name": "Cisco application",
+      "level": "Basic",
+      "icon": "res/svg/cisco.svg"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "site": {
+    "name": "portfolio",
+    "logo": "Portfolio",
+    "description": "My Portfolio Website"
+  },
+  "navigation": {
+    "menu": [
+      {
+        "label": "Home",
+        "page": "home"
+      },
+      {
+        "label": "About",
+        "page": "about"
+      },
+      {
+        "label": "Experience",
+        "page": "experience"
+      },
+      {
+        "label": "Contact",
+        "page": "contact"
+      },
+      {
+        "label": "Resources",
+        "page": "resources"
+      }
+    ]
+  },
+    "footer": {
+    "copyright": "© 2026 Uzair's Portfolio. All rights reserved by the developer.",
+    "links": [
+      {
+        "name": "GitHub",
+        "url": "https://github.com/uzair777-dev",
+        "icon": "res/svg/github.svg"
+      },
+      {
+        "name": "Email",
+        "url": "mailto:uzairshaikhking777@gmail.com",
+        "icon": "res/svg/email.svg"
+      },
+      {
+        "name": "Linkedin (Less frequently updated)",
+        "url": "https://www.linkedin.com/in/uzair-shaikh-695798269",
+        "icon": "res/svg/linkedin.svg"
+      },
+      {
+        "name": "Instagram",
+        "url": "https://instagram.com/justaguywithaveryuniquename",
+        "icon": "res/svg/instagram.svg"
+      }
+    ],
+    "footerNote": "<br>PS: This whole website is generated on the spot using various clever techniques. 😜 <br>  PS2: This whole website is accessibility friendly, for all my specially abled visitors <br> Visit the <a href='https://github.com/uzair777-dev/uzair777-dev.github.io'>GitHub repo</a>  for more info. This is still under heavy development, it might not be the best experience, but expect it to improve."
+
+  },
+  "theme": {
+    "primaryColor": "#6366f1",
+    "secondaryColor": "#8b5cf6"
+  },
+  "preloader": {
+    "enabled": true,
+    "duration": 2000,
+    "customAnimation": "spin"
+  }
+}
