@@ -193,5 +193,78 @@
         <timezone>IST</timezone>
       </pubDate>
     </item>
+        <item>
+      <title>Fresh coat of paint</title>
+      <id>5</id>
+      <type>update</type>
+      <heading></heading>
+      <description><![CDATA[The website gets huge performance and visual upgrades]]></description>
+      <content>
+        
+        <b>A Whole freaking update</b>
+        <br/><br/>
+        
+        TLDR; 
+        Make a good website one time, or patch it everytime (later is more practical tbh)
+        
+        <br/><br/>
+        Riddle me this batman;
+        <br/>
+        Whats clunky, looks weird as hell, and heavier than yo mama?
+        <br/>
+        <i>gets punched in the face</i>
+        <br/>
+        My website, atleast it used to be.
+        <br/><br/>
+        Tbh, I made it to literally fill a criteria,and was made on pure caffine not to showcase anything, apart from my projects. But..... I finally snapped cuz<br/>
+        <ul>It looked like shit </ul>
+        <ul>Performance was bad, like REAL BAD</ul>
+        <br/><br/>
+        So....... 3 cans of redbul and sleep depravity later, we have this.<br/><hr/>
+        <br/><br/>Someone: So, whats changed?<br/><br/>
+        Glad you asked!
+        
+        <br/><br/>
+        1. Worst-Case Slow-3G Performance Overhaul
+        Diagnosed and optimized cold-load performance under Slow 3G (~50 KB/s, 2,000 ms RTT, empty cache):<br/>
+        <li>Preloader / First Contentful Paint: ~12,000 ms → ~2,212 ms</li>
+        <li>Homepage Ready: ~35,000 ms → ~5,863 ms</li>
+        <li>Critical Initial Payload: trimmed to ~54 KB gzipped</li>
+        <li>Inlined critical solar theme tokens and preloader styles/SVG in <head> so the preloader paints on the very first packet.</li>
+        <li>Made the main stylesheet and Google Fonts non-blocking (trimmed to essential weights only), preloaded core JSON data in parallel, deferred third-party GitHub origins via dns-prefetch, and avoided blocking on custom devLOGS glitch fonts.</li>
+        <li>Compressed oversized images (guy.png from 37 KB → 1.7 KB; clippy.png from 1.1 MB → 103 KB).</li><br/>
+        2. Navigation, Dark Mode Toggle & Drawer Cleanup<br/>
+        <li>Fixed the duplicate × buttons: Removed the redundant close button inside the menu drawer so only the morphing navbar × controls closing it.</li>
+        <li>Desktop vs. Mobile controls: Hid the hamburger menu and drawer on desktop (> 768px) and placed a proportionally scaled Day/Night Sky Diorama switch directly in the navbar across the main portfolio, devLOGS, Custom XML Composer, and 404 pages. Kept the burger menu + full-size switch for mobile (≤ 768px).
+        </li><br/><br/>
+        3. True AMOLED Dark Theme & Bi-Directional Pinhole Transition
+        AMOLED Dark Mode: <br/>
+        <li>Converted all four dark solar palettes (dawn, noon, dusk, night) to pure #000000 pitch-black backgrounds (including removing the dark-mode radial ambient wash that lifted black levels) paired with deep OLED-friendly elevated cards and solar-tinted borders.</li>
+        <li>Pinhole Iris Animation: A beautiful animation to make transitioning betwwen dark and light mode feel natural</li><br/><br/>
+        4. devLOGS Reader & Documentation
+        <li>Fixed dark-mode contrast and typography on the Prev / Next entry buttons inside the devLOGS reader overlay.</li>
+        <br/><br/>
+        5. Overall
+        <li>Verified everything with automated unit tests (13/13 passing), clean build/lint checks, and visual inspection across desktop and mobile viewports.</li><br/><br/>
+        
+        <br/><hr/><br/>
+        
+        Here is an Before and after image of this overhaul:<br/><br/>
+        <b>Before:</b>
+        <img src="/public/res/img/website-before.png" alt=""/><br/><br/>
+        <b>After:</b>
+        <img src="/public/res/img/website-after.png" alt=""/>
+        <br/><br/>
+        Now, with this over, I can truly focus on the real project, Wrench. The one I am banging head with. TLDR; It has been a pain in the <PCensor>ass</PCensor>. I am very well thiking, I bit more than i could chew.......<br/><br/>
+        
+        Buttttt... Imma make it work!<br/><br/>
+        
+        Till then,<br/>Hasta la vista baby
+      </content>
+      <pubDate>
+        <date>1795352340</date>
+        <timezone>IST</timezone>
+      </pubDate>
+    </item>
   </channel>
 </feed>   
