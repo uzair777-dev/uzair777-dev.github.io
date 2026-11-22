@@ -1,0 +1,60 @@
+{
+  "type": "contact",
+  "title": "Get In Touch",
+  "description": "I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision. Feel free to reach out!",
+  "form": {
+    "fields": [
+      {
+        "name": "name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "email",
+        "label": "Email",
+        "type": "email",
+        "required": true
+      },
+      {
+        "name": "subject",
+        "label": "Subject",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "message",
+        "label": "Message",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  },
+  "social": [
+    {
+      "name": "Email",
+      "url": "mailto:uzairshaikhking777@gmail.com",
+      "icon": "res/svg/email.svg"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com/uzair777-dev",
+      "icon": "res/svg/github.svg"
+    },
+    {
+      "name": "LinkedIn",
+      "url": "https://www.linkedin.com/in/uzair-shaikh-695798269",
+      "icon": "res/svg/linkedin.svg"
+    },
+    {
+      "name": "Instagram",
+      "url": "https://instagram.com/justaguywithaveryuniquename",
+      "icon": "res/svg/instagram.svg"
+    },
+    {
+      "name": "Portfolio",
+      "url": "https://uzairshaikh.pages.dev",
+      "icon": "res/svg/internet.svg"
+    }
+  ]
+}

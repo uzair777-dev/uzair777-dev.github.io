@@ -12,6 +12,22 @@ I'll explain everything below if I don't get distracte- *Ooo a butterfly* 🦋 �
 
 ---------------------
 
+## Running Locally (Zero Build Step, Zero npm, Zero API Keys)
+
+This site keeps its flat static structure (`index.html`, `app.js`, `styles.css`, `theme-engine.js`, `data/`, `res/`, and `devlogs/` directly in the project root) — no `npm`, no bundler, no `.env` file, and no API keys are required.
+
+Unzip and serve the root folder with **any static file server** (needed only so browser `fetch()` can read `data/*.json` and `devlogs/logs.xml`):
+
+```bash
+# Python 3 (built into macOS/Linux/Windows)
+python3 -m http.server 8000
+# Then open http://localhost:8000
+```
+
+Or open the folder in VS Code and click **Go Live** (Live Server), or push directly to **GitHub Pages** / **Cloudflare Pages** with no build command and output directory `/`.
+
+---------------------
+
 ## Disclaimer
 
 I am not particularly a good web-dev. So the styling is very 💩.
@@ -41,6 +57,32 @@ How shi works:
 Basically when the page loads it runs the `app.js` and it dynamically places content from the various jsons and dynamically adjust the content. It basically does the heavy lifting of procedurally adding code and removing in response to user interaction and resouces (.jons) updateing in source
 
 Truthfully, I am too lazy to update stuff everytime it is done, so i made it this way so it won't be a pain in the a*@h°le everytime
+
+---------------------
+
+## Performance
+
+Built to stay fast even in worst-case network conditions (**Slow 3G · ~50 KB/s · 2,000 ms RTT · empty cache · cold load**) while keeping a zero-build static architecture.
+
+### Slow 3G Cold-Load Benchmarks
+
+| Metric | Before | After |
+| --- | --- | --- |
+| **Preloader / First Contentful Paint** | ~12,000 ms | **~2,212 ms** |
+| **Homepage Ready** | ~35,000 ms | **~5,863 ms** |
+| **Critical Initial Payload (gzipped)** | — | **~54 KB** |
+
+### Key Optimizations
+
+- **Packet-1 Preloader Paint**: Critical theme variables (all 4 solar phases in both Light and AMOLED `#000000` Dark) and the solar preloader layout/SVG are inlined directly in `<head>`, so the preloader paints immediately on the first HTML packet without waiting on external CSS or JS.
+- **Zero Render-Blocking Styles & Fonts**: `styles.css` and Google Fonts load asynchronously via `media="print" onload="this.media='all'"` (with `<noscript>` fallbacks), and font families are trimmed strictly to the weights actually used.
+- **Parallel Data Preloading**: `data/global.json` and `data/pages/home.json` are fetched with `<link rel="preload" as="fetch" fetchpriority="high">` in parallel with scripts, while third-party origins (`api.github.com`, `opengraph.githubassets.com`) use `dns-prefetch` so they don't compete for Slow-3G sockets at `t=0`.
+- **Deferred Heavy Assets & Compression**:
+  - `res/img/guy.png` compressed from **37 KB → 1.7 KB** and `res/img/clippy.png` from **1.1 MB → 103 KB**.
+  - Custom glitch `@font-face` files in `devlogs` are loaded on demand rather than blocking initial page render.
+- **Off-Main-Thread Parsing & GPU-Only Motion**:
+  - `devlogs/parser.js` parses `logs.xml` inside a **Web Worker** when supported.
+  - Animations stick to GPU-composited `transform` and `opacity`, pause automatically when hidden (closed mobile drawer or dismissed preloader), and respect `prefers-reduced-motion`.
 
 ---------------------
 
@@ -127,7 +169,11 @@ Clicking **Read More** opens a full-screen overlay. Direct link via hash: `/devl
 - [x] Add a Cloudflare proxy
 - [x] Add a blog
 
-[Backup link](https://uzair777-dev.github.io)
+## Mirrors and backup
+
+[Main and original](https://uzairshaikh.pages.dev)
+[Github pages mirror](https://uzair777-dev.github.io)
+[Google AI studio ](https://uzair777-dev.github.io)
 
 ## Credits
 

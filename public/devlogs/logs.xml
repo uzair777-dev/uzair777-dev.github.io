@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is a comment. The renderer will not see this.-->
+<!-- <![CDATA[]]> -->
+<feed xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <channel>
+    <item>
+
+    <title>My dev logs</title>
+    <id>1</id>
+    <type></type>
+    <heading>Example heading, idk</heading>
+      <description><![CDATA[This is a sample description, that will be visible in the devlog list.This only has single line.]]></description>
+      <content>
+        This is the content that will be visible when the user clicks on any card in the devlog list.
+        This can have multiple lines.
+        This can also have html tags for flexibilty
+        For exxample 
+        <i>This is sentence is in italics</i>
+        <b>This sentence is in bold</b>
+        or i could just do <i><b>this word</b></i> in bold and italics 
+        Also it supports my own custom schenaigans like for example censoring.
+        like this :
+        <censor>This sentence is censored</censor> PS: it says 
+        It is repalced by full block, U+2588 (█). 
+        Or you could censor a particular word for example this <PCensor>word</PCensor>. 
+        Here only first and second last word is visible, everything else is just asterisk aka (*).Why you ask? My <PCensor>Fxxxxng</PCensor> will. 
+        This applies to to whole sentences, applying to every word od the sentence.
+        Or Giched texts like this: <glitch intensity="2">abracadabra</glitch>
+        and this is heavy glitched <glitch intensity="10"></glitch>
+        The glitch works by fetching fonts from the fonts directory, counting the numbers of letters betwwen the tag(excluding spaces), or if none is given just guesses a random number between 3 and 7 and then replaces the font of every letter with a random font, also while replacing the letter to a random letter. I know, confusing. Also this is controlled by the intensity which has a range of 2 to 10 (could go up but,imma get dizzy).
+        <hr/>
+        Here is a <a href="https://github.com/uzair777-dev" target="_blank">link to my GitHub</a> using an anchor tag.
+        <br/>
+        <blockquote>This is a blockquote. It looks cool with the left border.</blockquote>
+        A quick list:
+        <ul>
+          <li>one little sheep</li>
+          <li>two little sheep</li>
+          <li>three little sheep</li>
+        </ul>
+        And some inline <code>code snippet</code> Because why not?
+        <br/>
+        Also heres an image of a cute clippy:
+        <img src="/res/img/clippy.png" alt="Cute clippy"/>
+        <br/>
+         <hr/>
+         <br/>
+        Btw Happy Valentine's Day for those who do celebrate it (I don't, I'm single 😭)
+      </content>
+      <pubDate>
+        <date>1771085149</date>
+        <timezone>IST</timezone>
+      </pubDate>
+    </item>
+    <item>
+      <title>Ummm, an AI Agent cant read this</title>
+      <id>2</id>
+      <type></type>
+      <heading>AI agent cant read this blog</heading>
+      <description><![CDATA[Lemme shorten the read for ya if you dont have time, AI agent cant render javascript.]]></description>
+      <content>
+        
+      </content>
+      <pubDate>
+        <date>1771125349</date>
+        <timezone>IST</timezone>
+      </pubDate>
+    </item>
+    <item>
+      <title>List of Linux kernels code names</title>
+      <id>3</id>
+      <type></type>
+      <heading>List of Linux kernels code names</heading>
+      <description><![CDATA[List of Linux kernels code names, made by me.]]></description>
+      <content>
+        As the Release of Kernel 7.0 is around the corner, I decided to make a list of Linux kernels code names. Just to remember the intersting <i>code names</i> by Linus Torvalds.
+        <br/>
+        This list was made possible by <a href="https://en.wikipedia.org/wiki/List_of_Linux_kernel_names" target="_blank">Wikipedia</a>. They did wonderful job of listing every name, and the context behind it. You can also see other really cool stuff that was implemented in the kernel over the course of the time. like when the AppArmour was first implemented. or when the support for real time device tree was implemented first. 
+        <p>Here is a list of Linux kernels code names in order of release:</p>
+        <ul>
+          <li>1.2 - Linux '95</li>
+          <li>1.3 - Greased Weasel</li>
+          <li>2.6.2–2.6.4 - Feisty Dunnart</li>
+          <li>2.6.5–2.6.9 - Zonked Quokka</li>
+          <li>2.6.11 - 2.6.13 - Woozy Numbat (first one to be managed by git)</li>
+          <li>2.6.14 - Affluent Albatross</li>
+          <li>2.6.15 - Sliding Snow Leopard</li>
+          <li>2.6.16.28-rc2 - Stable Penguin (1st LTS)</li>
+          <li>2.6.17-rc6–2.6.17 - Crazed Snow-Wease l</li>
+          <li>2.6.17-rc5 - Lordi Rules (Eurovision 2006 winners)</li>
+          <li>2.6.18–2.6.19 - Avast! A bilge rat!</li>
+          <li>2.6.20 - Homicidal Dwarf Hamster</li>
+          <li>2.6.21 - Nocturnal Monster Puppy</li>
+          <li>2.6.22-rc3–2.6.22-rc4 - Jeff Thinks I Should Change This, But To What?</li>
+          <li>2.6.22-rc5–2.6.22 - Holy Dancing Manatees, Batman!</li>
+          <li>2.6.23-rc4–2.6.23-rc6 - Pink Farting Weasel</li>
+          <li>2.6.23-rc7–2.6.23–2.6.24 - Arr Matey! A Hairy Bilge Rat!</li>
+          <li>2.6.24.1 - Err Metey! A Heury Beelge-a Ret!</li>
+          <li>2.6.25 - Funky Weasel is Jiggy wit it</li>
+          <li>2.6.26–2.6.27 - Rotary Wombat</li>
+          <li>2.6.27.3 - Trembling Tortoise</li>
+          <li>2.6.28-rc1–2.6.28-rc6 - Killer Bat of Doom</li>
+          <li>2.6.28 - Erotic Pickled Herring</li>
+          <li>2.6.28-rc1–2.6.28-rc6 - Killer Bat of Doom</li>
+          <li>2.6.29 - Temporary Tasmanian Devil</li>
+          <li>2.6.30-rc4–2.6.30-rc6 - Vindictive Armadillo</li>
+          <li>2.6 <![CDATA[&]]> 2.9 - 2.Man-Eating Seals of Antiquity</li>
+          <li>2.6.34 - Sheep on Meth</li>
+          <li>2.6.35 - Yokohama</li>
+          <li>2.6.36–2.6.38 - Flesh-Eating Bats with Fangs</li>
+          <li>3.0 - Sneaky Weasel</li>
+          <li>3.1-rc2 - Wet Seal</li>
+          <li>3.1 - Divemaster Edition</li>
+          <li>3.2–3.5 - Saber-toothed Squirrel</li>
+          <li>3.6 to 3.7 - Terrified Chipmunk</li>
+          <li>3.8 - Unicycling Gorilla</li>
+          <li>3.8.5 - Displaced Humerus Anterior</li>
+          <li>3.9.6 - Black Squirrel Wakeup Call</li>
+          <li>3.10.6 - TOSSUG Baby Fish</li>
+          <li>3.13 - One Giant Leap for Frogkind</li>
+          <li>3.14 - Shuffling Zombie Juror</li>
+          <li>3.16.1 - Museum of Fishiegoodies</li>
+          <li>4.0 - Named "Hurr durr I'ma [sic] sheep" (Voted by Internet people using poll)</li>
+          <li>4.1.1 - Series 4800</li>
+          <li>4.3 - Blurry Fish Butt</li>
+          <li>4.6 - Charred Weasel(?)</li>
+          <li>4.7 - Psychotic Stoned Sheep</li>
+          <li>4.9 - Roaring Lionus (Yeah, his name btw)</li>
+          <li>4.10-rc5 - Anniversary Edition</li>
+          <li>4.10-rc6 - Fearless Coyote</li>
+          <li>4.14.1 - Petit Gorille</li>
+          <li>4.17 - Merciless Moray</li>
+          <li>4.19 - Named "People's Front"</li>
+          <li>4.20 - Shy Crocodile</li>
+          <li>5.2-rc2 - Golden Lions</li>
+          <li>5.2 - Bobtail Squid</li>
+          <li>5.4-rc2 - Nesting Opossum</li>
+          <li>5.4-rc5 - Kleptomaniac Octopus</li>
+          <li>5.10 - Dare mighty things</li>
+          <li>5.11 - Valentine's Day Edition</li>
+          <li>5.12 - Frozen Wasteland</li>
+          <li>5.13 - Opossums on Parade</li>
+          <li>5.15 - Trick or Treat</li>
+          <li>5.17 - Named Superb Owl</li>
+          <li>6.0 - Hurr durr I'ma [sic] ninja sloth</li>
+          <li>6.1.28 - Curry Ramen</li>
+          <li>6.10 - Baby Opossum Posse</li>
+
+        </ul>
+      </content>
+      <pubDate>
+        <date>1771499134</date>
+        <timezone>IST</timezone>
+      </pubDate>
+    </item>
+    <item>
+      <title>Vgp release</title>
+      <id>4</id>
+      <type>Release announcement</type>
+      <heading>VGP release</heading>
+      <description><![CDATA[Virtual gamepads plus release and projects I've been working on.]]></description>
+      <content>
+        Hey there 👋. It's me. 
+        <br/>
+         For past couple of montha, I've been working on a small but useful project called Virtual gamepad plus. Originally I didn't mean to work on it, I had other projects (I'll talk about in a few secs) that would've been better use of my time, but ... Whatever... It's labour of love tbh, and I don't mind
+        <br/><br/>
+        So... How did it come to be?
+        <hr/>
+        Well, few months back, I wanted something like a mobile controller. I, myself, am pretty much, broke. Basically, student life in india isn't quite forgiving. There's constant pressure to do stuff is not really healthy, for any human. So, I usually game to relieve my stress. Gaming has been one of the best ways to just forget about the team world, and just game. Many people would agree, racing games were a big part of our childhood and current times too. I myself used too, and play Need for Speed series games. Currently I am into more of a trucking guy (ETS2), but that's just a personal preference. Usually most of us use mouse and keyboard, the thing that usually comes with the laptop you bought ( or that was bought for you). Pretty much that's the only thing that I've been playing with and on every game I played. People suggest that to just liven up your setup, just buy a controller. In a country like mine Controllers are still a novelty. Racing setups, are just too out of reach for normal common folks like us. It's not something that should make others feel bad, it is what it is. 
+        <br/><br/>
+        So, in order to maximize what we have people search for mobile game controllers, that make their existing device ( which btw has perfect capabilities for it) and use it for their use-case. Windows pretty much has this problem's solution, pretty much in place. GNU/Linux on the other hand, is a bit of a pickle. I mean there are... But they are a mess. <a href="https://www.reddit.com/r/linux_gaming/s/df4hyuyTtG" target="_blank">This</a> will basically summarize it for you. Basically it has some pretty good options, but some are dead, or some are paid. Not a thing that you can run for long time... 
+        <br/>
+        <hr/>
+        So I made VGP, Virtual gamepads plus (not to be confused with <a href="https://kitswas.github.io/VirtualGamePad/" target="_blank"> Virtual gamepad project </a>). It was a fork of a <a href="https://github.com/alr86/node-virtual-gamepads-revived" target="_blank">fork</a> of <a href="https://github.com/jehervy/node-virtual-gamepads" target="_blank">another project</a>. It was in a pretty bad state when I found it, so.... Yeah.... Not really great news. But the fork maintainer did a really good job in solving stuff that the original did mess up, so chaps to them. I did work on it and here it is. It basically runs on browser, so it has platform support of basically any mobile phone that supports major browsers* ( why asterisk, I'll tell you later). It is light on the server system. Just connect with qr code. Boom, you're in! Slightly workable... 
+        
+        <hr/>
+        
+        It does have its caveats.
+        <br/>
+        <br/>
+        First of all is browser limitation. Modern browsers are like siblings that can't agree on a single thing. Like why the <PCensor>fuck</PCensor> can you not???
+        <br/>
+        One such example, is gyroscope. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Gyroscope" target="_blank">Gyroscope API</a> which comes under a greater batch of <a href="https://developer.mozilla.org/en-US/docs/Web/API/Sensor_APIs" target="_blank">Sensors APIs</a>, is not a baseline standard. <b>WHY????</b>. Because why not. Chrome supports it, heck even Edge supports it, however Safari? Nahhhh. Even them mozilla, the one describing the standard, don't support it in their browser. I know it's a privacy concern, but really??? 2 things
+        <li> It is through permissions api, so it's asked to user before doing anything. If the user <PCensor>fucks</PCensor> up with even warning them, they bought this upon themselves</li>
+        <li> Really? Privacy? In big 2026?. I don't wanna talk about it further but the one's that know, will know</li>
+        
+        <br/><hr/>
+        
+        So this is it. I'm bored and it's already midnight, so imma have a good night sleep. See ya, have fun 👋
+      </content>
+      <pubDate>
+        <date>1786994880</date>
+        <timezone>IST</timezone>
+      </pubDate>
+    </item>
+  </channel>
+</feed>   

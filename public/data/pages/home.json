@@ -1,0 +1,23 @@
+{
+  "type": "home",
+  "title": "Home",
+  "hero": {
+    "name": "Uzair Shaikh",
+    "title": "Security Enthusiast | Student",
+    "description": "Enthusiastic learner exploring the world of Cybersecurity, Networking, and Programming. Constantly experimenting with new technologies and building cool projects.",
+    "image": "res/img/guy.png",
+    "cta": {
+      "text": "Learn More About Me",
+      "link": "about"
+    }
+  },
+  "github": {
+    "repos": [
+      
+"https://github.com/Rj2537/Project-Adam-and-Eve",
+      "https://github.com/uzair777-dev/Virtual-gamepads-plus",
+      "https://github.com/uzair777-dev/Wrench",
+      "https://github.com/uzair777-dev/uzair777-dev.github.io"
+    ]
+  }
+}

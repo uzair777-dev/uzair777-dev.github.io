@@ -1,178 +1,191 @@
 // ═══════════════════════════════════════════════
-// index.js — devLOGS page renderer
-// Mirrors the architecture of /app.js:
-//   • Dynamically loads navigation from global.json
-//   • Theme toggle & mobile menu
-//   • Renders cards from parsed XML data
-//   • Full-screen overlay for reading posts
-//   • Hash-based deep-linking (/devlogs/#id)
+// index.js — devLOGS Editorial Zine & Reader
 // ═══════════════════════════════════════════════
 import { loadXML } from './parser.js';
 
-// ─── State ───
-let devLogs       = [];
+let devLogs = [];
 let currentFilter = 'all';
-let currentPage   = 1;
-let sortOrder     = 'desc'; // 'desc' = newest first, 'asc' = oldest first
+let currentSearch = '';
+let currentPage = 1;
+let sortOrder = 'desc';
 let cachedGlobalConfig = null;
 const LOGS_PER_PAGE = 5;
-const glitchFonts   = [];
+const GLITCH_FONT_NAMES = [
+    'glitch-font-0', 'glitch-font-1', 'glitch-font-2', 'glitch-font-3',
+    'glitch-font-4', 'glitch-font-5', 'glitch-font-6'
+];
 
 // ═══════════════════════════════════════════════
-//  Initialisation
+//  Initialisation (Non-blocking critical path)
 // ═══════════════════════════════════════════════
 async function init() {
     currentPage = 1;
-    try {
-        // UI controls
-        await setupNavigation();
-        setupThemeToggle();
-        setTheme(getPreferredTheme());
-        setupMobileMenu();
-        handleResponsiveThemeToggle();
+    const bootStartedAt = performance.now();
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const themeEngine = window.PortfolioThemeEngine || null;
+    const arrivedViaCurtain = !prefersReducedMotion && Boolean(themeEngine && typeof themeEngine.hasIncomingCurtainHandoff === 'function' && themeEngine.hasIncomingCurtainHandoff());
 
-        // Create the overlay element
+    try {
+        if (themeEngine) {
+            themeEngine.initDrawer();
+            if (!arrivedViaCurtain && typeof themeEngine.mountSolarLoader === 'function') {
+                themeEngine.mountSolarLoader('#devlog-loader-slot', {
+                    label: '// syncing dev logs...'
+                });
+            }
+        }
+
         createOverlay();
 
-        // Load custom fonts for glitch effect
-        await loadGlitchFonts();
+        // Load glitch fonts in background without blocking XML render
+        loadGlitchFonts().catch(() => {});
 
-        // Load & parse XML
-        const result = await loadXML('logs.xml');
-        if (!result.success) { showError(`Error loading dev logs: ${result.error}`); return; }
+        const fontsReadyBounded = (document.fonts && document.fonts.ready)
+            ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 450))])
+            : Promise.resolve();
+
+        // Fetch global navigation config, logs.xml, and web fonts in parallel
+        const [, result] = await Promise.all([
+            setupNavigation(),
+            loadXML('logs.xml'),
+            fontsReadyBounded,
+        ]);
+
+        if (!result.success) {
+            if (arrivedViaCurtain && themeEngine) themeEngine.releaseIncomingCurtain({ minHoldMs: 0 });
+            showError(`Error loading dev logs: ${result.error}`);
+            return;
+        }
 
         devLogs = result.data;
-        if (devLogs.length === 0) { showError('No dev logs found'); return; }
+        if (devLogs.length === 0) {
+            if (arrivedViaCurtain && themeEngine) themeEngine.releaseIncomingCurtain({ minHoldMs: 0 });
+            showError('No dev logs found');
+            return;
+        }
 
-        // Process custom tags on main thread (needs DOM)
-        devLogs = devLogs.map(log => ({ ...log, content: processContent(log.content) }));
+        devLogs = devLogs.map(log => ({
+            ...log,
+            rawText: stripTags(`${log.title} ${log.heading} ${log.description} ${log.content}`),
+            readMins: estimateReadTime(`${log.description} ${log.content}`),
+            content: processContent(log.content),
+        }));
 
-        // Build controls (sort + optional filters)
         setupControls();
-
-        // Render
         renderDevLogs();
+
+        if (!arrivedViaCurtain) {
+            // Intentional showcase & slow-network hydration floor on direct load so visitors can appreciate the solar loader
+            const minShowcaseMs = prefersReducedMotion ? 0 : 620;
+            const remaining = Math.max(0, minShowcaseMs - (performance.now() - bootStartedAt));
+            if (remaining > 0) {
+                await new Promise(r => setTimeout(r, remaining));
+            }
+        }
+
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('devlog-list').style.display = 'flex';
+        const listEl = document.getElementById('devlog-list');
+        listEl.style.display = 'flex';
 
-        // Footer (same data source as main site)
-        await setupFooter();
+        if (arrivedViaCurtain && themeEngine && typeof themeEngine.releaseIncomingCurtain === 'function') {
+            themeEngine.releaseIncomingCurtain({
+                minHoldMs: 260,
+                onReveal: () => {
+                    if (!prefersReducedMotion && typeof themeEngine.applyRouteStagger === 'function') {
+                        themeEngine.applyRouteStagger(document.body, '.devlog-hero-inner, .devlog-controls, .devlog-card');
+                    }
+                },
+            });
+        } else if (!prefersReducedMotion) {
+            listEl.classList.add('page-enter');
+        }
 
-        // Check for hash deep-link (#id)
+        setupFooter();
+
         handleHashNavigation();
         window.addEventListener('hashchange', handleHashNavigation);
     } catch (error) {
+        if (arrivedViaCurtain && themeEngine) themeEngine.releaseIncomingCurtain({ minHoldMs: 0 });
         showError(`Unexpected error: ${error.message}`);
     }
 }
 
 // ═══════════════════════════════════════════════
-//  Content Processing  (HTML normalise + censor / pcensor / glitch)
-//
-//  Custom tags (defined in logs.xml):
-//   <censor>text</censor>
-//       → replaces every char with █ (U+2588)
-//   <PCensor>text</PCensor>
-//       → partial censor: only the first and second-to-last
-//         character of each word are visible,
-//         everything else is * (applied per-word)
-//   <glitch intensity="N">text</glitch>
-//       → replaces the font of every letter with a random font,
-//         replaces the letter with a random letter.
-//         If no text given, generates 3-7 random chars.
-//         Intensity (2-10) controls animation speed.
-//
-//  Supported HTML tags: <br>, <img>, <a>, <p>, <i>, <b>,
-//  <u>, <s>, <sub>, <sup>, <hr>, <ul>, <ol>, <li>, <code>, <pre>
+//  Content Processing (multi-line censor / glitch)
 // ═══════════════════════════════════════════════
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function stripTags(str) {
+    return String(str || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function estimateReadTime(text) {
+    const words = stripTags(text).split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words / 200));
+}
 
 function processContent(content) {
-    // ── 1. Normalise HTML void elements that XML serialises as self-closing ──
-    //
-    // When content is parsed as XML, void HTML elements get serialised
-    // as self-closing tags: <br/>, <hr/>, <img src="x"/>, etc.
-    // Convert them back to proper HTML so the browser renders them correctly.
-    //
-    // Void elements WITH attributes (img, input, source, embed, area, col, track):
-    content = content.replace(/<(img|input|source|embed|area|col|track)\s+([^>]*?)\/>/gi,
-        '<$1 $2>');
-    // Void elements WITHOUT attributes (or optional): br, hr, wbr
+    content = content.replace(/<(img|input|source|embed|area|col|track)\s+([^>]*?)\/>/gi, '<$1 $2>');
     content = content.replace(/<(br|hr|wbr)\s*\/>/gi, '<$1>');
 
-    // ── 2. Custom tag: full censor — replace every character with █ ──
-    content = content.replace(/<censor>(.*?)<\/censor>/gi, (_m, p1) =>
-        `<span class="censor-text">${'█'.repeat(p1.length)}</span>`
+    // Multi-line full censor
+    content = content.replace(/<censor>([\s\S]*?)<\/censor>/gi, (_m, p1) =>
+        `<span class="censor-text" aria-label="Redacted text">${'█'.repeat(p1.replace(/\s+/g, ' ').length)}</span>`
     );
 
-    // ── 3. Custom tag: partial censor — first + second-to-last char visible ──
-    content = content.replace(/<PCensor>(.*?)<\/PCensor>/gi, (_m, p1) => {
-        return p1.split(' ').map(word => {
-            if (word.length <= 2) return word;
-            if (word.length === 3) return word[0] + '*' + word[2];
-            const secondToLast = word.length - 2;
-            return word.split('').map((ch, i) => {
-                if (i === 0 || i === secondToLast) return ch;
-                return '*';
-            }).join('');
-        }).join(' ');
+    // Multi-line partial censor
+    content = content.replace(/<PCensor>([\s\S]*?)<\/PCensor>/gi, (_m, p1) => {
+        return p1.split(/(\s+)/).map(token => {
+            if (/^\s+$/.test(token) || token.length <= 2) return token;
+            if (token.length === 3) return token[0] + '*' + token[2];
+            const secondToLast = token.length - 2;
+            return token.split('').map((ch, i) => (i === 0 || i === secondToLast) ? ch : '*').join('');
+        }).join('');
     });
 
-    // ── 4. Custom tag: glitch ──
-    // Handles both <glitch intensity="N">text</glitch> and <glitch intensity="N"/>
-    content = content.replace(/<glitch\s+intensity="(\d+)">(.*?)<\/glitch>/gi, (_m, int, txt) => {
-        return renderGlitchText(txt, Math.min(Math.max(parseInt(int), 2), 10));
+    // Multi-line & self-closing glitch (supports explicit or default intensity)
+    content = content.replace(/<glitch(?:\s+intensity="(\d+)")?\s*>([\s\S]*?)<\/glitch>/gi, (_m, int, txt) => {
+        const level = int ? Math.min(Math.max(parseInt(int, 10), 2), 10) : 5;
+        return renderGlitchText(txt, level);
     });
-    content = content.replace(/<glitch\s+intensity="(\d+)"\s*\/>/gi, (_m, int) => {
-        return renderGlitchText('', Math.min(Math.max(parseInt(int), 2), 10));
+    content = content.replace(/<glitch(?:\s+intensity="(\d+)")?\s*\/>/gi, (_m, int) => {
+        const level = int ? Math.min(Math.max(parseInt(int, 10), 2), 10) : 5;
+        return renderGlitchText('', level);
     });
 
-    // ── 5. Normalise through a temp element (safe HTML pass-through) ──
     const tmp = document.createElement('div');
     tmp.innerHTML = content;
     return tmp.innerHTML;
 }
 
-/**
- * Glitch effect — per the XML spec:
- *  1. Count letters between tags (excluding spaces).
- *     If none given, pick a random count between 3-7.
- *  2. Replace the font of EVERY letter with a random font
- *     from data/fonts/.
- *  3. Replace EVERY letter with a random letter.
- *  4. Intensity (2-10) controls the animation jitter speed.
- */
 function renderGlitchText(text, intensity) {
     const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
-
-    // If no text given, generate random 3-7 characters
     if (!text || text.trim().length === 0) {
         const len = Math.floor(Math.random() * 5) + 3;
-        text = Array.from({ length: len }, () =>
-            pool[Math.floor(Math.random() * pool.length)]
-        ).join('');
+        text = Array.from({ length: len }, () => pool[Math.floor(Math.random() * pool.length)]).join('');
     }
-
-    // Higher intensity = faster, more aggressive jitter
-    const speed = Math.max(0.08, 0.6 - intensity * 0.05);
-
+    // Photosensitive-safe period (>= 0.85s / < 1.2 Hz, strictly below 3 Hz WCAG threshold)
+    const speed = Math.max(0.85, 1.45 - intensity * 0.055);
     const spans = text.split('').map(ch => {
-        if (ch === ' ') return ' ';
-        const display = pool[Math.floor(Math.random() * pool.length)];
-        let fontCSS = '';
-        if (glitchFonts.length > 0) {
-            const font = glitchFonts[Math.floor(Math.random() * glitchFonts.length)];
-            fontCSS = `font-family:'${font}',monospace;`;
-        }
+        if (/\s/.test(ch)) return ' ';
+        const display = escapeHtml(pool[Math.floor(Math.random() * pool.length)]);
+        const font = GLITCH_FONT_NAMES[Math.floor(Math.random() * GLITCH_FONT_NAMES.length)];
+        const fontCSS = `font-family:'${font}',monospace;`;
         return `<span class="glitch-char" style="${fontCSS}--glitch-speed:${speed}s;">${display}</span>`;
     }).join('');
-
     return `<span class="glitch-container">${spans}</span>`;
 }
 
 // ═══════════════════════════════════════════════
-//  Font Loading (with browser Cache API)
+//  Font Loading (Background swap — never blocks FCP)
 // ═══════════════════════════════════════════════
-
 const FONT_CACHE_NAME = 'devlogs-glitch-fonts-v1';
 
 async function loadGlitchFonts() {
@@ -186,158 +199,210 @@ async function loadGlitchFonts() {
     let cache = null;
     try { cache = await caches.open(FONT_CACHE_NAME); } catch (_) {}
 
-    // Load all fonts in parallel
-    const results = await Promise.allSettled(files.map(async (file, i) => {
-        const name = `glitch-font-${i}`;
+    await Promise.allSettled(files.map(async (file, i) => {
+        const name = GLITCH_FONT_NAMES[i];
         if (cache) {
             const cached = await cache.match(file);
             if (!cached) await cache.add(file);
         }
-        const face = new FontFace(name, `url(${file})`);
+        const face = new FontFace(name, `url(${file})`, { display: 'swap' });
         await face.load();
         document.fonts.add(face);
-        return name;
     }));
-
-    for (const result of results) {
-        if (result.status === 'fulfilled') {
-            glitchFonts.push(result.value);
-        }
-    }
 }
 
 // ═══════════════════════════════════════════════
-//  Full-Screen Overlay
+//  Full-Screen Distraction-Free Editorial Reader
 // ═══════════════════════════════════════════════
-
 function createOverlay() {
     const overlay = document.createElement('div');
     overlay.id = 'devlog-overlay';
     overlay.className = 'devlog-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Devlog reader');
     overlay.innerHTML = `
         <div class="overlay-backdrop"></div>
-        <div class="overlay-panel">
-            <button class="overlay-close" id="overlay-close" aria-label="Close">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-            <div class="overlay-header" id="overlay-header"></div>
-            <div class="overlay-body" id="overlay-body"></div>
+        <div class="overlay-panel" id="overlay-panel">
+            <div class="reading-progress-track" aria-hidden="true">
+                <div class="reading-progress-bar" id="reading-progress-bar"></div>
+            </div>
+            <div class="overlay-topbar">
+                <button type="button" class="overlay-close" id="overlay-close" aria-label="Back to devLOGS">
+                    ← Back to devLOGS
+                </button>
+                <button type="button" class="overlay-share-btn" id="overlay-share-btn">
+                    Copy Link
+                </button>
+            </div>
+            <article class="overlay-article">
+                <header class="overlay-header" id="overlay-header"></header>
+                <div class="overlay-body" id="overlay-body"></div>
+                <nav class="overlay-pager" id="overlay-pager" aria-label="Adjacent devlog entries"></nav>
+            </article>
         </div>
     `;
     document.body.appendChild(overlay);
 
-    // Close handlers
-    overlay.querySelector('#overlay-close').addEventListener('click', closeOverlay);
-    overlay.querySelector('.overlay-backdrop').addEventListener('click', closeOverlay);
+    const panel = overlay.querySelector('#overlay-panel');
+    const progressBar = overlay.querySelector('#reading-progress-bar');
+
+    panel.addEventListener('scroll', () => {
+        const maxScroll = panel.scrollHeight - panel.clientHeight;
+        const pct = maxScroll > 0 ? Math.min(1, Math.max(0, panel.scrollTop / maxScroll)) : 0;
+        progressBar.style.transform = `scaleX(${pct})`;
+    }, { passive: true });
+
+    overlay.querySelector('#overlay-close').addEventListener('click', () => closeOverlay(true));
+    overlay.querySelector('.overlay-backdrop').addEventListener('click', () => closeOverlay(true));
+    overlay.querySelector('#overlay-share-btn').addEventListener('click', async () => {
+        const btn = overlay.querySelector('#overlay-share-btn');
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            btn.textContent = 'Link Copied';
+            setTimeout(() => { btn.textContent = 'Copy Link'; }, 1800);
+        } catch (_) {
+            btn.textContent = 'Copy Failed';
+            setTimeout(() => { btn.textContent = 'Copy Link'; }, 1800);
+        }
+    });
+
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && overlay.classList.contains('open')) closeOverlay();
+        if (e.key === 'Escape' && overlay.classList.contains('open')) closeOverlay(true);
     });
 }
 
-function openOverlay(logId) {
-    const log = devLogs.find(l => l.id === String(logId));
-    if (!log) return;
+function getSortedLogs() {
+    return [...devLogs].sort((a, b) => {
+        const tA = a.pubDate?.date || 0;
+        const tB = b.pubDate?.date || 0;
+        return sortOrder === 'desc' ? tB - tA : tA - tB;
+    });
+}
+
+function openOverlay(logId, pushHash = true) {
+    const sorted = getSortedLogs();
+    const index = sorted.findIndex(l => l.id === String(logId));
+    if (index === -1) return;
+    const log = sorted[index];
 
     const overlay = document.getElementById('devlog-overlay');
-    const header  = document.getElementById('overlay-header');
-    const body    = document.getElementById('overlay-body');
+    const panel = document.getElementById('overlay-panel');
+    const progressBar = document.getElementById('reading-progress-bar');
+    const header = document.getElementById('overlay-header');
+    const body = document.getElementById('overlay-body');
+    const pager = document.getElementById('overlay-pager');
+
+    const metaParts = [
+        `ENTRY #${String(log.id).padStart(2, '0')}`,
+        `${formatDate(log.pubDate.date)}${log.pubDate.timezone ? ` (${log.pubDate.timezone})` : ''}`,
+        `${log.readMins} min read`
+    ];
+    if (log.type) metaParts.push(log.type.toUpperCase());
 
     header.innerHTML = `
-        <h2 class="overlay-title">${log.heading || log.title}</h2>
-        <div class="overlay-meta">
-            <span class="overlay-date">${formatDate(log.pubDate.date)}${log.pubDate.timezone ? ` (${log.pubDate.timezone})` : ''}</span>
-            ${log.type ? `<span class="overlay-type">${log.type}</span>` : ''}
-        </div>
-        ${log.description ? `<p class="overlay-description">${log.description}</p>` : ''}
+        <div class="overlay-meta-line">${escapeHtml(metaParts.join(' · '))}</div>
+        <h2 class="overlay-title">${escapeHtml(log.heading || log.title)}</h2>
+        ${log.description ? `<p class="overlay-description">${escapeHtml(log.description)}</p>` : ''}
     `;
     body.innerHTML = log.content;
 
+    const prevLog = index > 0 ? sorted[index - 1] : null;
+    const nextLog = index < sorted.length - 1 ? sorted[index + 1] : null;
+    pager.innerHTML = `
+        <div class="overlay-pager-slot">
+            ${prevLog ? `<button type="button" class="overlay-pager-btn" data-jump-id="${escapeHtml(prevLog.id)}">
+                <span class="editorial-index">← Previous</span>
+                <strong>${escapeHtml(prevLog.heading || prevLog.title)}</strong>
+            </button>` : ''}
+        </div>
+        <div class="overlay-pager-slot overlay-pager-slot--right">
+            ${nextLog ? `<button type="button" class="overlay-pager-btn" data-jump-id="${escapeHtml(nextLog.id)}">
+                <span class="editorial-index">Next →</span>
+                <strong>${escapeHtml(nextLog.heading || nextLog.title)}</strong>
+            </button>` : ''}
+        </div>
+    `;
+
+    pager.querySelectorAll('[data-jump-id]').forEach(btn => {
+        btn.addEventListener('click', () => openOverlay(btn.dataset.jumpId, true));
+    });
+
+    panel.scrollTop = 0;
+    progressBar.style.transform = 'scaleX(0)';
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
 
-    // Update URL hash
-    history.pushState(null, '', `#${log.id}`);
+    if (pushHash && window.location.hash !== `#${log.id}`) {
+        history.pushState(null, '', `#${log.id}`);
+    }
 
-    // Update page title & metadata dynamically
     const titleText = `${log.title} — devLOGS`;
     document.title = titleText;
-
     const descText = log.description || `${log.title} - Read post on devLOGS by Uzair Shaikh`;
     const metaDesc = document.getElementById('meta-description');
     if (metaDesc) metaDesc.setAttribute('content', descText);
-
-    const postUrl = `https://uzair777-dev.github.io/devlogs/#${log.id}`;
-    const canonicalEl = document.getElementById('canonical-link');
-    if (canonicalEl) canonicalEl.setAttribute('href', postUrl);
-
-    const ogTitle = document.getElementById('og-title');
-    if (ogTitle) ogTitle.setAttribute('content', titleText);
-    const ogDesc = document.getElementById('og-description');
-    if (ogDesc) ogDesc.setAttribute('content', descText);
-    const ogUrl = document.getElementById('og-url');
-    if (ogUrl) ogUrl.setAttribute('content', postUrl);
-
-    const twTitle = document.getElementById('twitter-title');
-    if (twTitle) twTitle.setAttribute('content', titleText);
-    const twDesc = document.getElementById('twitter-description');
-    if (twDesc) twDesc.setAttribute('content', descText);
 }
 
-function closeOverlay() {
+function closeOverlay(updateHistory = true) {
     const overlay = document.getElementById('devlog-overlay');
+    if (!overlay || !overlay.classList.contains('open')) return;
     overlay.classList.remove('open');
     document.body.style.overflow = '';
 
-    // Clear hash
-    history.pushState(null, '', window.location.pathname);
+    if (updateHistory && window.location.hash) {
+        history.pushState(null, '', window.location.pathname);
+    }
 
-    // Restore title & metadata
     document.title = 'devLOGS — Uzair Shaikh';
     const defaultDesc = 'devLOGS — Developer thoughts, builds, security research, and programming experiments by Uzair Shaikh.';
-    const defaultUrl = 'https://uzair777-dev.github.io/devlogs/';
-
     const metaDesc = document.getElementById('meta-description');
     if (metaDesc) metaDesc.setAttribute('content', defaultDesc);
-
-    const canonicalEl = document.getElementById('canonical-link');
-    if (canonicalEl) canonicalEl.setAttribute('href', defaultUrl);
-
-    const ogTitle = document.getElementById('og-title');
-    if (ogTitle) ogTitle.setAttribute('content', 'devLOGS — Uzair Shaikh');
-    const ogDesc = document.getElementById('og-description');
-    if (ogDesc) ogDesc.setAttribute('content', defaultDesc);
-    const ogUrl = document.getElementById('og-url');
-    if (ogUrl) ogUrl.setAttribute('content', defaultUrl);
-
-    const twTitle = document.getElementById('twitter-title');
-    if (twTitle) twTitle.setAttribute('content', 'devLOGS — Uzair Shaikh');
-    const twDesc = document.getElementById('twitter-description');
-    if (twDesc) twDesc.setAttribute('content', defaultDesc);
 }
-
-// ═══════════════════════════════════════════════
-//  Hash Deep-Linking  (/devlogs/#id)
-// ═══════════════════════════════════════════════
 
 function handleHashNavigation() {
     const hash = window.location.hash.replace('#', '');
     if (hash && devLogs.length > 0) {
-        openOverlay(hash);
+        openOverlay(hash, false);
+    } else {
+        closeOverlay(false);
     }
 }
 
 // ═══════════════════════════════════════════════
-//  Navigation  (loaded from global.json like app.js)
+//  Navigation (Links back to main portfolio /#page)
 // ═══════════════════════════════════════════════
-
 async function setupNavigation() {
     const navMenu = document.getElementById('nav-menu');
+    const drawerNavList = document.getElementById('drawer-nav-list');
     if (!navMenu) return;
+
+    const populateNav = (ul, items) => {
+        if (!ul) return;
+        ul.innerHTML = '';
+        items.forEach(item => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `/#${item.page}`;
+            a.textContent = item.label;
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
+
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '/devlogs/';
+        a.textContent = 'devLOGS';
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'page');
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeOverlay(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        li.appendChild(a);
+        ul.appendChild(li);
+    };
 
     try {
         const resp = await fetch('/data/global.json');
@@ -346,166 +411,52 @@ async function setupNavigation() {
         cachedGlobalConfig = cfg;
 
         if (cfg.navigation?.menu) {
-            const mobileContainer = document.getElementById('mobile-theme-toggle-container');
-            navMenu.querySelectorAll('li:not(#mobile-theme-toggle-container)').forEach(el => el.remove());
-
-            cfg.navigation.menu.forEach(item => {
-                const li = document.createElement('li');
-                const a  = document.createElement('a');
-                a.href        = '/';
-                a.textContent = item.label;
-                li.appendChild(a);
-                if (mobileContainer) {
-                    navMenu.insertBefore(li, mobileContainer);
-                } else {
-                    navMenu.appendChild(li);
-                }
-            });
-            // "devLOGS" as active link
-            const li = document.createElement('li');
-            const a  = document.createElement('a');
-            a.href = '/devlogs/';
-            a.textContent = 'devLOGS';
-            a.classList.add('active');
-            li.appendChild(a);
-            if (mobileContainer) {
-                navMenu.insertBefore(li, mobileContainer);
-            } else {
-                navMenu.appendChild(li);
-            }
+            populateNav(navMenu, cfg.navigation.menu);
+            populateNav(drawerNavList, cfg.navigation.menu);
         }
     } catch (_) {
-        const mobileContainer = document.getElementById('mobile-theme-toggle-container');
-        navMenu.querySelectorAll('li:not(#mobile-theme-toggle-container)').forEach(el => el.remove());
-        const homeLi = document.createElement('li');
-        homeLi.innerHTML = '<a href="/">Home</a>';
-        const devlogsLi = document.createElement('li');
-        devlogsLi.innerHTML = '<a href="/devlogs/" class="active">devLOGS</a>';
-        if (mobileContainer) {
-            navMenu.insertBefore(homeLi, mobileContainer);
-            navMenu.insertBefore(devlogsLi, mobileContainer);
-        } else {
-            navMenu.appendChild(homeLi);
-            navMenu.appendChild(devlogsLi);
-        }
+        const fallback = '<li><a href="/#home">Home</a></li><li><a href="/devlogs/" class="active">devLOGS</a></li>';
+        navMenu.innerHTML = fallback;
+        if (drawerNavList) drawerNavList.innerHTML = fallback;
     }
 }
 
 // ═══════════════════════════════════════════════
-//  Theme  (matches app.js behaviour)
+//  Controls (Live Search + Filters + Sort + Composer)
 // ═══════════════════════════════════════════════
-
-function getPreferredTheme() {
-    try {
-        const stored = localStorage.getItem('theme');
-        if (stored) return stored;
-    } catch (_) {}
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function setTheme(theme) {
-    const resolved = theme === 'auto'
-        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : theme;
-    document.documentElement.setAttribute('data-theme', resolved);
-    try {
-        localStorage.setItem('theme', theme);
-    } catch (_) {}
-
-    document.querySelectorAll('.theme-option').forEach(btn => {
-        const isActive = btn.dataset.theme === theme;
-        btn.classList.toggle('active', isActive);
-        
-        const svg = btn.querySelector('svg');
-        if (svg) {
-            svg.removeAttribute('stroke');
-            svg.style.stroke = '';
-        }
-    });
-}
-
-function handleResponsiveThemeToggle() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const navMenu = document.getElementById('nav-menu');
-    const navContainer = document.querySelector('.nav-container');
-    const hamburger = document.getElementById('hamburger');
-
-    if (!themeToggle || !navMenu || !navContainer || !hamburger) return;
-
-    if (window.innerWidth <= 768) {
-        if (themeToggle.parentElement !== navMenu && !navMenu.contains(themeToggle)) {
-            let li = document.getElementById('mobile-theme-toggle-container');
-            if (!li) {
-                li = document.createElement('li');
-                li.id = 'mobile-theme-toggle-container';
-                li.className = 'mobile-theme-item';
-            }
-            li.appendChild(themeToggle);
-            navMenu.appendChild(li);
-        }
-    } else {
-        if (themeToggle.parentElement !== navContainer) {
-            const li = document.getElementById('mobile-theme-toggle-container');
-            if (li) {
-                li.remove();
-            }
-            navContainer.insertBefore(themeToggle, hamburger);
-        }
-    }
-}
-
-function setupThemeToggle() {
-    document.querySelectorAll('.theme-option').forEach(btn =>
-        btn.addEventListener('click', () => setTheme(btn.dataset.theme))
-    );
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        try {
-            if (localStorage.getItem('theme') === 'auto') setTheme('auto');
-        } catch (_) {}
-    });
-    window.addEventListener('resize', handleResponsiveThemeToggle);
-    handleResponsiveThemeToggle();
-}
-
-// ═══════════════════════════════════════════════
-//  Mobile Menu
-// ═══════════════════════════════════════════════
-
-function setupMobileMenu() {
-    const hamburger = document.getElementById('hamburger');
-    const navMenu   = document.getElementById('nav-menu');
-    hamburger.addEventListener('click', () => navMenu.classList.toggle('active'));
-    navMenu.addEventListener('click', e => { if (e.target.tagName === 'A') navMenu.classList.remove('active'); });
-}
-
-// ═══════════════════════════════════════════════
-//  Controls (Filters + Sort)
-// ═══════════════════════════════════════════════
-
 function setupControls() {
     const container = document.getElementById('filter-container');
+    container.classList.add('devlog-controls-wrap');
     container.style.display = 'block';
 
-    let html = '<div class="devlog-controls">';
-
-    // Filter buttons (only if >1 types)
     const types = [...new Set(devLogs.map(l => l.type).filter(Boolean))];
+    let html = '<div class="devlog-controls">';
+    html += '<div class="devlog-search-wrap">';
+    html += '<input type="search" id="devlog-search" class="devlog-search-input" placeholder="Search entries, topics, or keywords..." aria-label="Search dev logs">';
+    html += '</div>';
+    html += '<div class="devlog-control-group">';
+
     if (types.length > 1) {
-        html += '<div class="devlog-filters">';
-        html += '<button class="filter-btn active" data-filter="all">All</button>';
-        types.forEach(t => { html += `<button class="filter-btn" data-filter="${t}">${t}</button>`; });
+        html += '<div class="devlog-filters" role="group" aria-label="Filter entries by category">';
+        html += '<button type="button" class="filter-btn active" data-filter="all">All</button>';
+        types.forEach(t => {
+            html += `<button type="button" class="filter-btn" data-filter="${escapeHtml(t)}">${escapeHtml(t)}</button>`;
+        });
         html += '</div>';
     }
 
-    // Sort button (always shown)
-    html += `<button class="sort-btn" id="sort-btn" title="Sort by date">
-        Date <span class="sort-arrow">↓</span>
-    </button>`;
-
-    html += '</div>';
+    html += `<button type="button" class="sort-btn" id="sort-btn" title="Toggle chronological order">Date <span class="sort-arrow">↓</span></button>`;
+    html += `<a href="/devlogs/editor.html" class="sort-btn" data-curtain-label="CUSTOM XML">Custom XML Composer ↗</a>`;
+    html += '</div></div>';
     container.innerHTML = html;
 
-    // Filter listeners
+    const searchInput = document.getElementById('devlog-search');
+    searchInput.addEventListener('input', () => {
+        currentSearch = searchInput.value.trim().toLowerCase();
+        currentPage = 1;
+        renderDevLogs();
+    });
+
     container.querySelectorAll('.filter-btn').forEach(btn =>
         btn.addEventListener('click', () => {
             container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -516,29 +467,28 @@ function setupControls() {
         })
     );
 
-    // Sort listener
     document.getElementById('sort-btn').addEventListener('click', () => {
         sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
-        const btn = document.getElementById('sort-btn');
-        btn.classList.toggle('asc', sortOrder === 'asc');
+        document.getElementById('sort-btn').classList.toggle('asc', sortOrder === 'asc');
         currentPage = 1;
         renderDevLogs();
     });
 }
 
 // ═══════════════════════════════════════════════
-//  Rendering
+//  Rendering Cards
 // ═══════════════════════════════════════════════
-
 function renderDevLogs() {
     const list = document.getElementById('devlog-list');
-    const pag  = document.getElementById('pagination-container');
+    const pag = document.getElementById('pagination-container');
     list.innerHTML = '';
-    pag.innerHTML  = '';
+    pag.innerHTML = '';
 
     let filtered = currentFilter === 'all' ? [...devLogs] : devLogs.filter(l => l.type === currentFilter);
+    if (currentSearch) {
+        filtered = filtered.filter(l => l.rawText.toLowerCase().includes(currentSearch));
+    }
 
-    // Sort by date
     filtered.sort((a, b) => {
         const tA = a.pubDate?.date || 0;
         const tB = b.pubDate?.date || 0;
@@ -546,29 +496,28 @@ function renderDevLogs() {
     });
 
     const totalPages = Math.ceil(filtered.length / LOGS_PER_PAGE);
-    const start      = (currentPage - 1) * LOGS_PER_PAGE;
-    const page       = filtered.slice(start, start + LOGS_PER_PAGE);
+    const start = (currentPage - 1) * LOGS_PER_PAGE;
+    const page = filtered.slice(start, start + LOGS_PER_PAGE);
 
-    // Pagination controls
     if (totalPages > 1) {
         pag.innerHTML = `
             <div class="pagination">
-                <button ${currentPage === 1 ? 'disabled' : ''} id="prev-page" aria-label="Previous page">←</button>
+                <button type="button" ${currentPage === 1 ? 'disabled' : ''} id="prev-page" aria-label="Previous page">←</button>
                 <span class="page-info">Page ${currentPage} of ${totalPages}</span>
-                <button ${currentPage === totalPages ? 'disabled' : ''} id="next-page" aria-label="Next page">→</button>
+                <button type="button" ${currentPage === totalPages ? 'disabled' : ''} id="next-page" aria-label="Next page">→</button>
             </div>`;
-        document.getElementById('prev-page').addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderDevLogs(); } });
-        document.getElementById('next-page').addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderDevLogs(); } });
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--; renderDevLogs(); }
+        });
+        document.getElementById('next-page').addEventListener('click', () => {
+            if (currentPage < totalPages) { currentPage++; renderDevLogs(); }
+        });
     }
 
-    // Empty state
     if (page.length === 0) {
         list.innerHTML = `
             <div class="devlog-empty">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M9 12h6m-3-3v6m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                <p>No logs found for this filter</p>
+                <p>No devlog entries matched your current filter.</p>
             </div>`;
         return;
     }
@@ -577,30 +526,37 @@ function renderDevLogs() {
 }
 
 function createCard(log) {
-    const card = document.createElement('div');
+    const card = document.createElement('article');
     card.className = 'devlog-card';
-    card.innerHTML = `
-        <div class="devlog-header">
-            <div>
-                <h3 class="devlog-title">${log.heading || log.title}</h3>
-                <p class="devlog-date">${formatDate(log.pubDate.date)}${log.pubDate.timezone ? ` (${log.pubDate.timezone})` : ''}</p>
-            </div>
-            ${log.type ? `<span class="devlog-type">${log.type}</span>` : ''}
-        </div>
-        <p class="devlog-description">${log.description}</p>
-        <button class="devlog-toggle" data-id="${log.id}">Read More <span class="toggle-arrow">→</span></button>`;
 
-    card.querySelector('.devlog-toggle').addEventListener('click', () => openOverlay(log.id));
+    const metaParts = [
+        `${formatDate(log.pubDate.date)}${log.pubDate.timezone ? ` (${log.pubDate.timezone})` : ''}`,
+        `${log.readMins} min read`
+    ];
+    if (log.type) metaParts.push(log.type.toUpperCase());
+
+    card.innerHTML = `
+        <div class="devlog-card-topline">
+            <span class="editorial-index">ENTRY #${String(log.id).padStart(2, '0')}</span>
+            <span class="devlog-meta-line">${escapeHtml(metaParts.join(' · '))}</span>
+        </div>
+        <h2 class="devlog-title">
+            <button type="button" class="devlog-title-btn" data-id="${escapeHtml(log.id)}">${escapeHtml(log.heading || log.title)}</button>
+        </h2>
+        ${log.description ? `<p class="devlog-description">${escapeHtml(log.description)}</p>` : ''}
+        <button type="button" class="devlog-toggle" data-id="${escapeHtml(log.id)}">Read Entry <span class="toggle-arrow">→</span></button>
+    `;
+
+    card.querySelector('.devlog-title-btn').addEventListener('click', () => openOverlay(log.id, true));
+    card.querySelector('.devlog-toggle').addEventListener('click', () => openOverlay(log.id, true));
     return card;
 }
 
 // ═══════════════════════════════════════════════
-//  Footer  (re-uses global.json, same as app.js)
+//  Footer
 // ═══════════════════════════════════════════════
-
 async function setupFooter() {
     try {
-        // Reuse cached config from setupNavigation if available
         let cfg = cachedGlobalConfig;
         if (!cfg) {
             const resp = await fetch('/data/global.json');
@@ -608,32 +564,33 @@ async function setupFooter() {
             cfg = await resp.json();
         }
         const footer = document.getElementById('footer');
-        if (!cfg.footer) return;
+        if (!cfg.footer || !footer) return;
 
         let html = '';
         if (cfg.footer.copyright) html += `<p>${cfg.footer.copyright}</p>`;
-
         if (cfg.footer.links?.length) {
+            const icons = await Promise.all(cfg.footer.links.map(async (link) => {
+                try {
+                    const r = await fetch('/' + link.icon);
+                    return r.ok ? await r.text() : '';
+                } catch (_) {
+                    return '';
+                }
+            }));
             html += '<div class="social-links">';
-            for (const link of cfg.footer.links) {
-                let icon = '';
-                try { const r = await fetch('/' + link.icon); if (r.ok) icon = await r.text(); } catch (_) {}
-                html += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" class="svg-icon">${icon}</a>`;
-            }
+            cfg.footer.links.forEach((link, idx) => {
+                html += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" title="${link.name}" class="svg-icon">${icons[idx]}</a>`;
+            });
             html += '</div>';
         }
         if (cfg.footer.footerNote) html += cfg.footer.footerNote;
         footer.innerHTML = html;
-    } catch (_) { /* silent */ }
+    } catch (_) {}
 }
-
-// ═══════════════════════════════════════════════
-//  Utilities
-// ═══════════════════════════════════════════════
 
 function formatDate(ts) {
     if (!ts) return 'Unknown date';
-    return new Date(parseInt(ts) * 1000).toLocaleDateString('en-US', {
+    return new Date(parseInt(ts, 10) * 1000).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric',
         hour: '2-digit', minute: '2-digit'
     });
@@ -645,5 +602,4 @@ function showError(msg) {
     document.getElementById('loading').style.display = 'none';
 }
 
-// ─── Boot ───
 document.addEventListener('DOMContentLoaded', init);

@@ -3,9 +3,8 @@
   "title": "Experience",
   "resume": {
     "link": "/res/resume/resume.pdf",
-    "insideText": "Click here",
-    "outsideText" : "Want a formatted pdf of my Resume?"
-  
+    "insideText": "Preview PDF",
+    "outsideText": "Want a formatted PDF of my Resume?"
   },
   "work": [
     {

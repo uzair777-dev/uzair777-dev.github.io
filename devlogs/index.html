@@ -23,10 +23,40 @@
     <meta name="twitter:description" id="twitter-description" content="devLOGS — Developer thoughts, builds, security research, and programming experiments.">
     <meta name="twitter:image" id="twitter-image" content="https://uzair777-dev.github.io/res/img/bot.png">
 
-    <!-- Google Fonts — Inter -->
+    <!-- Preload critical devLOGS payloads -->
+    <link rel="preload" href="/data/global.json" as="fetch" crossorigin>
+    <link rel="preload" href="/devlogs/logs.xml" as="fetch" crossorigin>
+
+    <!-- Non-blocking Google Fonts — Bricolage Grotesque, Plus Jakarta Sans, IBM Plex Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;800&family=IBM+Plex+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;800&family=IBM+Plex+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"></noscript>
+
+    <!-- Theme, Solar Palette & Cross-Page Curtain Handoff Inline Initialization -->
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('theme');
+                var resolved = (saved === 'light' || saved === 'dark') ? saved :
+                    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var h = new Date().getHours();
+                var pal = (h >= 5 && h <= 10) ? 'dawn' : (h >= 11 && h <= 16) ? 'noon' : (h >= 17 && h <= 20) ? 'dusk' : 'night';
+                document.documentElement.setAttribute('data-theme', resolved);
+                document.documentElement.setAttribute('data-palette', pal);
+                var rawHandoff = sessionStorage.getItem('portfolio_curtain_handoff');
+                if (rawHandoff && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+                    var parsed = JSON.parse(rawHandoff);
+                    if (parsed && parsed.label && (Date.now() - parsed.ts) < 4500) {
+                        document.documentElement.setAttribute('data-curtain-handoff', parsed.label);
+                    }
+                }
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.documentElement.setAttribute('data-palette', 'dusk');
+            }
+        })();
+    </script>
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/styles.css">
@@ -37,59 +67,117 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/res/img/bot.png">
     <link rel="icon" type="image/svg+xml" href="/res/svg/bot.svg">
     <link rel="apple-touch-icon" href="/res/img/bot.png">
+
+    <script src="/theme-engine.js" defer></script>
 </head>
 <body>
+    <a href="#devlogs-main" class="sr-only sr-only-focusable" id="skip-link">Skip to dev logs</a>
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
     <!-- Navigation (populated dynamically from global.json) -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar" id="navbar" aria-label="Main navigation">
         <div class="nav-container">
             <a href="/" class="nav-logo" id="nav-logo">devLOGS</a>
             <ul class="nav-menu" id="nav-menu">
                 <!-- Loaded by index.js -->
             </ul>
-
-            <!-- Theme Toggle -->
-            <div class="theme-toggle" id="theme-toggle">
-                <button class="theme-option" data-theme="light" aria-label="Light mode">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
+            <div class="nav-actions">
+                <div class="nav-theme-slot" id="nav-theme-slot"></div>
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="burger-drawer">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
-                <button class="theme-option" data-theme="dark" aria-label="Dark mode">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
             </div>
         </div>
     </nav>
 
+    <!-- Mobile Burger Menu Drawer (Navigation + Light/Dark Toggle) -->
+    <div class="burger-backdrop" id="burger-backdrop" aria-hidden="true"></div>
+    <aside class="burger-drawer" id="burger-drawer" aria-label="Navigation menu" aria-hidden="true">
+        <div class="drawer-header">
+            <span class="drawer-title">Menu</span>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-nav-section">
+                <ul class="drawer-nav-list" id="drawer-nav-list">
+                    <!-- Synced from global.json -->
+                </ul>
+            </div>
+            <div id="burger-drawer-theme"></div>
+        </div>
+    </aside>
+
     <!-- Hero -->
     <header class="devlog-hero">
-        <h1>devLOGS</h1>
-        <p class="subtitle">If there's a will, you'll hear my crying <br> <sub><sup>Someone with common sense:  The saying isn't like that though?</sup></sub><br> Shut up Meg</p>
+        <div class="devlog-hero-inner devlog-hero-grid">
+            <div class="devlog-hero-copy">
+                <p class="hero-kicker">Build Journal · Experiments · Field Notes</p>
+                <h1>devLOGS</h1>
+                <p class="subtitle">If there's a will, you'll hear my crying <br> <sub><sup>Someone with common sense:  The saying isn't like that though?</sup></sub><br> Shut up Meg</p>
+                <p class="sr-only">Quiet note tucked in the margins of devLOGS: thanks for listening along to these chaotic build notes. You have great taste in hidden corners.</p>
+            </div>
+            <div class="masthead-svg-frame devlog-hero-svg-frame">
+                <span class="crop-mark crop-tl" aria-hidden="true"></span>
+                <span class="crop-mark crop-tr" aria-hidden="true"></span>
+                <span class="crop-mark crop-bl" aria-hidden="true"></span>
+                <span class="crop-mark crop-br" aria-hidden="true"></span>
+                <div class="masthead-svg-viewport">
+                    <svg class="theme-svg masthead-svg-art" viewBox="0 0 400 225" role="img" aria-label="Theme-reactive technical zine and XML log waveform schematic." xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <pattern id="devlog-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                <circle cx="10" cy="10" r="1" fill="var(--border-hairline)" />
+                            </pattern>
+                            <linearGradient id="devlog-wave-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="var(--accent)" />
+                                <stop offset="100%" stop-color="var(--accent-2)" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="400" height="225" fill="var(--bg-color)" />
+                        <rect width="400" height="225" fill="url(#devlog-grid)" />
+                        <circle cx="328" cy="158" r="56" fill="var(--accent-soft)" />
+
+                        <!-- Extruded Zine / XML Editor Card -->
+                        <g>
+                            <rect x="30" y="54" width="212" height="132" rx="6" fill="var(--card-extrude)" />
+                            <rect x="30" y="49" width="212" height="132" rx="6" fill="var(--bg-light)" stroke="var(--card-border)" stroke-width="1.6" />
+                            <line x1="30" y1="73" x2="242" y2="73" stroke="var(--border-hairline)" stroke-width="1.2" />
+                            <circle cx="44" cy="61" r="3.2" fill="var(--accent)" />
+                            <circle cx="56" cy="61" r="3.2" fill="var(--accent-2)" />
+                            <circle cx="68" cy="61" r="3.2" fill="var(--border-color)" />
+                            <text x="166" y="64" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600" fill="var(--text-light)">logs.xml</text>
+
+                            <text x="44" y="96" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--accent)">&lt;entry type="build"&gt;</text>
+                            <rect x="52" y="108" width="136" height="5" rx="2" fill="var(--border-color)" />
+                            <rect x="52" y="121" width="108" height="5" rx="2" fill="var(--border-hairline)" />
+                            <rect x="52" y="134" width="154" height="5" rx="2" fill="var(--accent-2)" opacity="0.7" />
+                            <text x="44" y="160" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--accent)">&lt;/entry&gt;</text>
+                            <rect x="104" y="150" width="7" height="11" rx="1.5" fill="var(--accent-2)" class="svg-cursor" />
+                        </g>
+
+                        <!-- Signal Waveform & Feed Nodes (Right) -->
+                        <path d="M 242 115 L 266 115 L 278 90 L 292 142 L 308 78 L 324 134 L 338 106 L 368 106" fill="none" stroke="url(#devlog-wave-grad)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="308" cy="78" r="4.5" fill="var(--accent)" stroke="var(--bg-light)" stroke-width="1.5" class="svg-pulse" />
+                        <circle cx="368" cy="106" r="4.5" fill="var(--accent-2)" stroke="var(--bg-light)" stroke-width="1.5" />
+
+                        <text x="20" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--text-light)">// DEVLOGS.XML</text>
+                        <text x="316" y="24" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--accent)">FEED.LIVE</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
     </header>
 
     <!-- Filters (shown only when multiple types exist) -->
     <div id="filter-container" class="devlog-container" style="display:none;"></div>
 
     <!-- Main Content -->
-    <main class="devlog-container">
-        <div class="devlog-loading" id="loading">
-            <div class="loading-spinner"></div>
-            <span class="loading-text">Loading dev logs...</span>
+    <main class="devlog-container" id="devlogs-main" tabindex="-1">
+        <div class="devlog-loading" id="loading" role="status" aria-live="polite">
+            <div class="solar-loader-slot" id="devlog-loader-slot">
+                <div class="loading-spinner" aria-hidden="true"></div>
+                <span class="loading-text">Loading dev logs...</span>
+            </div>
         </div>
         <div class="devlog-error" id="error" style="display:none;"></div>
         <div class="devlog-list" id="devlog-list" style="display:none;"></div>
@@ -101,6 +189,16 @@
 
     <!-- Module script — parser.js is imported inside index.js -->
     <script type="module" src="/devlogs/index.js"></script>
-    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}'></script><!-- End Cloudflare Web Analytics -->
+    <!-- Cloudflare Web Analytics (loads on production origins only) -->
+    <script>
+        if (location.hostname === 'uzairshaikh.pages.dev' || location.hostname === 'uzair777-dev.github.io') {
+            var s = document.createElement('script');
+            s.defer = true;
+            s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+            s.setAttribute('data-cf-beacon', '{"token": "2dcb478194d84cc0af2a32cb59a3c9a3"}');
+            document.body.appendChild(s);
+        }
+    </script>
+    <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
